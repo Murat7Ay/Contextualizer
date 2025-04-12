@@ -13,10 +13,10 @@ namespace Contextualizer.Core
 
         public ActionService()
         {
-            LoadActionsAndExecutions();
+            LoadActions();
         }
 
-        private void LoadActionsAndExecutions()
+        private void LoadActions()
         {
             // Çalışan assembly + Yüklenmiş tüm DLL'leri tara
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -32,6 +32,7 @@ namespace Contextualizer.Core
                     foreach (var type in actionTypes)
                     {
                         var instance = (IAction)Activator.CreateInstance(type);
+                        instance.Initialize(new PluginServiceProviderImp());
                         _actions[instance.Name] = instance;
                     }
 
@@ -43,51 +44,35 @@ namespace Contextualizer.Core
             }
         }
 
-        public async Task Action(string actionName, ContextWrapper context)
+        public async Task Action(ConfigAction action, ContextWrapper context)
         {
-            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{actionName}' başlıyor.");
-            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{actionName}' koşul başlıyor.");
-            bool isConditionSuccessed = ConditionEvaluator.EvaluateCondition(context.Conditions, context);
+            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' başlıyor.");
+            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' koşul başlıyor.");
+            bool isConditionSuccessed = ConditionEvaluator.EvaluateCondition(action.Conditions, context);
 
             if (!isConditionSuccessed)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action {actionName} koşul sağlanamadı.");
+                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action {action.Name} koşul sağlanamadı.");
                 return;
             }
-            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{actionName}' koşul bitti.");
-            if (_actions.TryGetValue(actionName, out var actionInstance))
+            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' koşul bitti.");
+            if (_actions.TryGetValue(action.Name, out var actionInstance))
             {
-                if (context.Confirmable)
+                if (action.RequiresConfirmation)
                 {
-                    bool confirmed = await ServiceLocator.Get<IUserInteractionService>().ShowConfirmationAsync("Action Confirmation", $"Do you want to proceed with action: {actionName}?");
+                    bool confirmed = await ServiceLocator.Get<IUserInteractionService>().ShowConfirmationAsync("Action Confirmation", $"Do you want to proceed with action: {action.Name}?");
 
                     if (!confirmed) {
-                        ServiceLocator.Get<IUserInteractionService>().ShowNotification($"Action {actionName} cancelled.");
+                        ServiceLocator.Get<IUserInteractionService>().ShowNotification($"Action {action.Name} cancelled.");
                     }
                 }
 
-                actionInstance.Action(context);
-                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{actionName}' bitti.");
+                actionInstance.Action(action, context);
+                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' bitti.");
             }
             else
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{actionName}' bulunamadı.");
-            }
-        }
-
-        public void Action(string name, string contextKey, ContextWrapper context)
-        {
-            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Execute '{name}' başlıyor.");
-
-            if (_actions.TryGetValue(name, out var executeInstance))
-            {
-                executeInstance.Action(contextKey, context);
-
-                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Execute '{name}' bitti.");
-            }
-            else
-            {
-                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Execute '{name}' bulunamadı.");
+                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' bulunamadı.");
             }
         }
     }

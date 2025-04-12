@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Core
 {
-    public interface IAction
+    internal class PluginServiceProviderImp : IPluginServiceProvider
     {
-        string Name { get; }
-        void Initialize(IPluginServiceProvider serviceProvider);
-        void Action(ConfigAction action, ContextWrapper context);
+        public T GetService<T>() where T : class
+        {
+            return ServiceLocator.Get<T>();
+        }
     }
 }

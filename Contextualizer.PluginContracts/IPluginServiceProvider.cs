@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Contextualizer.Core
+namespace Contextualizer.PluginContracts
 {
-    public interface IActionService
+    public interface IPluginServiceProvider
     {
-        Task Action(ConfigAction action, ContextWrapper context);
+        public T GetService<T>() where T : class;
     }
 }

@@ -22,9 +22,7 @@ namespace Contextualizer.Core
         public List<string> Groups { get; set; }
 
         [JsonPropertyName("actions")]
-        public List<string> Actions { get; set; }
-        [JsonPropertyName("requires_confirmation")]
-        public bool RequiresConfirmation { get; set; }
+        public List<ConfigAction> Actions { get; set; }
 
         [JsonPropertyName("path")]
         public string Path { get; set; }
@@ -40,18 +38,13 @@ namespace Contextualizer.Core
 
         [JsonPropertyName("output_format")] // Cikti formati
         public string OutputFormat { get; set; }
-
-        [JsonPropertyName("executables")]
-        public Dictionary<string, List<string>> Executables { get; set; }
         [JsonPropertyName("seeder")]
         public Dictionary<string, string> Seeder { get; set; }
         [JsonPropertyName("user_inputs")]
         public List<UserInputRequest> UserInputs { get; set; }
-        [JsonPropertyName("conditions")]
-        public Condition Conditions { get; set; }
     }
 
-    public class Action
+    public class ConfigAction
     {
         [JsonPropertyName("name")]
         public string Name { get; set; }

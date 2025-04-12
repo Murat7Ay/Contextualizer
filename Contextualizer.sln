@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contextualizer.ConsoleApp",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contextualizer.PluginContracts", "Contextualizer.PluginContracts\Contextualizer.PluginContracts.csproj", "{C9D35482-BFB0-489D-A9FB-429E6BF7784C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contextualizer.Plugins", "Contextualizer.Plugins\Contextualizer.Plugins.csproj", "{8A7BF330-5170-4C0C-9663-2DB62E421163}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{C9D35482-BFB0-489D-A9FB-429E6BF7784C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9D35482-BFB0-489D-A9FB-429E6BF7784C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9D35482-BFB0-489D-A9FB-429E6BF7784C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A7BF330-5170-4C0C-9663-2DB62E421163}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A7BF330-5170-4C0C-9663-2DB62E421163}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A7BF330-5170-4C0C-9663-2DB62E421163}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A7BF330-5170-4C0C-9663-2DB62E421163}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

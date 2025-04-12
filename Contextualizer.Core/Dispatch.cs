@@ -27,7 +27,6 @@ namespace Contextualizer.Core
                 ContextSeederSeed(contextWrapper);
                 ContextDefaultSeed(contextWrapper);
                 DispatchAction(GetActions(), contextWrapper);
-                DispatchExecute(GetExecutables(), contextWrapper);
             }
         }
 
@@ -35,13 +34,11 @@ namespace Contextualizer.Core
 
         protected abstract Dictionary<string,string> CreateContext(string input);
 
-        protected abstract List<string> GetActions();
-
-        protected abstract Dictionary<string, List<string>> GetExecutables();
+        protected abstract List<ConfigAction> GetActions();
 
         protected abstract string OutputFormat { get; }
 
-        private void DispatchAction(List<string> actions, ContextWrapper context)
+        private void DispatchAction(List<ConfigAction> actions, ContextWrapper context)
         {
             if (actions == null || actions.Count == 0)
             {
@@ -51,23 +48,6 @@ namespace Contextualizer.Core
             foreach (var action in actions)
             {
                 Dispatcher.DispatchAction(action, context);
-            }
-        }
-
-        private void DispatchExecute(Dictionary<string, List<string>> executables, ContextWrapper context)
-        {
-            if (executables == null || executables.Count == 0)
-            {
-                return;
-            }
-
-            foreach (var key in executables)
-            {
-                string contextKey = key.Key;
-                foreach (var executeName in key.Value)
-                {
-                    Dispatcher.DispatchExecute(executeName, contextKey, context);
-                }
             }
         }
 

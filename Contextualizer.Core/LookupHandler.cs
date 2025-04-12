@@ -69,14 +69,9 @@ namespace Contextualizer.Core
             return context;
         }
 
-        protected override List<string> GetActions()
+        protected override List<ConfigAction> GetActions()
         {
             return HandlerConfig.Actions;
-        }
-
-        protected override Dictionary<string, List<string>> GetExecutables()
-        {
-            return HandlerConfig.Executables;
         }
     }
 }

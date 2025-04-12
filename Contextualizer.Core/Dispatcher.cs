@@ -23,14 +23,9 @@ namespace Contextualizer.Core
             }
         }
 
-        public static void DispatchAction(string action, ContextWrapper context)
+        public static void DispatchAction(ConfigAction action, ContextWrapper context)
         {
             ServiceLocator.Get<IActionService>().Action(action, context);
-        }
-
-        public static void DispatchExecute(string execute, string contextKey, ContextWrapper context)
-        {
-            ServiceLocator.Get<IActionService>().Action(execute, contextKey, context);
         }
     }
 }
