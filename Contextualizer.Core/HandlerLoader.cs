@@ -28,6 +28,10 @@ namespace Contextualizer.Core
                 {
                     handlers.Add(new LookupHandler(handlerConfig));
                 }
+                else if (handlerConfig.Type == "file")
+                {
+                    handlers.Add(new FileHandler(handlerConfig));
+                }
             }
 
             return handlers;

@@ -42,6 +42,8 @@ namespace Contextualizer.Core
         public Dictionary<string, string> Seeder { get; set; }
         [JsonPropertyName("user_inputs")]
         public List<UserInputRequest> UserInputs { get; set; }
+        [JsonPropertyName("file_extensions")]
+        public List<string> FileExtensions { get; set; }
     }
 
     public class ConfigAction

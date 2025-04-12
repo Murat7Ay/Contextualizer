@@ -65,6 +65,9 @@ namespace Contextualizer.Core
 
         private void PromptUserInputsAsync(Dictionary<string, string> context)
         {
+            if (HandlerConfig.UserInputs is null)
+                return;
+
             foreach (var inpt in HandlerConfig.UserInputs)
             {
                 context[inpt.Key] = ServiceLocator.Get<IUserInteractionService>().GetUserInput(inpt)!;
@@ -73,6 +76,9 @@ namespace Contextualizer.Core
 
         private void ContextSeederSeed(Dictionary<string, string> context)
         {
+            if (HandlerConfig.Seeder is null)
+                return;
+
             foreach (var kvp in HandlerConfig.Seeder)
             {
                 context[kvp.Key] = ReplaceDynamicValues(kvp.Value, context);

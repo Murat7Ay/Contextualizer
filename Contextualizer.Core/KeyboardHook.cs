@@ -57,7 +57,6 @@ namespace Contextualizer.Core
             {
                 args.SuppressEvent = true;
 
-                // Use Task.Run to avoid blocking the UI thread.
                 _ = Task.Run(() => ProcessKeyPressAsync(args.Data.KeyCode));
             }
         }

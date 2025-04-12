@@ -9,10 +9,7 @@ namespace Contextualizer.Core
     public class LookupHandler : Dispatch, IHandler
     {
         private Dictionary<string, Dictionary<string, string>> data;
-
-
         public string Name => "Lookup";
-
         public LookupHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
             data = LoadData();
