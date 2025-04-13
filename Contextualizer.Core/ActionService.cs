@@ -52,7 +52,7 @@ namespace Contextualizer.Core
 
             if (!isConditionSuccessed)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action {action.Name} koşul sağlanamadı.");
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action {action.Name} koşul sağlanamadı.");
                 return;
             }
             ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' koşul bitti.");
@@ -63,7 +63,7 @@ namespace Contextualizer.Core
                     bool confirmed = await ServiceLocator.Get<IUserInteractionService>().ShowConfirmationAsync("Action Confirmation", $"Do you want to proceed with action: {action.Name}?");
 
                     if (!confirmed) {
-                        ServiceLocator.Get<IUserInteractionService>().ShowNotification($"Action {action.Name} cancelled.");
+                        ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action {action.Name} cancelled.");
                     }
                 }
 
@@ -72,7 +72,7 @@ namespace Contextualizer.Core
             }
             else
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' bulunamadı.");
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action '{action.Name}' bulunamadı.");
             }
         }
     }

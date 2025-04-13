@@ -24,7 +24,7 @@ namespace Contextualizer.Plugins
                 foreach (var kvp in context)
                 {
                     string message = $"{kvp.Key}: {kvp.Value}";
-                    userInteractionService.ShowNotification(message, LogType.Info, durationInSeconds: 3); // Her bir key-value çiftini ayrı bir bildirim olarak göster
+                    userInteractionService.ShowNotification(message, LogType.Info, durationInSeconds: 3); 
                 }
             }
             else

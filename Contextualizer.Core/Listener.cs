@@ -34,12 +34,12 @@ namespace Contextualizer.Core
         public void Stop()
         {
             _hook.Stop();
-            ServiceLocator.Get<IUserInteractionService>().ShowNotification("Listener stopped.");
+            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, "Listener stopped.");
         }
 
         private void OnTextCaptured(object? sender, TextCapturedEventArgs e)
         {
-            ServiceLocator.Get<IUserInteractionService>().ShowNotification($"Captured Text: {e.CapturedText}");
+            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Captured Text: {e.CapturedText}");
 
             foreach (var handler in _handlers)
             {
@@ -49,7 +49,7 @@ namespace Contextualizer.Core
                 }
                 catch (Exception ex)
                 {
-                    ServiceLocator.Get<IUserInteractionService>().ShowNotification($"Error in handler {handler.GetType().Name}: {ex.Message}");
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error in handler {handler.GetType().Name}: {ex.Message}");
                 }
             }
         }
