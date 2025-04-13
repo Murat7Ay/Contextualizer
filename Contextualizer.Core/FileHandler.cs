@@ -37,7 +37,7 @@ namespace Contextualizer.Core
 
         bool IHandler.CanHandle(ClipboardContent clipboardContent)
         {
-            return CanHandle(clipboardContent);
+            return clipboardContent.IsFile ||  CanHandle(clipboardContent);
         }
 
 
