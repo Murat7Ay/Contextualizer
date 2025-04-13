@@ -16,7 +16,7 @@ namespace Contextualizer.Plugins
 
         public void Action(ConfigAction action, ContextWrapper context)
         {
-            pluginServiceProvider.GetService<IUserInteractionService>().Log(NotificationType.Info, context[FileInfoKeys.LastAccessUtc]);
+            pluginServiceProvider.GetService<IUserInteractionService>().Log(LogType.Info, context[FileInfoKeys.LastAccessUtc]);
             Process.Start(context[FileInfoKeys.FullPath]);
         }
 

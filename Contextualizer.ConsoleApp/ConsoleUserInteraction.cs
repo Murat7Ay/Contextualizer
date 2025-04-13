@@ -52,12 +52,12 @@ namespace Contextualizer.ConsoleApp
             return userInput;
         }
 
-        public void Log(NotificationType notificationType, string message, DateTime? timestamp = null, string? additionalInfo = null)
+        public void Log(LogType notificationType, string message, DateTime? timestamp = null, string? additionalInfo = null)
         {
             System.Console.WriteLine($"[{notificationType.ToString()}]: {message}");
         }
 
-        public void ShowActionableNotification(string message, string actionLabel, Action action, NotificationType notificationType = NotificationType.Info)
+        public void ShowActionableNotification(string message, string actionLabel, Action action, LogType notificationType = LogType.Info)
         {
             throw new NotImplementedException();
         }
@@ -84,7 +84,7 @@ namespace Contextualizer.ConsoleApp
             }
         }
 
-        public void ShowNotification(string message, NotificationType notificationType = NotificationType.Info, string title = "", int durationInSeconds = 5, Action? onActionClicked = null)
+        public void ShowNotification(string message, LogType notificationType = LogType.Info, string title = "", int durationInSeconds = 5, Action? onActionClicked = null)
         {
             System.Console.WriteLine(message);
         }

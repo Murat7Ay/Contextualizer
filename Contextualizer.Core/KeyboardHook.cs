@@ -26,7 +26,7 @@ namespace Contextualizer.Core
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        private void Log(NotificationType level, string message)
+        private void Log(LogType level, string message)
         {
             LogMessage?.Invoke(this, new LogMessageEventArgs(level, message));
         }
@@ -37,7 +37,7 @@ namespace Contextualizer.Core
             _hook = new SimpleGlobalHook();
             _hook.KeyPressed += OnKeyPressed;
 
-            Log(NotificationType.Info, "Press Ctrl+W to capture selected text...");
+            Log(LogType.Info, "Press Ctrl+W to capture selected text...");
             return _hook.RunAsync();
         }
 
@@ -73,19 +73,19 @@ namespace Contextualizer.Core
                         string? selectedText = GetSelectedText(activeWindowHandle);
                         if (string.IsNullOrWhiteSpace(selectedText))
                         {
-                            Log(NotificationType.Warning, "No text was selected");
+                            Log(LogType.Warning, "No text was selected");
                             return;
                         }
                         OnTextCaptured(selectedText);
                     }
                     else
                     {
-                        Log(NotificationType.Warning, "No active window found.");
+                        Log(LogType.Warning, "No active window found.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Log(NotificationType.Error, $"Error processing key press: {ex.Message}");
+                    Log(LogType.Error, $"Error processing key press: {ex.Message}");
                 }
                 finally
                 {
@@ -94,7 +94,7 @@ namespace Contextualizer.Core
             }
             else
             {
-                Log(NotificationType.Error, "A capture operation is already in progress.");
+                Log(LogType.Error, "A capture operation is already in progress.");
             }
         }
 
@@ -111,7 +111,7 @@ namespace Contextualizer.Core
                 KeyboardSimulator.SimulateCtrlC();
                 if (!WindowsClipboard.ClipWait(ClipboardWaitTimeout))
                 {
-                    Log(NotificationType.Error, "Clipboard timeout."); // Report the timeout
+                    Log(LogType.Error, "Clipboard timeout."); // Report the timeout
                     return "";
                 }
 
@@ -119,7 +119,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                Log(NotificationType.Error, $"Error getting selected text: {ex.Message}");
+                Log(LogType.Error, $"Error getting selected text: {ex.Message}");
                 return "";
             }
         }
@@ -153,10 +153,10 @@ namespace Contextualizer.Core
 
     public class LogMessageEventArgs : EventArgs
     {
-        public NotificationType Level { get; }
+        public LogType Level { get; }
         public string Message { get; }
 
-        public LogMessageEventArgs(NotificationType level, string message)
+        public LogMessageEventArgs(LogType level, string message)
         {
             Level = level;
             Message = message;

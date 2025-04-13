@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Core
 {
-    public enum NotificationType
+    public enum LogType
     {
         Info,
         Warning,

@@ -10,7 +10,7 @@ namespace Contextualizer.Core
     {
         public void ShowNotification(
             string message,
-            NotificationType notificationType = NotificationType.Info,
+            LogType notificationType = LogType.Info,
             string title = "",
             int durationInSeconds = 5,
             Action? onActionClicked = null);
@@ -19,10 +19,10 @@ namespace Contextualizer.Core
             string message,
             string actionLabel,
             Action action,
-            NotificationType notificationType = NotificationType.Info);
+            LogType notificationType = LogType.Info);
 
         public void Log(
-            NotificationType notificationType,
+            LogType notificationType,
             string message,
             DateTime? timestamp = null,
             string? additionalInfo = null);

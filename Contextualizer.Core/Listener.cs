@@ -28,7 +28,7 @@ namespace Contextualizer.Core
         public async Task StartAsync()
         {
             await _hook.StartAsync();
-            ServiceLocator.Get<IUserInteractionService>().ShowNotification("Listener started.");
+            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info,"Listener started.");
         }
 
         public void Stop()

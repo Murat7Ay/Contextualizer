@@ -46,16 +46,16 @@ namespace Contextualizer.Core
 
         public async Task Action(ConfigAction action, ContextWrapper context)
         {
-            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' başlıyor.");
-            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' koşul başlıyor.");
+            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' başlıyor.");
+            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' koşul başlıyor.");
             bool isConditionSuccessed = ConditionEvaluator.EvaluateCondition(action.Conditions, context);
 
             if (!isConditionSuccessed)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action {action.Name} koşul sağlanamadı.");
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action {action.Name} koşul sağlanamadı.");
                 return;
             }
-            ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' koşul bitti.");
+            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' koşul bitti.");
             if (_actions.TryGetValue(action.Name, out var actionInstance))
             {
                 if (action.RequiresConfirmation)
@@ -68,11 +68,11 @@ namespace Contextualizer.Core
                 }
 
                 actionInstance.Action(action, context);
-                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' bitti.");
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' bitti.");
             }
             else
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(NotificationType.Info, $"Action '{action.Name}' bulunamadı.");
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' bulunamadı.");
             }
         }
     }

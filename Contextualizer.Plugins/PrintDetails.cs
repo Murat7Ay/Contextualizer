@@ -24,12 +24,12 @@ namespace Contextualizer.Plugins
                 foreach (var kvp in context)
                 {
                     string message = $"{kvp.Key}: {kvp.Value}";
-                    userInteractionService.ShowNotification(message, NotificationType.Info, durationInSeconds: 3); // Her bir key-value çiftini ayrı bir bildirim olarak göster
+                    userInteractionService.ShowNotification(message, LogType.Info, durationInSeconds: 3); // Her bir key-value çiftini ayrı bir bildirim olarak göster
                 }
             }
             else
             {
-                userInteractionService.ShowNotification("ContextWrapper boş.", NotificationType.Warning);
+                userInteractionService.ShowNotification("ContextWrapper boş.", LogType.Warning);
             }
         }
 
