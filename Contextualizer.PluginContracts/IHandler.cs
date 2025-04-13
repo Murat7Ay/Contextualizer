@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Core
 {
-    internal interface IHandler
+    public interface IHandler
     {
         string Name { get; }
-        bool CanHandle(string input);
-        void Execute(string input);
+        bool CanHandle(ClipboardContent clipboardContent);
+        void Execute(ClipboardContent clipboardContent);
     }
 }

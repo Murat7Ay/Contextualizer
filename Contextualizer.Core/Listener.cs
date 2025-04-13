@@ -37,15 +37,15 @@ namespace Contextualizer.Core
             ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, "Listener stopped.");
         }
 
-        private void OnTextCaptured(object? sender, TextCapturedEventArgs e)
+        private void OnTextCaptured(object? sender, ClipboardCapturedEventArgs e)
         {
-            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Captured Text: {e.CapturedText}");
+            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Captured Text: {e.ToString()}");
 
             foreach (var handler in _handlers)
             {
                 try
                 {
-                    handler.Execute(e.CapturedText);
+                    handler.Execute(e.ClipboardContent);
                 }
                 catch (Exception ex)
                 {

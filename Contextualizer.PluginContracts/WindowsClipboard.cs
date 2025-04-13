@@ -156,15 +156,31 @@ namespace Contextualizer.Core
             return InnerGet();
         }
 
-        public static string? GetClipboardContent()
+        public static ClipboardContent GetClipboardContent()
         {
+            ClipboardContent content = new ClipboardContent();
+
             if (IsClipboardFormatAvailable(cfUnicodeText))
-                return GetText();
+            {
+                content.Success = true;
+                content.Text = GetText() ?? string.Empty;
+                content.IsText = true;
+            }
+            else if(IsClipboardFormatAvailable(CF_HDROP))
+            {
+                content.Success = true;
+                content.Files = GetFiles() ?? Array.Empty<string>();
+                content.IsFile = true;
+            }
+            else
+            {
+                content.Text = string.Empty;
+                content.IsText = false;
+                content.IsFile = false;
+                content.Success = false;
+            }
 
-            if (IsClipboardFormatAvailable(CF_HDROP))
-                return string.Join(",", GetFiles());
-
-            return string.Empty;
+            return content;
         }
 
         static string? InnerGet()

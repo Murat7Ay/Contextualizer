@@ -19,18 +19,19 @@ namespace Contextualizer.Core
 
         protected override string OutputFormat => HandlerConfig.OutputFormat;
 
-        protected override bool CanHandle(string input)
+        protected override bool CanHandle(ClipboardContent clipboardContent)
         {
-            return regex.IsMatch(input);
+            return regex.IsMatch(clipboardContent.Text);
         }
 
-        bool IHandler.CanHandle(string input)
+        bool IHandler.CanHandle(ClipboardContent clipboardContent)
         {
-            return CanHandle(input);
+            return CanHandle(clipboardContent);
         }
 
-        protected override Dictionary<string, string> CreateContext(string input)
+        protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
         {
+            string input = clipboardContent.Text;
             var match = regex.Match(input);
             var context = new Dictionary<string, string>();
             context[ContextKey._input] = input;

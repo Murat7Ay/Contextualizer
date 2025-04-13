@@ -47,20 +47,21 @@ namespace Contextualizer.Core
             return data;
         }
 
-        protected override bool CanHandle(string input)
+        protected override bool CanHandle(ClipboardContent clipboardContent)
         {
-            return data.ContainsKey(input);
+            return data.ContainsKey(clipboardContent.Text);
         }
 
-        bool IHandler.CanHandle(string input)
+        bool IHandler.CanHandle(ClipboardContent clipboardContent)
         {
-            return CanHandle(input);
+            return CanHandle(clipboardContent);
         }
 
         protected override string OutputFormat => HandlerConfig.OutputFormat;
 
-        protected override Dictionary<string, string> CreateContext(string input)
+        protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
         {
+            string input = clipboardContent.Text;
             var context = data[input];
             context[ContextKey._input] = input;
             return context;

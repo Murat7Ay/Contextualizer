@@ -19,13 +19,13 @@ namespace Contextualizer.Core
             fileInfo = new Dictionary<string,string>();
         }
 
-        protected override bool CanHandle(string input)
+        protected override bool CanHandle(ClipboardContent clipboardContent)
         {
             //todo: birden fazla dosya seçebilir.
+            string filePath = clipboardContent.Files.FirstOrDefault()!;
 
 
-
-            fileInfo = GetFullFileInfoDictionary(input);
+            fileInfo = GetFullFileInfoDictionary(filePath);
 
             if (!fileInfo.TryGetValue(FileInfoKeys.Extension, out var extension) || fileInfo.ContainsKey(FileInfoKeys.NotFound) || string.IsNullOrWhiteSpace(extension) || !HandlerConfig.FileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
             {
@@ -35,13 +35,13 @@ namespace Contextualizer.Core
             return true;
         }
 
-        bool IHandler.CanHandle(string input)
+        bool IHandler.CanHandle(ClipboardContent clipboardContent)
         {
-            return CanHandle(input);
+            return CanHandle(clipboardContent);
         }
 
 
-        protected override Dictionary<string, string> CreateContext(string input)
+        protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
         {
             return fileInfo;
         }

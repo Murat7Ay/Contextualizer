@@ -16,13 +16,13 @@ namespace Contextualizer.Core
             HandlerConfig = handlerConfig;
         }
 
-        public void Execute(string input)
+        public void Execute(ClipboardContent clipboardContent)
         {
-            if (CanHandle(input))
+            if (CanHandle(clipboardContent))
             {
-                var context = CreateContext(input);
+                var context = CreateContext(clipboardContent);
                 ContextWrapper contextWrapper = new ContextWrapper(context.AsReadOnly(), HandlerConfig);
-                FindSelectorKey(input, contextWrapper);
+                FindSelectorKey(clipboardContent, contextWrapper);
                 PromptUserInputsAsync(contextWrapper);
                 ContextSeederSeed(contextWrapper);
                 ContextDefaultSeed(contextWrapper);
@@ -30,9 +30,9 @@ namespace Contextualizer.Core
             }
         }
 
-        protected abstract bool CanHandle(string input);
+        protected abstract bool CanHandle(ClipboardContent clipboardContent);
 
-        protected abstract Dictionary<string,string> CreateContext(string input);
+        protected abstract Dictionary<string, string> CreateContext(ClipboardContent clipboardContent);
 
         protected abstract List<ConfigAction> GetActions();
 
@@ -51,11 +51,17 @@ namespace Contextualizer.Core
             }
         }
 
-        private void FindSelectorKey(string input, ContextWrapper context)
+        private void FindSelectorKey(ClipboardContent clipboardContent, ContextWrapper context)
         {
+            if (!clipboardContent.IsText)
+            {
+                return;
+            }
+
+
             foreach (var kvp in context)
             {
-                if (kvp.Value == input)
+                if (kvp.Value == clipboardContent.Text)
                 {
                     context[ContextKey._selector_key] = kvp.Key;
                     return;

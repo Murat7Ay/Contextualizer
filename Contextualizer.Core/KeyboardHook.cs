@@ -17,7 +17,7 @@ namespace Contextualizer.Core
         private const int ClipboardWaitTimeout = 5;
         private bool _isDisposed;
 
-        public event EventHandler<TextCapturedEventArgs>? TextCaptured;
+        public event EventHandler<ClipboardCapturedEventArgs>? TextCaptured;
         public event EventHandler<LogMessageEventArgs>? LogMessage;
 
         [DllImport("user32.dll")]
@@ -70,13 +70,13 @@ namespace Contextualizer.Core
                     IntPtr activeWindowHandle = GetForegroundWindow();
                     if (activeWindowHandle != IntPtr.Zero)
                     {
-                        string? selectedText = GetSelectedText(activeWindowHandle);
-                        if (string.IsNullOrWhiteSpace(selectedText))
+                        ClipboardContent clipboardContent = GetSelectedText(activeWindowHandle);
+                        if (!clipboardContent.Success)
                         {
                             Log(LogType.Warning, "No text was selected");
                             return;
                         }
-                        OnTextCaptured(selectedText);
+                        OnTextCaptured(clipboardContent);
                     }
                     else
                     {
@@ -98,7 +98,7 @@ namespace Contextualizer.Core
             }
         }
 
-        private string? GetSelectedText(IntPtr hwnd)
+        private ClipboardContent GetSelectedText(IntPtr hwnd)
         {
             try
             {
@@ -112,7 +112,7 @@ namespace Contextualizer.Core
                 if (!WindowsClipboard.ClipWait(ClipboardWaitTimeout))
                 {
                     Log(LogType.Error, "Clipboard timeout."); // Report the timeout
-                    return "";
+                    return new ClipboardContent();
                 }
 
                 return WindowsClipboard.GetClipboardContent();
@@ -120,14 +120,14 @@ namespace Contextualizer.Core
             catch (Exception ex)
             {
                 Log(LogType.Error, $"Error getting selected text: {ex.Message}");
-                return "";
+                return new ClipboardContent();
             }
         }
 
 
-        protected virtual void OnTextCaptured(string text)
+        protected virtual void OnTextCaptured(ClipboardContent clipboardContent)
         {
-            TextCaptured?.Invoke(this, new TextCapturedEventArgs(text));
+            TextCaptured?.Invoke(this, new ClipboardCapturedEventArgs(clipboardContent));
         }
 
         public void Dispose()
