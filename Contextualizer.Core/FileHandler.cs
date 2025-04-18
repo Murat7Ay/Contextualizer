@@ -10,9 +10,9 @@ namespace Contextualizer.Core
     public class FileHandler : Dispatch, IHandler
     {
         private Dictionary<string, string> fileInfo;
-        public string Name => "Lookup";
+        public static string TypeName => "File";
 
-        protected override string OutputFormat => HandlerConfig.OutputFormat;
+        protected override string OutputFormat => base.HandlerConfig.OutputFormat;
 
         public FileHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
@@ -27,7 +27,7 @@ namespace Contextualizer.Core
             {
                 var fileProperties = GetFullFileInfoDictionary(filePath, i);
 
-                if (!fileInfo.TryGetValue(FileInfoKeys.Extension + i, out var extension) || fileInfo.ContainsKey(FileInfoKeys.NotFound) || string.IsNullOrWhiteSpace(extension) || !HandlerConfig.FileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+                if (!fileInfo.TryGetValue(FileInfoKeys.Extension + i, out var extension) || fileInfo.ContainsKey(FileInfoKeys.NotFound) || string.IsNullOrWhiteSpace(extension) || !base.HandlerConfig.FileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                 {
                     return false;
                 }
@@ -42,6 +42,7 @@ namespace Contextualizer.Core
             return clipboardContent.IsFile || clipboardContent.Files.Any() ||  CanHandle(clipboardContent);
         }
 
+        public HandlerConfig HandlerConfig => base.HandlerConfig;
 
         protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
         {
@@ -95,7 +96,7 @@ namespace Contextualizer.Core
         
         protected override List<ConfigAction> GetActions()
         {
-            return HandlerConfig.Actions;
+            return base.HandlerConfig.Actions;
         }
     }
 }

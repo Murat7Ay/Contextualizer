@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Contextualizer.PluginContracts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace Contextualizer.Core
     public class LookupHandler : Dispatch, IHandler
     {
         private Dictionary<string, Dictionary<string, string>> data;
-        public string Name => "Lookup";
+        public static string TypeName => "Lookup";
         public LookupHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
             data = LoadData();
@@ -20,12 +21,12 @@ namespace Contextualizer.Core
             var data = new Dictionary<string, Dictionary<string, string>>();
             try
             {
-                using var reader = new StreamReader(HandlerConfig.Path);
+                using var reader = new StreamReader(base.HandlerConfig.Path);
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    var parts = line.Split(new[] { HandlerConfig.Delimiter }, StringSplitOptions.None);
-                    if (parts.Length != HandlerConfig.ValueNames.Count)
+                    var parts = line.Split(new[] { base.HandlerConfig.Delimiter }, StringSplitOptions.None);
+                    if (parts.Length != base.HandlerConfig.ValueNames.Count)
                     {
                         continue; // Skip invalid lines
                     }
@@ -33,7 +34,7 @@ namespace Contextualizer.Core
                     var values = HandlerConfig.ValueNames.Zip(parts, (name, value) => new { name, value })
                         .ToDictionary(x => x.name, x => x.value);
 
-                    foreach (var keyName in HandlerConfig.KeyNames.Where(values.ContainsKey))
+                    foreach (var keyName in base.HandlerConfig.KeyNames.Where(values.ContainsKey))
                     {
                         data[values[keyName]] = values;
                     }
@@ -41,7 +42,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().ShowNotification($"ERROR: Failed to load data from {HandlerConfig.Path}: {ex.Message}");
+                ServiceLocator.Get<IUserInteractionService>().ShowNotification($"ERROR: Failed to load data from {base.HandlerConfig.Path}: {ex.Message}");
             }
 
             return data;
@@ -56,8 +57,9 @@ namespace Contextualizer.Core
         {
             return CanHandle(clipboardContent);
         }
+        public HandlerConfig HandlerConfig => base.HandlerConfig;
 
-        protected override string OutputFormat => HandlerConfig.OutputFormat;
+        protected override string OutputFormat => base.HandlerConfig.OutputFormat;
 
         protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
         {
@@ -69,7 +71,7 @@ namespace Contextualizer.Core
 
         protected override List<ConfigAction> GetActions()
         {
-            return HandlerConfig.Actions;
+            return base.HandlerConfig.Actions;
         }
     }
 }

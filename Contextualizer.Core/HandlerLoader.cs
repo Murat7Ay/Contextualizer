@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Contextualizer.PluginContracts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,18 +21,9 @@ namespace Contextualizer.Core
             {
                 var handlerConfig = JsonSerializer.Deserialize<HandlerConfig>(handlerConfigElement.ToString());
 
-                if (handlerConfig.Type == "regex")
-                {
-                    handlers.Add(new RegexHandler(handlerConfig));
-                }
-                else if (handlerConfig.Type == "lookup")
-                {
-                    handlers.Add(new LookupHandler(handlerConfig));
-                }
-                else if (handlerConfig.Type == "file")
-                {
-                    handlers.Add(new FileHandler(handlerConfig));
-                }
+                var handler = HandlerFactory.Create(handlerConfig);
+                if (handler != null)
+                    handlers.Add(handler);
             }
 
             return handlers;

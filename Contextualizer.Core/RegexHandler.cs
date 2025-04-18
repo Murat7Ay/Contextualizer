@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Contextualizer.PluginContracts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,9 +16,11 @@ namespace Contextualizer.Core
             regex = new System.Text.RegularExpressions.Regex(handlerConfig.Regex);
         }
 
-        public string Name => "regex";
+        public static string TypeName => "Regex";
 
-        protected override string OutputFormat => HandlerConfig.OutputFormat;
+        protected override string OutputFormat => base.HandlerConfig.OutputFormat;
+
+        public HandlerConfig HandlerConfig => base.HandlerConfig;
 
         protected override bool CanHandle(ClipboardContent clipboardContent)
         {
@@ -38,9 +41,9 @@ namespace Contextualizer.Core
 
             if (match.Success)
             {
-                for (int i = 1; i <= HandlerConfig.Groups.Count; i++)
+                for (int i = 1; i <= base.HandlerConfig.Groups.Count; i++)
                 {
-                    context[HandlerConfig.Groups[i - 1]] = match.Groups[i].Value;
+                    context[base.HandlerConfig.Groups[i - 1]] = match.Groups[i].Value;
                 }
             }
 
@@ -49,7 +52,7 @@ namespace Contextualizer.Core
 
         protected override List<ConfigAction> GetActions()
         {
-            return HandlerConfig.Actions;
+            return base.HandlerConfig.Actions;
         }
     }
 }
