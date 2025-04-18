@@ -21,23 +21,25 @@ namespace Contextualizer.Core
 
         protected override bool CanHandle(ClipboardContent clipboardContent)
         {
-            //todo: birden fazla dosya seçebilir.
             string filePath = clipboardContent.Files.FirstOrDefault()!;
 
-
-            fileInfo = GetFullFileInfoDictionary(filePath);
-
-            if (!fileInfo.TryGetValue(FileInfoKeys.Extension, out var extension) || fileInfo.ContainsKey(FileInfoKeys.NotFound) || string.IsNullOrWhiteSpace(extension) || !HandlerConfig.FileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+            for (int i = 0; i < clipboardContent.Files.Length; i++)
             {
-                return false;
-            }
+                var fileProperties = GetFullFileInfoDictionary(filePath, i);
 
+                if (!fileInfo.TryGetValue(FileInfoKeys.Extension + i, out var extension) || fileInfo.ContainsKey(FileInfoKeys.NotFound) || string.IsNullOrWhiteSpace(extension) || !HandlerConfig.FileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                fileInfo.Concat(fileProperties);
+            }
             return true;
         }
 
         bool IHandler.CanHandle(ClipboardContent clipboardContent)
         {
-            return clipboardContent.IsFile ||  CanHandle(clipboardContent);
+            return clipboardContent.IsFile || clipboardContent.Files.Any() ||  CanHandle(clipboardContent);
         }
 
 
@@ -46,7 +48,7 @@ namespace Contextualizer.Core
             return fileInfo;
         }
 
-        private static Dictionary<string, string> GetFullFileInfoDictionary(string filePath)
+        private static Dictionary<string, string> GetFullFileInfoDictionary(string filePath, int fileIndex)
         {
             Dictionary<string, string> fileInfoDictionary = new();
 
@@ -59,34 +61,34 @@ namespace Contextualizer.Core
             FileInfo fileInfo = new(filePath);
             FileAttributes attributes = fileInfo.Attributes;
 
-            fileInfoDictionary.Add(nameof(FileInfoKeys.FileName), fileInfo.Name);
-            fileInfoDictionary.Add(nameof(FileInfoKeys.FullPath), fileInfo.FullName);
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Extension), fileInfo.Extension);
-            fileInfoDictionary.Add(nameof(FileInfoKeys.SizeBytes), fileInfo.Length.ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.CreationDate), fileInfo.CreationTime.ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.CreationDateUtc), fileInfo.CreationTimeUtc.ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.LastAccess), fileInfo.LastAccessTime.ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.LastAccessUtc), fileInfo.LastAccessTimeUtc.ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.LastWrite), fileInfo.LastWriteTime.ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.LastWriteUtc), fileInfo.LastWriteTimeUtc.ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.ReadOnly), fileInfo.IsReadOnly.ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.FileName) + fileIndex, fileInfo.Name);
+            fileInfoDictionary.Add(nameof(FileInfoKeys.FullPath) + fileIndex, fileInfo.FullName);
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Extension) + fileIndex, fileInfo.Extension);
+            fileInfoDictionary.Add(nameof(FileInfoKeys.SizeBytes) + fileIndex, fileInfo.Length.ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.CreationDate) + fileIndex, fileInfo.CreationTime.ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.CreationDateUtc) + fileIndex, fileInfo.CreationTimeUtc.ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.LastAccess) + fileIndex, fileInfo.LastAccessTime.ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.LastAccessUtc) + fileIndex, fileInfo.LastAccessTimeUtc.ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.LastWrite) + fileIndex, fileInfo.LastWriteTime.ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.LastWriteUtc) + fileIndex, fileInfo.LastWriteTimeUtc.ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.ReadOnly) + fileIndex, fileInfo.IsReadOnly.ToString());
 
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Hidden), attributes.HasFlag(FileAttributes.Hidden).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.System), attributes.HasFlag(FileAttributes.System).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Archive), attributes.HasFlag(FileAttributes.Archive).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Compressed), attributes.HasFlag(FileAttributes.Compressed).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Temporary), attributes.HasFlag(FileAttributes.Temporary).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Offline), attributes.HasFlag(FileAttributes.Offline).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Encrypted), attributes.HasFlag(FileAttributes.Encrypted).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.DirectoryOnly), attributes.HasFlag(FileAttributes.Directory).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.ReparsePoint), attributes.HasFlag(FileAttributes.ReparsePoint).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Sparse), attributes.HasFlag(FileAttributes.SparseFile).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Device), attributes.HasFlag(FileAttributes.Device).ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Normal), attributes.HasFlag(FileAttributes.Normal).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Hidden) + fileIndex, attributes.HasFlag(FileAttributes.Hidden).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.System) + fileIndex, attributes.HasFlag(FileAttributes.System).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Archive) + fileIndex, attributes.HasFlag(FileAttributes.Archive).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Compressed) + fileIndex, attributes.HasFlag(FileAttributes.Compressed).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Temporary) + fileIndex, attributes.HasFlag(FileAttributes.Temporary).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Offline) + fileIndex, attributes.HasFlag(FileAttributes.Offline).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Encrypted) + fileIndex, attributes.HasFlag(FileAttributes.Encrypted).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.DirectoryOnly) + fileIndex, attributes.HasFlag(FileAttributes.Directory).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.ReparsePoint) + fileIndex, attributes.HasFlag(FileAttributes.ReparsePoint).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Sparse) + fileIndex, attributes.HasFlag(FileAttributes.SparseFile).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Device) + fileIndex, attributes.HasFlag(FileAttributes.Device).ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Normal) + fileIndex, attributes.HasFlag(FileAttributes.Normal).ToString());
 
-            fileInfoDictionary.Add(nameof(FileInfoKeys.Exists), fileInfo.Exists.ToString());
-            fileInfoDictionary.Add(nameof(FileInfoKeys.DirectoryPath), fileInfo.DirectoryName ?? "Yok");
-            fileInfoDictionary.Add(nameof(FileInfoKeys.DirectoryObject), fileInfo.Directory?.FullName ?? "Yok");
+            fileInfoDictionary.Add(nameof(FileInfoKeys.Exists) + fileIndex, fileInfo.Exists.ToString());
+            fileInfoDictionary.Add(nameof(FileInfoKeys.DirectoryPath) + fileIndex, fileInfo.DirectoryName ?? "Yok");
+            fileInfoDictionary.Add(nameof(FileInfoKeys.DirectoryObject) + fileIndex, fileInfo.Directory?.FullName ?? "Yok");
 
             return fileInfoDictionary;
         }
