@@ -46,16 +46,4 @@ namespace Contextualizer.Core
         public List<string> FileExtensions { get; set; }
     }
 
-    public class ConfigAction
-    {
-        [JsonPropertyName("name")]
-        public string Name { get; set; }
-        [JsonPropertyName("requires_confirmation")]
-        public bool RequiresConfirmation { get; set; }
-        [JsonPropertyName("key")]
-        public string? Key { get; set; }
-        [JsonPropertyName("conditions")]
-        public Condition Conditions { get; set; }
-    }
-
 }

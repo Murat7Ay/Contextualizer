@@ -23,8 +23,9 @@ namespace Contextualizer.Core
                 var context = CreateContext(clipboardContent);
                 ContextWrapper contextWrapper = new ContextWrapper(context.AsReadOnly(), HandlerConfig);
                 FindSelectorKey(clipboardContent, contextWrapper);
-                PromptUserInputsAsync(contextWrapper);
-                ContextSeederSeed(contextWrapper);
+                HandlerContextProcessor handlerContextProcessor = new HandlerContextProcessor();
+                handlerContextProcessor.PromptUserInputsAsync(HandlerConfig.UserInputs, contextWrapper);
+                handlerContextProcessor.ContextSeederSeed(HandlerConfig.Seeder, contextWrapper);
                 ContextDefaultSeed(contextWrapper);
                 DispatchAction(GetActions(), contextWrapper);
             }
@@ -69,28 +70,6 @@ namespace Contextualizer.Core
             }
         }
 
-        private void PromptUserInputsAsync(Dictionary<string, string> context)
-        {
-            if (HandlerConfig.UserInputs is null)
-                return;
-
-            foreach (var inpt in HandlerConfig.UserInputs)
-            {
-                context[inpt.Key] = ServiceLocator.Get<IUserInteractionService>().GetUserInput(inpt)!;
-            }
-        }
-
-        private void ContextSeederSeed(Dictionary<string, string> context)
-        {
-            if (HandlerConfig.Seeder is null)
-                return;
-
-            foreach (var kvp in HandlerConfig.Seeder)
-            {
-                context[kvp.Key] = ReplaceDynamicValues(kvp.Value, context);
-            }
-        }
-
         private void ContextDefaultSeed(Dictionary<string, string> context)
         {
             if (!context.ContainsKey(ContextKey._self))
@@ -106,17 +85,9 @@ namespace Contextualizer.Core
             {
                 context[ContextKey._formatted_output] = string.IsNullOrEmpty(this.OutputFormat)
                     ? context[ContextKey._self]
-                    : ReplaceDynamicValues(this.OutputFormat, context);
+                    : HandlerContextProcessor.ReplaceDynamicValues(this.OutputFormat, context);
             }
         }
 
-        private string ReplaceDynamicValues(string input, Dictionary<string, string> context)
-        {
-            foreach (var kvp in context)
-            {
-                input = input.Replace($"$({kvp.Key})", kvp.Value);  // $(key) -> value ile değiştir
-            }
-            return input;
-        }
     }
 }

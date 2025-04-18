@@ -44,36 +44,38 @@ namespace Contextualizer.Core
             }
         }
 
-        public async Task Action(ConfigAction action, ContextWrapper context)
+        public async Task Action(ConfigAction configAction, ContextWrapper contextWrapper)
         {
-            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' başlıyor.");
-            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' koşul başlıyor.");
-            bool isConditionSuccessed = ConditionEvaluator.EvaluateCondition(action.Conditions, context);
-
+            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{configAction.Name}' started.");
+            HandlerContextProcessor handlerContextProcessor = new HandlerContextProcessor();
+            handlerContextProcessor.PromptUserInputsAsync(configAction.UserInputs, contextWrapper);
+            handlerContextProcessor.ContextSeederSeed(configAction.Seeder, contextWrapper);
+            bool isConditionSuccessed = ConditionEvaluator.EvaluateCondition(configAction.Conditions, contextWrapper);
             if (!isConditionSuccessed)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action {action.Name} koşul sağlanamadı.");
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action {configAction.Name} condition failed.");
                 return;
             }
-            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' koşul bitti.");
-            if (_actions.TryGetValue(action.Name, out var actionInstance))
+            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{configAction.Name}' condition finished.");
+            if (_actions.TryGetValue(configAction.Name, out var actionInstance))
             {
-                if (action.RequiresConfirmation)
+                if (configAction.RequiresConfirmation)
                 {
-                    bool confirmed = await ServiceLocator.Get<IUserInteractionService>().ShowConfirmationAsync("Action Confirmation", $"Do you want to proceed with action: {action.Name}?");
+                    bool confirmed = await ServiceLocator.Get<IUserInteractionService>().ShowConfirmationAsync("Action Confirmation", $"Do you want to proceed with action: {configAction.Name}?");
 
                     if (!confirmed) {
-                        ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action {action.Name} cancelled.");
+                        ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action {configAction.Name} cancelled.");
                     }
                 }
 
-                actionInstance.Action(action, context);
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{action.Name}' bitti.");
+                actionInstance.Action(configAction, contextWrapper);
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{configAction.Name}' finished.");
             }
             else
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action '{action.Name}' bulunamadı.");
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action '{configAction.Name}' not found.");
             }
         }
+
     }
 }
