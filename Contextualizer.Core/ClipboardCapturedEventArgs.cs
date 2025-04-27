@@ -8,5 +8,10 @@
         {
             ClipboardContent = clipboardContent;
         }
+
+        public override string ToString()
+        {
+            return ClipboardContent.ToString();
+        }
     }
 }

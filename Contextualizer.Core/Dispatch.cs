@@ -16,10 +16,20 @@ namespace Contextualizer.Core
             HandlerConfig = handlerConfig;
         }
 
-        public void Execute(ClipboardContent clipboardContent)
+        public async Task Execute(ClipboardContent clipboardContent)
         {
             if (CanHandle(clipboardContent))
             {
+                if (HandlerConfig.RequiresConfirmation)
+                {
+                    bool confirmed = await ServiceLocator.Get<IUserInteractionService>().ShowConfirmationAsync("Handler Confirmation", $"Do you want to proceed with handler: {HandlerConfig.Name}? {Environment.NewLine}{HandlerConfig.Description}");
+
+                    if (!confirmed)
+                    {
+                        ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Handler {HandlerConfig.Name} cancelled.");
+                        return;
+                    }
+                }
                 var context = CreateContext(clipboardContent);
                 ContextWrapper contextWrapper = new ContextWrapper(context.AsReadOnly(), HandlerConfig);
                 FindSelectorKey(clipboardContent, contextWrapper);

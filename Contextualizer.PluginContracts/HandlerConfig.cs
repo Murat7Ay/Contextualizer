@@ -11,6 +11,8 @@ namespace Contextualizer.Core
     {
         [JsonPropertyName("name")]
         public string Name { get; set; }
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
 
         [JsonPropertyName("type")]
         public string Type { get; set; }
@@ -50,6 +52,8 @@ namespace Contextualizer.Core
         public List<UserInputRequest> UserInputs { get; set; }
         [JsonPropertyName("file_extensions")]
         public List<string> FileExtensions { get; set; }
+        [JsonPropertyName("requires_confirmation")]
+        public bool RequiresConfirmation { get; set; }
     }
 
 }

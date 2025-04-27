@@ -11,7 +11,7 @@ namespace Contextualizer.PluginContracts
     {
         static virtual string TypeName => throw new NotImplementedException();
         bool CanHandle(ClipboardContent clipboardContent);
-        void Execute(ClipboardContent clipboardContent);
+        Task Execute(ClipboardContent clipboardContent);
         HandlerConfig HandlerConfig { get; }
     }
 }

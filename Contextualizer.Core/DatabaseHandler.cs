@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Contextualizer.Core
@@ -67,6 +69,24 @@ namespace Contextualizer.Core
             DynamicParameters dynamicParameters = CreateDynamicParameters();
             var queryResults = connection.Query(HandlerConfig.Query, dynamicParameters, commandTimeout: 3);
             int rowCount = queryResults.Count();
+
+            if(rowCount == 0)
+            {
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+
+                string parametersJson = JsonSerializer.Serialize(parameters, options);
+
+                throw new Exception(
+                    $"No records found matching the criteria.{Environment.NewLine}" +
+                    $"Query: {HandlerConfig.Query}{Environment.NewLine}" +
+                    $"Parameters:{Environment.NewLine}{parametersJson}"
+                );
+            }
+
             resultSet[ContextKey._count] = rowCount.ToString();
             int rowNumber = 1;
             foreach (var row in queryResults)
