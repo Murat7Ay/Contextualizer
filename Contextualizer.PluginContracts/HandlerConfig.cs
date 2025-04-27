@@ -17,6 +17,12 @@ namespace Contextualizer.Core
 
         [JsonPropertyName("regex")]
         public string Regex { get; set; }
+        [JsonPropertyName("connectionString")]
+        public string ConnectionString { get; set; }
+        [JsonPropertyName("query")]
+        public string Query { get; set; }
+        [JsonPropertyName("connector")]
+        public string Connector { get; set; }
 
         [JsonPropertyName("groups")]
         public List<string> Groups { get; set; }

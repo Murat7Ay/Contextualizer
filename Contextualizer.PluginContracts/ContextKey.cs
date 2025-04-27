@@ -11,6 +11,7 @@ namespace Contextualizer.Core
         public static string _self = "_self";
         public static string _formatted_output = "_formatted_output";
         public static string _input = "_input";
+        public static string _count = "_count";
         public static string _selector_key = "_selector_key";
     }
 }
