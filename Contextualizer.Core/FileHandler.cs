@@ -16,16 +16,19 @@ namespace Contextualizer.Core
 
         public FileHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
-            fileInfo = new Dictionary<string,string>();
+            fileInfo = new Dictionary<string, string>();
         }
 
         protected override bool CanHandle(ClipboardContent clipboardContent)
         {
-            string filePath = clipboardContent.Files.FirstOrDefault()!;
+            return clipboardContent.IsFile && clipboardContent.Files.Any() && CanHandle(clipboardContent);
+        }
 
+        bool IHandler.CanHandle(ClipboardContent clipboardContent)
+        {
             for (int i = 0; i < clipboardContent.Files.Length; i++)
             {
-                var fileProperties = GetFullFileInfoDictionary(filePath, i);
+                var fileProperties = GetFullFileInfoDictionary(clipboardContent.Files[i], i);
 
                 if (!fileInfo.TryGetValue(FileInfoKeys.Extension + i, out var extension) || fileInfo.ContainsKey(FileInfoKeys.NotFound) || string.IsNullOrWhiteSpace(extension) || !base.HandlerConfig.FileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                 {
@@ -36,13 +39,6 @@ namespace Contextualizer.Core
             }
             return true;
         }
-
-        bool IHandler.CanHandle(ClipboardContent clipboardContent)
-        {
-            return clipboardContent.IsFile || clipboardContent.Files.Any() ||  CanHandle(clipboardContent);
-        }
-
-        public HandlerConfig HandlerConfig => base.HandlerConfig;
 
         protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
         {
@@ -93,7 +89,7 @@ namespace Contextualizer.Core
 
             return fileInfoDictionary;
         }
-        
+
         protected override List<ConfigAction> GetActions()
         {
             return base.HandlerConfig.Actions;

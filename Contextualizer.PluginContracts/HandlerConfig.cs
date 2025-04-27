@@ -36,7 +36,7 @@ namespace Contextualizer.Core
         [JsonPropertyName("value_names")]
         public List<string> ValueNames { get; set; }
 
-        [JsonPropertyName("output_format")] // Cikti formati
+        [JsonPropertyName("output_format")]
         public string OutputFormat { get; set; }
         [JsonPropertyName("seeder")]
         public Dictionary<string, string> Seeder { get; set; }

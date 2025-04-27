@@ -17,7 +17,6 @@ namespace Contextualizer.Core
         {
             return true;
         }
-        public HandlerConfig HandlerConfig => base.HandlerConfig;
         protected override string OutputFormat => base.HandlerConfig.OutputFormat;
 
         protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
