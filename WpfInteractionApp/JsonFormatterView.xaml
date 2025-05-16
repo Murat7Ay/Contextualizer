@@ -3,6 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              MinWidth="400" MinHeight="300">
     <Grid>
-        <TreeView x:Name="JsonTree" Margin="8"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Button x:Name="ToggleViewButton" Content="Formatlı Göster" Margin="8" Padding="8,2" Click="ToggleViewButton_Click"/>
+        <TreeView x:Name="JsonTree" Grid.Row="1" Margin="8"/>
+        <TextBox x:Name="FormattedJsonBox" Grid.Row="1" Margin="8" 
+                 Visibility="Collapsed" 
+                 FontFamily="Consolas" 
+                 FontSize="14" 
+                 IsReadOnly="True" 
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"/>
     </Grid>
 </UserControl>

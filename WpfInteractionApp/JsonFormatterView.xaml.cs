@@ -4,11 +4,15 @@ using System.Text.Json;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Media;
+using Contextualizer.Core;
 
 namespace WpfInteractionApp
 {
     public partial class JsonFormatterView : UserControl, IDynamicScreen
     {
+        private string _lastJson = null;
+        private bool _showingFormatted = false;
+
         public JsonFormatterView()
         {
             InitializeComponent();
@@ -18,11 +22,19 @@ namespace WpfInteractionApp
         public void SetScreenInformation(Dictionary<string, string> context)
         {
             JsonTree.Items.Clear();
-            if (context == null || !context.TryGetValue("body", out var json) || string.IsNullOrWhiteSpace(json))
+            FormattedJsonBox.Visibility = Visibility.Collapsed;
+            JsonTree.Visibility = Visibility.Visible;
+            ToggleViewButton.Content = "Formatlı Göster";
+            _showingFormatted = false;
+
+            if (context == null || !context.TryGetValue(ContextKey._input, out var json) || string.IsNullOrWhiteSpace(json))
             {
                 JsonTree.Items.Add(new TreeViewItem { Header = "No JSON content." });
+                _lastJson = null;
                 return;
             }
+
+            _lastJson = json;
 
             try
             {
@@ -63,6 +75,43 @@ namespace WpfInteractionApp
                     return new TreeViewItem { Header = $"{name}: null" };
                 default:
                     return new TreeViewItem { Header = $"{name}: ?" };
+            }
+        }
+
+        private void ToggleViewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_showingFormatted)
+            {
+                // TreeView'a dön
+                FormattedJsonBox.Visibility = Visibility.Collapsed;
+                JsonTree.Visibility = Visibility.Visible;
+                ToggleViewButton.Content = "Formatlı Göster";
+                _showingFormatted = false;
+            }
+            else
+            {
+                // Formatlı JSON göster
+                if (!string.IsNullOrWhiteSpace(_lastJson))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(_lastJson);
+                        var formatted = JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { WriteIndented = true });
+                        FormattedJsonBox.Text = formatted;
+                    }
+                    catch (Exception ex)
+                    {
+                        FormattedJsonBox.Text = $"Invalid JSON: {ex.Message}";
+                    }
+                }
+                else
+                {
+                    FormattedJsonBox.Text = "No JSON content.";
+                }
+                FormattedJsonBox.Visibility = Visibility.Visible;
+                JsonTree.Visibility = Visibility.Collapsed;
+                ToggleViewButton.Content = "Ağaç Göster";
+                _showingFormatted = true;
             }
         }
     }
