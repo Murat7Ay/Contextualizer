@@ -10,7 +10,7 @@ namespace Contextualizer.Core
 {
     public class ContextWrapper : Dictionary<string, string>
     {
-        private readonly HandlerConfig _handlerConfig;
+        public readonly HandlerConfig _handlerConfig;
 
         public ContextWrapper(ReadOnlyDictionary<string, string> context, HandlerConfig handlerConfig) : base(context) 
         {

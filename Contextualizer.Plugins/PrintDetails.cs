@@ -17,7 +17,7 @@ namespace Contextualizer.Plugins
         {
             var userInteractionService = _pluginServiceProvider.GetService<IUserInteractionService>();
 
-            userInteractionService.ShowNotification("ContextWrapper Detayları:");
+            userInteractionService.ShowNotification("Context Details:");
 
             if (context != null && context.Count > 0)
             {
@@ -29,7 +29,7 @@ namespace Contextualizer.Plugins
             }
             else
             {
-                userInteractionService.ShowNotification("ContextWrapper boş.", LogType.Warning);
+                userInteractionService.ShowNotification("Context empty.", LogType.Warning);
             }
         }
 

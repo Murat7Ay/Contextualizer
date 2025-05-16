@@ -1,0 +1,7 @@
+﻿<UserControl x:Class="WpfInteractionApp.ToastNotification"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Border Background="#393939" CornerRadius="4" Padding="10" Margin="10">
+        <TextBlock x:Name="MessageText" Foreground="#F4F4F4" FontSize="14" TextWrapping="Wrap" />
+    </Border>
+</UserControl>

@@ -16,7 +16,10 @@ namespace Contextualizer.Core
 
         [JsonPropertyName("type")]
         public string Type { get; set; }
-
+        [JsonPropertyName("screen_id")]
+        public string ScreenId { get; set; }
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
         [JsonPropertyName("regex")]
         public string Regex { get; set; }
         [JsonPropertyName("connectionString")]
