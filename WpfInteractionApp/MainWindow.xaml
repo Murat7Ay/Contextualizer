@@ -48,8 +48,9 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="300" MinWidth="100" /> <!-- Log alanı -->
+            <ColumnDefinition Width="5" />                  <!-- GridSplitter için -->
+            <ColumnDefinition Width="*" />                  <!-- Tab alanı -->
         </Grid.ColumnDefinitions>
 
         <!-- Log Listesi -->
@@ -65,7 +66,15 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Column="1"
+                      Width="5"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="#393939"
+                      ShowsPreview="True" />
+
         <!-- Sekme Alanı -->
-        <TabControl Grid.Column="1" x:Name="TabControl" Style="{StaticResource CarbonTabControl}" Margin="10"/>
+        <TabControl Grid.Column="2" x:Name="TabControl" Style="{StaticResource CarbonTabControl}" Margin="10"/>
     </Grid>
 </Window>

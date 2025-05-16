@@ -20,6 +20,11 @@ namespace WpfInteractionApp
         public void AddLog(LogEntry log)
         {
             _logs.Add(log);
+
+            // Sadece son 50 kaydı tut
+            if (_logs.Count > 50)
+                _logs.RemoveRange(0, _logs.Count - 50);
+
             LogListBox.Items.Refresh();
         }
 
