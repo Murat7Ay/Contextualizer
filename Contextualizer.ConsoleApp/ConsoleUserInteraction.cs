@@ -57,9 +57,18 @@ namespace Contextualizer.ConsoleApp
             System.Console.WriteLine($"[{notificationType.ToString()}]: {message}");
         }
 
-        public void ShowActionableNotification(string message, string actionLabel, Action action, LogType notificationType = LogType.Info)
+        public async Task ShowActionableNotification(string message, string actionLabel, Action action, LogType notificationType = LogType.Info)
         {
-            throw new NotImplementedException();
+            bool isConfirmed = await this.ShowConfirmationAsync("Action Required", message + " " + actionLabel);
+
+            if (isConfirmed)
+            {
+                action.Invoke();
+            }
+            else
+            {
+                System.Console.WriteLine("Action was not confirmed.");
+            }
         }
 
         public async Task<bool> ShowConfirmationAsync(string title, string message)

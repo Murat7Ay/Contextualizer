@@ -15,7 +15,7 @@ namespace Contextualizer.Core
             int durationInSeconds = 5,
             Action? onActionClicked = null);
 
-        public void ShowActionableNotification(
+        public Task ShowActionableNotification(
             string message,
             string actionLabel,
             Action action,
