@@ -21,9 +21,13 @@ namespace Contextualizer.Core
         public bool IsRequired { get; set; } = true;
         [JsonPropertyName("is_selection_list")]
         public bool IsSelectionList { get; set; } = false;
+        [JsonPropertyName("is_password")]
+        public bool IsPassword { get; set; } = false;
 
         [JsonPropertyName("selection_items")]
         public List<SelectionItem>? SelectionItems { get; set; }
+        [JsonPropertyName("default_value")]
+        public string DefaultValue { get; set; } = string.Empty;
     }
 
     public class SelectionItem
