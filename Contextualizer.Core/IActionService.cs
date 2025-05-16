@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Contextualizer.PluginContracts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,5 +10,7 @@ namespace Contextualizer.Core
     public interface IActionService
     {
         Task Action(ConfigAction action, ContextWrapper context);
+
+        IHandlerValidator? GetValidator(string name);
     }
 }

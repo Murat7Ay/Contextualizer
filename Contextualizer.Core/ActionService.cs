@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Contextualizer.PluginContracts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -10,6 +11,7 @@ namespace Contextualizer.Core
     public class ActionService : IActionService
     {
         private readonly Dictionary<string, IAction> _actions = new();
+        private readonly Dictionary<string, IHandlerValidator> validators = new();
 
         public ActionService()
         {
@@ -36,12 +38,30 @@ namespace Contextualizer.Core
                         _actions[instance.Name] = instance;
                     }
 
+                    var validatorTypes = assembly.GetTypes()
+                       .Where(t => typeof(IHandlerValidator).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+                    foreach (var type in validatorTypes)
+                    {
+                        var instance = (IHandlerValidator)Activator.CreateInstance(type);
+                        validators[instance.Name] = instance;
+                    }
+
                 }
                 catch (ReflectionTypeLoadException ex)
                 {
                     Console.WriteLine($"Assembly yükleme hatası: {assembly.FullName} - {ex.Message}");
                 }
             }
+        }
+
+        public IHandlerValidator? GetValidator(string name)
+        {
+            if (validators.TryGetValue(name, out var validator))
+            {
+                return validator;
+            }
+            return null;
         }
 
         public async Task Action(ConfigAction configAction, ContextWrapper contextWrapper)
