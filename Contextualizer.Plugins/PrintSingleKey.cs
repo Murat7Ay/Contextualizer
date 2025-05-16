@@ -22,7 +22,9 @@ namespace Contextualizer.Plugins
                 pluginServiceProvider.GetService<IUserInteractionService>().ShowNotification($"Key: {key}", LogType.Info, "Key-Value Pair", 5, null);
             }));
 
-            pluginServiceProvider.GetService<IUserInteractionService>().ShowWindow(context._handlerConfig.ScreenId, context._handlerConfig.Title, context[action.Key], context, actions);
+            context[ContextKey._body] = context[action.Key];
+
+            pluginServiceProvider.GetService<IUserInteractionService>().ShowWindow(context._handlerConfig.ScreenId, context._handlerConfig.Title, context, actions);
         }
 
         public void Initialize(IPluginServiceProvider serviceProvider)

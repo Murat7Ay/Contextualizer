@@ -1,6 +1,7 @@
 ﻿using Contextualizer.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq; // Activator ve tip arama için gerekli
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,36 +12,67 @@ namespace WpfInteractionApp
     public class WpfUserInteractionService : IUserInteractionService
     {
         private readonly MainWindow _mainWindow;
+        // Ekran factory'leri: screenId -> UserControl/IDynamicScreen üretici
+        private readonly Dictionary<string, Func<IDynamicScreen>> _screenFactories = new();
 
         public WpfUserInteractionService(MainWindow mainWindow)
         {
             _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
+            // Burada bilinen ekranları register edebilirsin:
+             _screenFactories["markdown"] = () => new MarkdownViewer();
+            // Yeni ekranlar eklenebilir.
         }
 
-        public void ShowWindow(string screenId, string title, string body, Dictionary<string, string> context, List<KeyValuePair<string, Action<Dictionary<string, string>>>>? actions = null)
+        // Dinamik olarak screenId'ye uygun view'i bulur ve context'i setler
+        private IDynamicScreen? CreateScreenById(string screenId)
+        {
+            // Önce factory dictionary'sinde var mı bak
+            if (_screenFactories.TryGetValue(screenId, out var factory))
+                return factory();
+
+            // Yoksa, reflection ile assembly'de arama yap
+            var screenType = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .FirstOrDefault(t =>
+                    typeof(IDynamicScreen).IsAssignableFrom(t) &&
+                    typeof(UserControl).IsAssignableFrom(t) &&
+                    !t.IsAbstract &&
+                    t.GetProperty("ScreenId") != null &&
+                    t.GetConstructor(Type.EmptyTypes) != null &&
+                    (string)(t.GetProperty("ScreenId")?.GetValue(Activator.CreateInstance(t))) == screenId
+                );
+
+            if (screenType != null)
+                return (IDynamicScreen)Activator.CreateInstance(screenType);
+
+            return null;
+        }
+
+        public void ShowWindow(string screenId, string title, Dictionary<string, string> context, List<KeyValuePair<string, Action<Dictionary<string, string>>>>? actions = null)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 try
                 {
-                    var markdownText = body;
-                    var markdownViewer = new MarkdownViewer { Text = markdownText };
-
-                    if (actions != null && actions.Count > 0)
+                    var screen = CreateScreenById(screenId);
+                    if (screen != null)
                     {
-                        var stackPanel = new StackPanel { Margin = new Thickness(10) };
-                        stackPanel.Children.Add(markdownViewer);
+                        screen.SetScreenInformation(context);
 
-                        if (actions != null)
+                        UIElement content = (UIElement)screen;
+                        if (actions != null && actions.Count > 0)
                         {
+                            var stackPanel = new StackPanel { Margin = new Thickness(10) };
+                            stackPanel.Children.Add(content);
+
                             foreach (var action in actions)
                             {
                                 var button = new Button
                                 {
                                     Content = action.Key,
                                     Margin = new Thickness(0, 5, 0, 5),
-                                    Background = new SolidColorBrush(Color.FromRgb(22, 22, 22)), // Carbon: #161616
-                                    Foreground = new SolidColorBrush(Color.FromRgb(244, 244, 244)), // Carbon: #F4F4F4
+                                    Background = new SolidColorBrush(Color.FromRgb(22, 22, 22)),
+                                    Foreground = new SolidColorBrush(Color.FromRgb(244, 244, 244)),
                                     FontFamily = new FontFamily("Segoe UI"),
                                     FontSize = 14,
                                     Padding = new Thickness(10, 5, 10, 5)
@@ -48,14 +80,19 @@ namespace WpfInteractionApp
                                 button.Click += (s, e) => action.Value?.Invoke(context);
                                 stackPanel.Children.Add(button);
                             }
+                            // screenId+title ile benzersiz sekme aç
+                            _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, stackPanel);
                         }
+                        else
+                        {
+                            _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, content);
+                        }
+                        return;
+                    }
 
-                        _mainWindow.AddOrUpdateTab(screenId, title, stackPanel);
-                    }
-                    else
-                    {
-                        _mainWindow.AddOrUpdateTab(screenId, title, markdownViewer);
-                    }
+                    // Fallback: Ekran bulunamazsa eski davranış
+                    var fallback = new TextBlock { Text = $"Ekran bulunamadı: {screenId}" };
+                    _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, fallback);
                 }
                 catch (Exception ex)
                 {

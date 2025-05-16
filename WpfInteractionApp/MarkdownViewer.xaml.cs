@@ -1,4 +1,5 @@
-﻿using MdXaml;
+﻿using Contextualizer.Core;
+using MdXaml;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,7 +7,7 @@ using System.Windows.Documents;
 
 namespace WpfInteractionApp
 {
-    public partial class MarkdownViewer : UserControl
+    public partial class MarkdownViewer : UserControl, IDynamicScreen
     {
         private readonly Markdown _markdownEngine;
 
@@ -21,6 +22,9 @@ namespace WpfInteractionApp
             get => (string)GetValue(TextProperty);
             set => SetValue(TextProperty, value);
         }
+
+        public string ScreenId => "markdown";
+        private Dictionary<string, string> Context { get; set; }
 
         public static readonly DependencyProperty TextProperty =
             DependencyProperty.Register(
@@ -49,6 +53,12 @@ namespace WpfInteractionApp
             {
                 viewer.Viewer.Document = new FlowDocument(new Paragraph(new Run($"Markdown process exception: {ex.Message}")));
             }
+        }
+
+        public void SetScreenInformation(Dictionary<string, string> context)
+        {
+            this.Context = context;
+            Text = context[ContextKey._body];
         }
     }
 }

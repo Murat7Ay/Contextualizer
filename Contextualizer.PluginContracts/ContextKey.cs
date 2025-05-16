@@ -9,6 +9,7 @@ namespace Contextualizer.Core
     public class ContextKey
     {
         public static string _self = "_self";
+        public static string _body = "_body";
         public static string _formatted_output = "_formatted_output";
         public static string _input = "_input";
         public static string _count = "_count";
