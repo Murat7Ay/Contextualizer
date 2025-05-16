@@ -19,6 +19,32 @@
             <Setter Property="Background" Value="#161616" />
             <Setter Property="BorderBrush" Value="#393939" />
         </Style>
+        <Style x:Key="CloseButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#F4F4F4" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Margin" Value="5,0,0,0" />
+            <Setter Property="Content" Value="×" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="ExtraBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderThickness="0" CornerRadius="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#525252" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -40,8 +66,6 @@
         </ListBox>
 
         <!-- Sekme Alanı -->
-        <TabControl Grid.Column="1" x:Name="TabControl" Style="{StaticResource CarbonTabControl}" Margin="10">
-            <!-- Sekmeler dinamik olarak eklenecek -->
-        </TabControl>
+        <TabControl Grid.Column="1" x:Name="TabControl" Style="{StaticResource CarbonTabControl}" Margin="10"/>
     </Grid>
 </Window>

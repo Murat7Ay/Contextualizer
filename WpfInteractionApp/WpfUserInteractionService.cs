@@ -93,7 +93,12 @@ namespace WpfInteractionApp
                 // Ensure the dialog is shown on the main thread.
                 return await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    ConfirmationDialog dialog = new ConfirmationDialog(title, message);
+                    ConfirmationDialog dialog = new ConfirmationDialog(title, message)
+                    {
+                        Owner = _mainWindow, // Ana pencereyi owner olarak ayarla
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                        Topmost = true // (İsteğe bağlı) Her zaman en üstte olsun
+                    };
                     return dialog.ShowDialogAsync();
                 }).Result;
             }

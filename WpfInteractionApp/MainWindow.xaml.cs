@@ -28,21 +28,52 @@ namespace WpfInteractionApp
             string key = $"{screenId}_{title}";
             if (_tabs.ContainsKey(key))
             {
-                // Mevcut sekme içeriğini güncelle
                 _tabs[key].Content = content;
                 _tabs[key].IsSelected = true;
             }
             else
             {
-                // Yeni sekme oluştur
                 var tabItem = new TabItem
                 {
-                    Header = title,
                     Content = content,
                     IsSelected = true,
                 };
+
+                // Header için StackPanel oluştur
+                var headerPanel = new StackPanel { Orientation = Orientation.Horizontal };
+                headerPanel.Children.Add(new TextBlock
+                {
+                    Text = title,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Margin = new Thickness(0, 0, 5, 0)
+                });
+
+                var closeButton = new Button
+                {
+                    Style = (Style)FindResource("CloseButtonStyle"),
+                    Tag = tabItem,
+                    ToolTip = "Close Tab"
+                };
+                closeButton.Click += CloseTab_Click;
+                headerPanel.Children.Add(closeButton);
+
+                tabItem.Header = headerPanel;
+
                 TabControl.Items.Add(tabItem);
                 _tabs.Add(key, tabItem);
+            }
+        }
+
+        private void CloseTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is TabItem tabItem)
+            {
+                string key = _tabs.FirstOrDefault(x => x.Value == tabItem).Key;
+                if (!string.IsNullOrEmpty(key))
+                {
+                    _tabs.Remove(key);
+                    TabControl.Items.Remove(tabItem);
+                }
             }
         }
     }
