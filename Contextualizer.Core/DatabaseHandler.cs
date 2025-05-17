@@ -34,20 +34,29 @@ namespace Contextualizer.Core
 
         protected override bool CanHandle(ClipboardContent clipboardContent)
         {
-            if (!clipboardContent.IsText || string.IsNullOrEmpty(clipboardContent.Text) || string.IsNullOrEmpty(HandlerConfig.Query) || !IsSafeSqlQuery(HandlerConfig.Query) || string.IsNullOrEmpty(HandlerConfig.ConnectionString) || string.IsNullOrEmpty(HandlerConfig.Connector))
+            if (!clipboardContent.IsText
+                || string.IsNullOrEmpty(clipboardContent.Text)
+                || string.IsNullOrEmpty(HandlerConfig.Query)
+                || !IsSafeSqlQuery(HandlerConfig.Query)
+                || string.IsNullOrEmpty(HandlerConfig.ConnectionString)
+                || string.IsNullOrEmpty(HandlerConfig.Connector))
             {
                 return false;
             }
 
-            if (regex is not null && regex.IsMatch(clipboardContent.Text))
+            // Regex varsa ve eşleşmiyorsa false dön
+            if (regex is not null)
             {
+                if (!regex.IsMatch(clipboardContent.Text))
+                    return false;
+
                 string input = clipboardContent.Text;
                 var match = regex.Match(input);
                 parameters[ContextKey._input] = input;
 
                 if (match.Success)
                 {
-                    for (int i = 1; i <= base.HandlerConfig.Groups.Count; i++)
+                    for (int i = 1; i <= base.HandlerConfig.Groups?.Count; i++)
                     {
                         parameters[base.HandlerConfig.Groups[i - 1]] = match.Groups[i].Value;
                     }

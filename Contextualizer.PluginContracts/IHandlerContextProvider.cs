@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.PluginContracts
 {
-    public interface IHandlerValidator
+    public interface IHandlerContextProvider
     {
         string Name { get; }
         bool Validate(ClipboardContent clipboardContent);

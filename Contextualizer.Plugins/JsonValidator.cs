@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Plugins
 {
-    public class JsonValidator : IHandlerValidator
+    public class JsonValidator : IHandlerContextProvider
     {
         public string Name => "jsonvalidator";
 

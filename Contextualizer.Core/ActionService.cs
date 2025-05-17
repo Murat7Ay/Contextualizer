@@ -11,7 +11,7 @@ namespace Contextualizer.Core
     public class ActionService : IActionService
     {
         private readonly Dictionary<string, IAction> _actions = new();
-        private readonly Dictionary<string, IHandlerValidator> validators = new();
+        private readonly Dictionary<string, IHandlerContextProvider> _contextProviders = new();
 
         public ActionService()
         {
@@ -39,12 +39,12 @@ namespace Contextualizer.Core
                     }
 
                     var validatorTypes = assembly.GetTypes()
-                       .Where(t => typeof(IHandlerValidator).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                       .Where(t => typeof(IHandlerContextProvider).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
                     foreach (var type in validatorTypes)
                     {
-                        var instance = (IHandlerValidator)Activator.CreateInstance(type);
-                        validators[instance.Name] = instance;
+                        var instance = (IHandlerContextProvider)Activator.CreateInstance(type);
+                        _contextProviders[instance.Name] = instance;
                     }
 
                 }
@@ -55,11 +55,11 @@ namespace Contextualizer.Core
             }
         }
 
-        public IHandlerValidator? GetValidator(string name)
+        public IHandlerContextProvider? GetHandlerContextProvider(string name)
         {
-            if (validators.TryGetValue(name, out var validator))
+            if (_contextProviders.TryGetValue(name, out var contextProvider))
             {
-                return validator;
+                return contextProvider;
             }
             return null;
         }

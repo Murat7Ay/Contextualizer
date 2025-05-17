@@ -11,6 +11,6 @@ namespace Contextualizer.Core
     {
         Task Action(ConfigAction action, ContextWrapper context);
 
-        IHandlerValidator? GetValidator(string name);
+        IHandlerContextProvider? GetHandlerContextProvider(string name);
     }
 }
