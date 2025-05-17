@@ -25,6 +25,14 @@ namespace Contextualizer.Plugins
             {
                 return false;
             }
+
+            var input = clipboardContent.Text.Trim();
+
+            // JSON objesi veya dizisi ile başlamıyorsa geçersizdir
+            if (!(input.StartsWith("{") && input.EndsWith("}")) &&
+                !(input.StartsWith("[") && input.EndsWith("]")))
+                return false;
+
             //validate the JSON string
             try
             {

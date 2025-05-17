@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Core
 {
-    public class WindowsClipboard
+    public class WindowsClipboard 
     {
         public static async Task SetTextAsync(string text, CancellationToken cancellation)
         {
@@ -166,7 +166,7 @@ namespace Contextualizer.Core
                 content.Text = GetText() ?? string.Empty;
                 content.IsText = true;
             }
-            else if(IsClipboardFormatAvailable(CF_HDROP))
+            else if (IsClipboardFormatAvailable(CF_HDROP))
             {
                 content.Success = true;
                 content.Files = GetFiles() ?? Array.Empty<string>();

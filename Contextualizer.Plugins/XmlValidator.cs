@@ -25,6 +25,12 @@ namespace Contextualizer.Plugins
             {
                 return false;
             }
+
+            var input = clipboardContent.Text.Trim();
+
+            if (!input.StartsWith("<"))
+                return false;
+
             //validate xml string
             try
             {

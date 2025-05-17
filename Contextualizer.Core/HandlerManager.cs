@@ -19,6 +19,7 @@ namespace Contextualizer.Core
 
             IActionService actionService = new ActionService();
             ServiceLocator.Register<IActionService>(actionService);
+            ServiceLocator.Register<IClipboardService>(new WindowsClipboardService());
             ServiceLocator.Register<IUserInteractionService>(userInteractionService);
             List<IHandler> handlers = HandlerLoader.Load(handlersFilePath);
             _handlers = handlers.Where(h => h is not ITriggerableHandler).ToList();

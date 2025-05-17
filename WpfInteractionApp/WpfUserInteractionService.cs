@@ -12,25 +12,19 @@ namespace WpfInteractionApp
     public class WpfUserInteractionService : IUserInteractionService
     {
         private readonly MainWindow _mainWindow;
-        // Ekran factory'leri: screenId -> UserControl/IDynamicScreen üretici
         private readonly Dictionary<string, Func<IDynamicScreen>> _screenFactories = new();
 
         public WpfUserInteractionService(MainWindow mainWindow)
         {
             _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
-            // Burada bilinen ekranları register edebilirsin:
-             _screenFactories["markdown"] = () => new MarkdownViewer();
-            // Yeni ekranlar eklenebilir.
+             //_screenFactories["markdown"] = () => new MarkdownViewer();
         }
 
-        // Dinamik olarak screenId'ye uygun view'i bulur ve context'i setler
         private IDynamicScreen? CreateScreenById(string screenId)
         {
-            // Önce factory dictionary'sinde var mı bak
             if (_screenFactories.TryGetValue(screenId, out var factory))
                 return factory();
 
-            // Yoksa, reflection ile assembly'de arama yap
             var screenType = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(a => a.GetTypes())
                 .FirstOrDefault(t =>
@@ -90,7 +84,6 @@ namespace WpfInteractionApp
                         return;
                     }
 
-                    // Fallback: Ekran bulunamazsa eski davranış
                     var fallback = new TextBlock { Text = $"Ekran bulunamadı: {screenId}" };
                     _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, fallback);
                 }
