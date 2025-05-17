@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Contextualizer.Core
@@ -84,19 +86,38 @@ namespace Contextualizer.Core
         {
             if (!context.ContainsKey(ContextKey._self))
             {
-                context.TryAdd(ContextKey._self, System.Text.Json.JsonSerializer.Serialize(context, new System.Text.Json.JsonSerializerOptions
+                var serialized = JsonSerializer.Serialize(context, new JsonSerializerOptions
                 {
                     WriteIndented = true,
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                }));
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                });
+
+                context.TryAdd(ContextKey._self, serialized);
             }
 
-            if (!context.ContainsKey(ContextKey._formatted_output))
+            if (context.ContainsKey(ContextKey._formatted_output))
+                return;
+
+            if (string.IsNullOrEmpty(this.OutputFormat))
             {
-                context[ContextKey._formatted_output] = string.IsNullOrEmpty(this.OutputFormat)
-                    ? context[ContextKey._self]
-                    : HandlerContextProcessor.ReplaceDynamicValues(this.OutputFormat, context);
+                context[ContextKey._formatted_output] = context[ContextKey._self];
+                return;
             }
+
+            string formattedOutput;
+
+            if (this.OutputFormat.StartsWith("$file:"))
+            {
+                var filePath = this.OutputFormat.Substring(6); // Remove "$file:"
+                var fileContent = File.ReadAllText(filePath);
+                formattedOutput = HandlerContextProcessor.ReplaceDynamicValues(fileContent, context);
+            }
+            else
+            {
+                formattedOutput = HandlerContextProcessor.ReplaceDynamicValues(this.OutputFormat, context);
+            }
+
+            context[ContextKey._formatted_output] = formattedOutput;
         }
 
     }
