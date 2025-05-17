@@ -9,6 +9,7 @@
                               Background="#161616"
                               Foreground="#F4F4F4"
                               Margin="10"
+                              Height="350"
                               IsSelectionEnabled="True"
                               IsToolBarVisible="False">
         <FlowDocument FontFamily="Segoe UI" FontSize="14" />
