@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Plugins
 {
-    public class JsonValidator : IHandlerContextProvider
+    public class XmlValidator : IHandlerContextProvider
     {
-        public string Name => "jsonvalidator";
+        public string Name => "xmlvalidator";
 
         public Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
         {
@@ -25,13 +25,14 @@ namespace Contextualizer.Plugins
             {
                 return false;
             }
-            //validate the JSON string
+            //validate xml string
             try
             {
-                var jsonDocument = System.Text.Json.JsonDocument.Parse(clipboardContent.Text);
+                var doc = new System.Xml.XmlDocument();
+                doc.LoadXml(clipboardContent.Text);
                 return true;
             }
-            catch (System.Text.Json.JsonException)
+            catch (System.Xml.XmlException)
             {
                 return false;
             }

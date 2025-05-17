@@ -7,14 +7,27 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Button x:Name="ToggleViewButton" Content="Formatlı Göster" Margin="8" Padding="8,2" Click="ToggleViewButton_Click"/>
-        <TreeView x:Name="JsonTree" Grid.Row="1" Margin="8"/>
-        <TextBox x:Name="FormattedJsonBox" Grid.Row="1" Margin="8" 
-                 Visibility="Collapsed" 
-                 FontFamily="Consolas" 
-                 FontSize="14" 
-                 IsReadOnly="True" 
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"/>
+        <Button x:Name="ToggleViewButton"
+        Content="Formatlı Göster"
+        Click="ToggleViewButton_Click"
+        Width="120"
+        Height="30"
+        HorizontalAlignment="Left"
+        Margin="8"
+        Padding="8,2"/>
+        <ScrollViewer Grid.Row="1" Margin="8" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" x:Name="JsonTreeScroll">
+            <TreeView x:Name="JsonTree" Height="300"/>
+        </ScrollViewer>
+        <ScrollViewer Grid.Row="1" Margin="8" Visibility="Collapsed" x:Name="FormattedJsonBoxScroll"
+                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <TextBox x:Name="FormattedJsonBox"
+                     FontFamily="Consolas"
+                     FontSize="14"
+                     IsReadOnly="True"
+                     Height="300"
+                     BorderThickness="0"
+                     Background="White"
+                     TextWrapping="NoWrap"/>
+        </ScrollViewer>
     </Grid>
 </UserControl>

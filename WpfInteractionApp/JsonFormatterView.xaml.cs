@@ -22,8 +22,8 @@ namespace WpfInteractionApp
         public void SetScreenInformation(Dictionary<string, string> context)
         {
             JsonTree.Items.Clear();
-            FormattedJsonBox.Visibility = Visibility.Collapsed;
-            JsonTree.Visibility = Visibility.Visible;
+            FormattedJsonBoxScroll.Visibility = Visibility.Collapsed;
+            JsonTreeScroll.Visibility = Visibility.Visible;
             ToggleViewButton.Content = "Formatlı Göster";
             _showingFormatted = false;
 
@@ -82,15 +82,13 @@ namespace WpfInteractionApp
         {
             if (_showingFormatted)
             {
-                // TreeView'a dön
-                FormattedJsonBox.Visibility = Visibility.Collapsed;
-                JsonTree.Visibility = Visibility.Visible;
+                FormattedJsonBoxScroll.Visibility = Visibility.Collapsed;
+                JsonTreeScroll.Visibility = Visibility.Visible;
                 ToggleViewButton.Content = "Formatlı Göster";
                 _showingFormatted = false;
             }
             else
             {
-                // Formatlı JSON göster
                 if (!string.IsNullOrWhiteSpace(_lastJson))
                 {
                     try
@@ -108,8 +106,8 @@ namespace WpfInteractionApp
                 {
                     FormattedJsonBox.Text = "No JSON content.";
                 }
-                FormattedJsonBox.Visibility = Visibility.Visible;
-                JsonTree.Visibility = Visibility.Collapsed;
+                FormattedJsonBoxScroll.Visibility = Visibility.Visible;
+                JsonTreeScroll.Visibility = Visibility.Collapsed;
                 ToggleViewButton.Content = "Ağaç Göster";
                 _showingFormatted = true;
             }

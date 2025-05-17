@@ -57,18 +57,9 @@ namespace Contextualizer.ConsoleApp
             System.Console.WriteLine($"[{notificationType.ToString()}]: {message}");
         }
 
-        public async Task ShowActionableNotification(string message, string actionLabel, Action action, LogType notificationType = LogType.Info)
+        public Task ShowActionableNotification(string message, string actionLabel, Action action, LogType notificationType = LogType.Info)
         {
-            bool isConfirmed =  this.ShowConfirmation("Action Required", message + " " + actionLabel);
-
-            if (isConfirmed)
-            {
-                action.Invoke();
-            }
-            else
-            {
-                System.Console.WriteLine("Action was not confirmed.");
-            }
+            throw new NotImplementedException();
         }
 
         public async Task<bool> ShowConfirmation(string title, string message)
@@ -93,6 +84,10 @@ namespace Contextualizer.ConsoleApp
             }
         }
 
+        public Task<bool> ShowConfirmationAsync(string title, string message)
+        {
+            throw new NotImplementedException();
+        }
 
         public void ShowNotification(string message, LogType notificationType = LogType.Info, string title = "", int durationInSeconds = 5, Action? onActionClicked = null)
         {

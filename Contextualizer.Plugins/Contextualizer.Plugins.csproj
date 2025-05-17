@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Contextualizer.PluginContracts\Contextualizer.PluginContracts.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(TargetDir)*.*&quot; &quot;C:\Finder\Plugins\&quot; /Y /S" />
+  </Target>
+
 </Project>
