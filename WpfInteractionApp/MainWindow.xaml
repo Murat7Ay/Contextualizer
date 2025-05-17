@@ -58,7 +58,7 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <TextBlock Text="{Binding Timestamp, StringFormat='[dd/MM/yyyy HH:mm:ss]'}" Style="{StaticResource CarbonTextBlock}" />
+                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:MM.dd HH:mm}'}" Style="{StaticResource CarbonTextBlock}" />
                         <TextBlock Text="{Binding Message}" Style="{StaticResource CarbonTextBlock}" />
                         <TextBlock Text="{Binding AdditionalInfo}" Style="{StaticResource CarbonTextBlock}" FontStyle="Italic" />
                     </StackPanel>

@@ -19,9 +19,12 @@ namespace WpfInteractionApp
 
         public void AddLog(LogEntry log)
         {
+            const int maxLength = 120;
+            if (!string.IsNullOrEmpty(log.Message) && log.Message.Length > maxLength)
+                log.Message = log.Message.Substring(0, maxLength) + "...";
+
             _logs.Add(log);
 
-            // Sadece son 50 kaydı tut
             if (_logs.Count > 50)
                 _logs.RemoveRange(0, _logs.Count - 50);
 
