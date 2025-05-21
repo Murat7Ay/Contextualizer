@@ -1,6 +1,7 @@
 ﻿using Contextualizer.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,11 +11,50 @@ namespace WpfInteractionApp
     {
         private readonly List<LogEntry> _logs = new List<LogEntry>();
         private readonly Dictionary<string, TabItem> _tabs = new Dictionary<string, TabItem>();
+        private HandlerManager? _handlerManager;
 
-        public MainWindow()
+        public MainWindow(HandlerManager handlerManager)
         {
             InitializeComponent();
             LogListBox.ItemsSource = _logs;
+            _handlerManager = handlerManager;
+            
+            if (_handlerManager != null)
+            {
+                InitializeManualHandlersMenu();
+            }
+        }
+
+        public void InitializeHandlerManager(HandlerManager handlerManager)
+        {
+            _handlerManager = handlerManager ?? throw new ArgumentNullException(nameof(handlerManager));
+            InitializeManualHandlersMenu();
+        }
+
+        private void InitializeManualHandlersMenu()
+        {
+            if (_handlerManager == null) return;
+
+            ManualHandlersMenu.Items.Clear();
+            var handlers = _handlerManager.GetManualHandlerNames();
+            
+            foreach (var handler in handlers)
+            {
+                var menuItem = new MenuItem
+                {
+                    Header = handler,
+                    Style = (Style)FindResource("Carbon.MenuItem")
+                };
+                menuItem.Click += async (s, e) =>
+                {
+                    var dialog = new ConfirmationDialog($"Execute {handler}", $"Are you sure you want to execute the {handler}?");
+                    if (await dialog.ShowDialogAsync())
+                    {
+                        _handlerManager.ExecuteManualHandler(handler);
+                    }
+                };
+                ManualHandlersMenu.Items.Add(menuItem);
+            }
         }
 
         public void AddLog(LogEntry log)
@@ -93,5 +133,4 @@ namespace WpfInteractionApp
         public DateTime Timestamp { get; set; }
         public string AdditionalInfo { get; set; }
     }
-
 }

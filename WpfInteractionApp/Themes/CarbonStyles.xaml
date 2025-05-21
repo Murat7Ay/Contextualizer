@@ -352,4 +352,94 @@
         </Setter>
     </Style>
 
+    <!-- Menu Styles -->
+    <Style x:Key="Carbon.MenuItem" TargetType="MenuItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Border" 
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Header Content -->
+                            <ContentPresenter Grid.Column="0"
+                                            ContentSource="Header"
+                                            Margin="{TemplateBinding Padding}"
+                                            RecognizesAccessKey="True"/>
+                            
+                            <!-- Submenu Arrow -->
+                            <Path x:Name="Arrow"
+                                  Grid.Column="1"
+                                  Data="M 0,0 L 4,4 L 8,0"
+                                  Fill="{TemplateBinding Foreground}"
+                                  Margin="8,0,8,0"
+                                  VerticalAlignment="Center"
+                                  Visibility="Collapsed"/>
+                            
+                            <!-- Popup for Submenu -->
+                            <Popup x:Name="SubMenuPopup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsSubmenuOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Border x:Name="SubMenuBorder"
+                                        Background="{StaticResource Carbon.Brush.Background.Secondary}"
+                                        BorderBrush="{StaticResource Carbon.Brush.Background.Tertiary}"
+                                        BorderThickness="1"
+                                        Padding="2">
+                                    <ScrollViewer Style="{StaticResource Carbon.ScrollViewer}"
+                                                CanContentScroll="True">
+                                        <StackPanel IsItemsHost="True"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Active}"/>
+                        </Trigger>
+                        <Trigger Property="HasItems" Value="True">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsSubmenuOpen" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Carbon.Menu" TargetType="Menu">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Secondary}"/>
+        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Menu">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource Carbon.Brush.Background.Tertiary}"
+                            BorderThickness="0,0,0,1">
+                        <StackPanel Orientation="Horizontal"
+                                  IsItemsHost="True"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary> 

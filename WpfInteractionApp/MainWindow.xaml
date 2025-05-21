@@ -8,96 +8,104 @@
         Foreground="{StaticResource Carbon.Brush.Text.Primary}"
         WindowStartupLocation="CenterScreen">
     
-    <Grid Margin="24">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="350" MinWidth="250" />
-            <ColumnDefinition Width="4" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <DockPanel>
+        <!-- Menu Bar -->
+        <Menu DockPanel.Dock="Top" Style="{StaticResource Carbon.Menu}">
+            <MenuItem Header="_Actions" Style="{StaticResource Carbon.MenuItem}">
+                <MenuItem Header="_Manual Handlers" x:Name="ManualHandlersMenu" Style="{StaticResource Carbon.MenuItem}" />
+            </MenuItem>
+        </Menu>
 
-        <!-- Log Panel -->
-        <DockPanel Grid.Column="0">
-            <TextBlock DockPanel.Dock="Top" 
-                      Text="Activity Log" 
-                      Style="{StaticResource Carbon.TextBlock.Heading}"
-                      Margin="0,0,0,16"/>
-            
-            <ListBox x:Name="LogListBox" 
-                     Style="{StaticResource Carbon.ListBox}"
-                     ItemContainerStyle="{StaticResource Carbon.ListBoxItem}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Margin="0,4">
-                            <DockPanel>
-                                <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}"
+        <!-- Main Content -->
+        <Grid Margin="24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="350" MinWidth="250" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Log Panel -->
+            <DockPanel Grid.Column="0" Margin="0,0,16,0">
+                <TextBlock DockPanel.Dock="Top" 
+                          Text="Activity Log" 
+                          Style="{StaticResource Carbon.TextBlock.Heading}"
+                          Margin="0,0,0,16"/>
+                
+                <ListBox x:Name="LogListBox" 
+                         Style="{StaticResource Carbon.ListBox}"
+                         ItemContainerStyle="{StaticResource Carbon.ListBoxItem}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,4">
+                                <DockPanel>
+                                    <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}"
+                                             Style="{StaticResource Carbon.TextBlock.Helper}"
+                                             DockPanel.Dock="Right"
+                                             Margin="8,0,0,0"/>
+                                    <TextBlock Text="{Binding Type}"
+                                             Style="{StaticResource Carbon.TextBlock.Helper}"/>
+                                </DockPanel>
+                                <TextBlock Text="{Binding Message}"
+                                         Style="{StaticResource Carbon.TextBlock.Body}"
+                                         Margin="0,4"/>
+                                <TextBlock Text="{Binding AdditionalInfo}"
                                          Style="{StaticResource Carbon.TextBlock.Helper}"
-                                         DockPanel.Dock="Right"
-                                         Margin="8,0,0,0"/>
-                                <TextBlock Text="{Binding Type}"
-                                         Style="{StaticResource Carbon.TextBlock.Helper}"/>
-                            </DockPanel>
-                            <TextBlock Text="{Binding Message}"
-                                     Style="{StaticResource Carbon.TextBlock.Body}"
-                                     Margin="0,4"/>
-                            <TextBlock Text="{Binding AdditionalInfo}"
-                                     Style="{StaticResource Carbon.TextBlock.Helper}"
-                                     Visibility="{Binding AdditionalInfo, Converter={StaticResource StringToVisibilityConverter}}"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </DockPanel>
+                                         Visibility="{Binding AdditionalInfo, Converter={StaticResource StringToVisibilityConverter}}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
 
-        <!-- GridSplitter -->
-        <GridSplitter Grid.Column="1"
-                      Style="{StaticResource Carbon.GridSplitter}"
-                      ShowsPreview="True"/>
+            <!-- GridSplitter -->
+            <GridSplitter Grid.Column="1"
+                          Style="{StaticResource Carbon.GridSplitter}"
+                          ShowsPreview="True"/>
 
-        <!-- Content Area -->
-        <DockPanel Grid.Column="2">
-            <TextBlock DockPanel.Dock="Top" 
-                      Text="Content" 
-                      Style="{StaticResource Carbon.TextBlock.Heading}"
-                      Margin="0,0,0,16"/>
-            
-            <TabControl x:Name="TabControl" 
-                       Style="{StaticResource Carbon.TabControl}">
-                <TabControl.Resources>
-                    <Style TargetType="TabItem" BasedOn="{StaticResource Carbon.TabItem}">
-                        <Setter Property="MaxWidth" Value="200"/>
-                        <Setter Property="MinWidth" Value="120"/>
-                    </Style>
-                </TabControl.Resources>
-                <TabControl.Template>
-                    <ControlTemplate TargetType="TabControl">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            
-                            <!-- Tab Headers with ScrollViewer -->
-                            <Border Grid.Row="0" 
-                                    Background="{StaticResource Carbon.Brush.Background.Secondary}"
-                                    BorderThickness="0,0,0,1"
-                                    BorderBrush="{StaticResource Carbon.Brush.Background.Tertiary}">
-                                <ScrollViewer HorizontalScrollBarVisibility="Auto" 
-                                            VerticalScrollBarVisibility="Disabled">
-                                    <TabPanel IsItemsHost="True" />
-                                </ScrollViewer>
-                            </Border>
-                            
-                            <!-- Content Area -->
-                            <Border Grid.Row="1" 
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}">
-                                <ContentPresenter ContentSource="SelectedContent" />
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </TabControl.Template>
-            </TabControl>
-        </DockPanel>
-    </Grid>
+            <!-- Content Area -->
+            <DockPanel Grid.Column="2" Margin="16,0,0,0">
+                <TextBlock DockPanel.Dock="Top" 
+                          Text="Content" 
+                          Style="{StaticResource Carbon.TextBlock.Heading}"
+                          Margin="0,0,0,16"/>
+                
+                <TabControl x:Name="TabControl" 
+                           Style="{StaticResource Carbon.TabControl}">
+                    <TabControl.Resources>
+                        <Style TargetType="TabItem" BasedOn="{StaticResource Carbon.TabItem}">
+                            <Setter Property="MaxWidth" Value="200"/>
+                            <Setter Property="MinWidth" Value="120"/>
+                        </Style>
+                    </TabControl.Resources>
+                    <TabControl.Template>
+                        <ControlTemplate TargetType="TabControl">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- Tab Headers with Wrapping -->
+                                <Border Grid.Row="0" 
+                                        Background="{StaticResource Carbon.Brush.Background.Secondary}"
+                                        BorderThickness="0,0,0,1"
+                                        BorderBrush="{StaticResource Carbon.Brush.Background.Tertiary}">
+                                    <WrapPanel Orientation="Horizontal" 
+                                              IsItemsHost="True" />
+                                </Border>
+                                
+                                <!-- Content Area -->
+                                <Border Grid.Row="1" 
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                    <ContentPresenter ContentSource="SelectedContent" />
+                                </Border>
+                            </Grid>
+                        </ControlTemplate>
+                    </TabControl.Template>
+                </TabControl>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
 </Window>

@@ -1,47 +1,51 @@
 ﻿using Contextualizer.Core;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Navigation;
 
 namespace WpfInteractionApp
 {
     public partial class App : Application
     {
-        private HandlerManager _handlerManager;
+        private HandlerManager? _handlerManager;
+        private MainWindow? _mainWindow;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            var mainWindow = new MainWindow();
-            var userInteractionService = new WpfUserInteractionService(mainWindow);
-            mainWindow.Show();
-
             try
             {
-                userInteractionService.Log(LogType.Info, "HandlerManager başlatılıyor...");
-                _handlerManager = new HandlerManager(userInteractionService, @"C:\Finder\handlers.json");
+                _mainWindow = new MainWindow(null!); // Temporarily pass null
+                MainWindow = _mainWindow; // Set as Application.Current.MainWindow
+                _mainWindow.Show();
+
+                // Now create the HandlerManager with proper MainWindow reference
+                _handlerManager = new HandlerManager(
+                    new WpfUserInteractionService(_mainWindow),
+                    @"C:\Finder\handlers.json" // TODO: Make this configurable
+                );
+
+                // Update MainWindow's HandlerManager reference
+                _mainWindow.InitializeHandlerManager(_handlerManager);
+
+                // Start the HandlerManager
                 await _handlerManager.StartAsync();
             }
             catch (Exception ex)
             {
-                userInteractionService.ShowNotification($"HandlerManager başlatılamadı: {ex.Message}", LogType.Error);
+                MessageBox.Show(
+                    $"Failed to initialize the application: {ex.Message}",
+                    "Initialization Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+                Shutdown();
             }
         }
 
-        protected override void OnLoadCompleted(NavigationEventArgs e)
+        protected override void OnExit(ExitEventArgs e)
         {
-            base.OnLoadCompleted(e);
-        }
-
-        protected override async void OnExit(ExitEventArgs e)
-        {
-            if (_handlerManager != null)
-            {
-                _handlerManager.Dispose();
-            }
+            _handlerManager?.Dispose();
             base.OnExit(e);
         }
     }
