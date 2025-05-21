@@ -131,10 +131,11 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}" />
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Hover}" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Primary}" />
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Active}" />
+                            <Setter Property="TextElement.Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -353,77 +354,6 @@
     </Style>
 
     <!-- Menu Styles -->
-    <Style x:Key="Carbon.MenuItem" TargetType="MenuItem">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}"/>
-        <Setter Property="Padding" Value="16,8"/>
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="MenuItem">
-                    <Border x:Name="Border" 
-                            Background="{TemplateBinding Background}"
-                            BorderThickness="0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            
-                            <!-- Header Content -->
-                            <ContentPresenter Grid.Column="0"
-                                            ContentSource="Header"
-                                            Margin="{TemplateBinding Padding}"
-                                            RecognizesAccessKey="True"/>
-                            
-                            <!-- Submenu Arrow -->
-                            <Path x:Name="Arrow"
-                                  Grid.Column="1"
-                                  Data="M 0,0 L 4,4 L 8,0"
-                                  Fill="{TemplateBinding Foreground}"
-                                  Margin="8,0,8,0"
-                                  VerticalAlignment="Center"
-                                  Visibility="Collapsed"/>
-                            
-                            <!-- Popup for Submenu -->
-                            <Popup x:Name="SubMenuPopup"
-                                   Placement="Bottom"
-                                   IsOpen="{TemplateBinding IsSubmenuOpen}"
-                                   AllowsTransparency="True"
-                                   Focusable="False"
-                                   PopupAnimation="Fade">
-                                <Border x:Name="SubMenuBorder"
-                                        Background="{StaticResource Carbon.Brush.Background.Secondary}"
-                                        BorderBrush="{StaticResource Carbon.Brush.Background.Tertiary}"
-                                        BorderThickness="1"
-                                        Padding="2">
-                                    <ScrollViewer Style="{StaticResource Carbon.ScrollViewer}"
-                                                CanContentScroll="True">
-                                        <StackPanel IsItemsHost="True"/>
-                                    </ScrollViewer>
-                                </Border>
-                            </Popup>
-                        </Grid>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Active}"/>
-                        </Trigger>
-                        <Trigger Property="HasItems" Value="True">
-                            <Setter TargetName="Arrow" Property="Visibility" Value="Visible"/>
-                        </Trigger>
-                        <Trigger Property="IsSubmenuOpen" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <Style x:Key="Carbon.Menu" TargetType="Menu">
         <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Secondary}"/>
         <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}"/>
@@ -437,6 +367,82 @@
                         <StackPanel Orientation="Horizontal"
                                   IsItemsHost="True"/>
                     </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Carbon.MenuItem" TargetType="MenuItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Border" 
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Icon"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Shortcut"/>
+                                <ColumnDefinition Width="13"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name="Icon" 
+                                            Margin="6,0,6,0" 
+                                            VerticalAlignment="Center" 
+                                            ContentSource="Icon"/>
+                            <ContentPresenter x:Name="HeaderHost" 
+                                            Grid.Column="1" 
+                                            ContentSource="Header" 
+                                            RecognizesAccessKey="True" 
+                                            Margin="{TemplateBinding Padding}"/>
+                            <ContentPresenter x:Name="InputGestureText" 
+                                            Grid.Column="2" 
+                                            Margin="8,0,8,0" 
+                                            ContentSource="InputGestureText" 
+                                            VerticalAlignment="Center"/>
+                            <Path x:Name="SubMenuPath" 
+                                  Grid.Column="3" 
+                                  Fill="{TemplateBinding Foreground}" 
+                                  Margin="4,0,0,0" 
+                                  VerticalAlignment="Center" 
+                                  Data="M0,0 L4,3.5 L0,7 Z"/>
+                            <Popup x:Name="SubMenuPopup" 
+                                   Placement="Right" 
+                                   HorizontalOffset="-1" 
+                                   IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" 
+                                   AllowsTransparency="True" 
+                                   Focusable="False" 
+                                   PopupAnimation="Fade">
+                                <Border x:Name="SubMenuBorder" 
+                                        Background="{StaticResource Carbon.Brush.Background.Primary}"
+                                        BorderBrush="{StaticResource Carbon.Brush.Background.Tertiary}"
+                                        BorderThickness="1">
+                                    <ScrollViewer Style="{DynamicResource {ComponentResourceKey ResourceId=MenuScrollViewer, TypeInTargetAssembly={x:Type FrameworkElement}}}">
+                                        <StackPanel IsItemsHost="True" 
+                                                  KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Helper}"/>
+                        </Trigger>
+                        <Trigger Property="HasItems" Value="False">
+                            <Setter TargetName="SubMenuPath" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsSubmenuOpen" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

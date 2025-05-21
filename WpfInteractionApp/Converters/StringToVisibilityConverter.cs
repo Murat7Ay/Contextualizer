@@ -9,7 +9,11 @@ namespace WpfInteractionApp.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return string.IsNullOrEmpty(value as string) ? Visibility.Collapsed : Visibility.Visible;
+            if (value is string str)
+            {
+                return string.IsNullOrWhiteSpace(str) ? Visibility.Collapsed : Visibility.Visible;
+            }
+            return Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

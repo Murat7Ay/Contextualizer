@@ -19,7 +19,16 @@ namespace WpfInteractionApp
             TitleBlock.Text = title;
             MessageBlock.Text = message;
             
-            Owner = Application.Current.MainWindow;
+            // Set owner window
+            if (Application.Current.MainWindow != null)
+            {
+                Owner = Application.Current.MainWindow;
+                WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            }
+            else
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)

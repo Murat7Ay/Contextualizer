@@ -5,10 +5,10 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Themes/CarbonColors.xaml"/>
-                <ResourceDictionary Source="Themes/CarbonStyles.xaml"/>
+                <!-- Resources will be loaded programmatically -->
             </ResourceDictionary.MergedDictionaries>
-            
+
+            <!-- Converters -->
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>

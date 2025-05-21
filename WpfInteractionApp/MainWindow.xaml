@@ -10,9 +10,15 @@
     
     <DockPanel>
         <!-- Menu Bar -->
-        <Menu DockPanel.Dock="Top" Style="{StaticResource Carbon.Menu}">
-            <MenuItem Header="_Actions" Style="{StaticResource Carbon.MenuItem}">
-                <MenuItem Header="_Manual Handlers" x:Name="ManualHandlersMenu" Style="{StaticResource Carbon.MenuItem}" />
+        <Menu Style="{StaticResource Carbon.Menu}" DockPanel.Dock="Top">
+            <MenuItem Header="File" Style="{StaticResource Carbon.MenuItem}">
+                <MenuItem Header="Exit" Click="ExitMenuItem_Click" Style="{StaticResource Carbon.MenuItem}"/>
+            </MenuItem>
+            <MenuItem Header="Handlers" x:Name="ManualHandlersMenu" Style="{StaticResource Carbon.MenuItem}">
+                <!-- Handlers will be added dynamically -->
+            </MenuItem>
+            <MenuItem Header="View" Style="{StaticResource Carbon.MenuItem}">
+                <MenuItem x:Name="ThemeToggleMenuItem" Header="Toggle Theme" Click="ToggleTheme_Click" Style="{StaticResource Carbon.MenuItem}"/>
             </MenuItem>
         </Menu>
 

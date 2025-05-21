@@ -1,4 +1,5 @@
 ﻿using Contextualizer.Core;
+using System;
 using System.Text.RegularExpressions;
 using System.Windows;
 
@@ -13,8 +14,24 @@ namespace WpfInteractionApp
         {
             InitializeComponent();
             _request = request ?? throw new ArgumentNullException(nameof(request));
+            
+            // Set window title and message
             Title = request.Title;
             MessageText.Text = request.Message;
+
+            // Set owner window
+            if (Application.Current.MainWindow != null)
+            {
+                Owner = Application.Current.MainWindow;
+                WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            }
+            else
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
+
+            // Set initial focus to input box
+            Loaded += (s, e) => InputTextBox.Focus();
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
@@ -22,7 +39,8 @@ namespace WpfInteractionApp
             var input = InputTextBox.Text?.Trim();
             if (_request.IsRequired && string.IsNullOrWhiteSpace(input))
             {
-                MessageBox.Show("Giriş zorunludur. Lütfen bir değer girin.", "Hata", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Input is required. Please enter a value.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                InputTextBox.Focus();
                 return;
             }
 
@@ -31,7 +49,8 @@ namespace WpfInteractionApp
                 var regex = new Regex(_request.ValidationRegex);
                 if (!regex.IsMatch(input))
                 {
-                    MessageBox.Show("Geçersiz giriş formatı. Lütfen beklenen formatı takip edin.", "Hata", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Invalid input format. Please follow the expected format.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    InputTextBox.Focus();
                     return;
                 }
             }
@@ -47,5 +66,4 @@ namespace WpfInteractionApp
             Close();
         }
     }
-
 }

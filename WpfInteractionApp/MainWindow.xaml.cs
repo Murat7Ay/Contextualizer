@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using WpfInteractionApp.Services;
+using System.Diagnostics;
 
 namespace WpfInteractionApp
 {
@@ -12,17 +14,16 @@ namespace WpfInteractionApp
         private readonly List<LogEntry> _logs = new List<LogEntry>();
         private readonly Dictionary<string, TabItem> _tabs = new Dictionary<string, TabItem>();
         private HandlerManager? _handlerManager;
+        private readonly ThemeService _themeService;
 
-        public MainWindow(HandlerManager handlerManager)
+        public MainWindow()
         {
             InitializeComponent();
-            LogListBox.ItemsSource = _logs;
-            _handlerManager = handlerManager;
             
-            if (_handlerManager != null)
-            {
-                InitializeManualHandlersMenu();
-            }
+            _themeService = ServiceLocator.Get<ThemeService>();
+            _themeService.ThemeChanged += OnThemeChanged;
+
+            LogListBox.ItemsSource = _logs;
         }
 
         public void InitializeHandlerManager(HandlerManager handlerManager)
@@ -123,6 +124,40 @@ namespace WpfInteractionApp
                     TabControl.Items.Remove(tabItem);
                 }
             }
+        }
+
+        private void OnThemeChanged(object? sender, ThemeType theme)
+        {
+            Debug.WriteLine($"Theme changed to: {theme}");
+            AddLog(new LogEntry 
+            { 
+                Type = LogType.Info, 
+                Message = $"Theme changed to: {theme}", 
+                Timestamp = DateTime.Now 
+            });
+        }
+
+        private void ToggleTheme_Click(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine("ToggleTheme_Click called");
+            AddLog(new LogEntry 
+            { 
+                Type = LogType.Info, 
+                Message = $"Toggling theme from: {_themeService.CurrentTheme}", 
+                Timestamp = DateTime.Now 
+            });
+            _themeService.SwitchTheme();
+        }
+
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            _themeService.ThemeChanged -= OnThemeChanged;
         }
     }
 

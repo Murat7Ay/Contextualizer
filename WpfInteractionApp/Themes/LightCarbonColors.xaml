@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Carbon Design System Colors - Light Theme -->
+    
+    <!-- Background Colors -->
+    <Color x:Key="Carbon.Background.Primary">#FFFFFF</Color>
+    <Color x:Key="Carbon.Background.Secondary">#F4F4F4</Color>
+    <Color x:Key="Carbon.Background.Tertiary">#E0E0E0</Color>
+    <Color x:Key="Carbon.Background.Active">#E8E8E8</Color>
+    
+    <!-- Text Colors -->
+    <Color x:Key="Carbon.Text.Primary">#161616</Color>
+    <Color x:Key="Carbon.Text.Secondary">#525252</Color>
+    <Color x:Key="Carbon.Text.Helper">#6F6F6F</Color>
+    
+    <!-- Interactive Colors -->
+    <Color x:Key="Carbon.Interactive.Primary">#0050B3</Color>
+    <Color x:Key="Carbon.Interactive.Secondary">#E8E8E8</Color>
+    <Color x:Key="Carbon.Interactive.Hover">#E5F0FF</Color>
+    <Color x:Key="Carbon.Interactive.Active">#D0E2FF</Color>
+    <Color x:Key="Carbon.Interactive.Disabled">#C6C6C6</Color>
+    
+    <!-- Support Colors -->
+    <Color x:Key="Carbon.Support.Error">#DA1E28</Color>
+    <Color x:Key="Carbon.Support.Success">#24A148</Color>
+    <Color x:Key="Carbon.Support.Warning">#F1C21B</Color>
+    <Color x:Key="Carbon.Support.Info">#0043CE</Color>
+    
+    <!-- Solid Color Brushes -->
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Primary" Color="{StaticResource Carbon.Background.Primary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Secondary" Color="{StaticResource Carbon.Background.Secondary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Tertiary" Color="{StaticResource Carbon.Background.Tertiary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Active" Color="{StaticResource Carbon.Background.Active}" />
+    
+    <SolidColorBrush x:Key="Carbon.Brush.Text.Primary" Color="{StaticResource Carbon.Text.Primary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Text.Secondary" Color="{StaticResource Carbon.Text.Secondary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Text.Helper" Color="{StaticResource Carbon.Text.Helper}" />
+    
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Primary" Color="{StaticResource Carbon.Interactive.Primary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Secondary" Color="{StaticResource Carbon.Interactive.Secondary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Hover" Color="{StaticResource Carbon.Interactive.Hover}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{StaticResource Carbon.Interactive.Active}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{StaticResource Carbon.Interactive.Disabled}" />
+    
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Error" Color="{StaticResource Carbon.Support.Error}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Success" Color="{StaticResource Carbon.Support.Success}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Warning" Color="{StaticResource Carbon.Support.Warning}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Info" Color="{StaticResource Carbon.Support.Info}" />
+
+    <!-- Effects -->
+    <DropShadowEffect x:Key="DropShadowEffect" 
+                      ShadowDepth="4" 
+                      Direction="270" 
+                      Color="#40000000" 
+                      BlurRadius="12" 
+                      Opacity="0.15"/>
+</ResourceDictionary> 
