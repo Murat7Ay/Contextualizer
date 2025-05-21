@@ -85,6 +85,7 @@ namespace Contextualizer.Core
 
                     if (!confirmed) {
                         ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action {configAction.Name} cancelled.");
+                        return;
                     }
                 }
 

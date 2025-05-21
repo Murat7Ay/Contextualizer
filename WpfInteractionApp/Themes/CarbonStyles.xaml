@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Base Text Styles -->
+    <Style x:Key="Carbon.TextBlock.Base" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="LineHeight" Value="1.5" />
+    </Style>
+
+    <Style x:Key="Carbon.TextBlock.Heading" TargetType="TextBlock" BasedOn="{StaticResource Carbon.TextBlock.Base}">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,16" />
+        <Setter Property="LineHeight" Value="1.3" />
+    </Style>
+
+    <Style x:Key="Carbon.TextBlock.Subheading" TargetType="TextBlock" BasedOn="{StaticResource Carbon.TextBlock.Base}">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+
+    <Style x:Key="Carbon.TextBlock.Body" TargetType="TextBlock" BasedOn="{StaticResource Carbon.TextBlock.Base}">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="LineHeight" Value="20" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+
+    <Style x:Key="Carbon.TextBlock.Helper" TargetType="TextBlock" BasedOn="{StaticResource Carbon.TextBlock.Base}">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Helper}" />
+        <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+
+    <!-- Button Styles -->
+    <Style x:Key="Carbon.Button.Base" TargetType="Button">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Primary}" />
+        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="MinWidth" Value="100" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"
+                                        Margin="{TemplateBinding Padding}">
+                            <ContentPresenter.Effect>
+                                <DropShadowEffect ShadowDepth="1" 
+                                                Direction="270" 
+                                                Color="#40000000" 
+                                                BlurRadius="4" 
+                                                Opacity="0.3"/>
+                            </ContentPresenter.Effect>
+                        </ContentPresenter>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Hover}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Active}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Disabled}" />
+                            <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Helper}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Carbon.Button.Secondary" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Secondary}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Interactive.Primary}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ListBox Styles -->
+    <Style x:Key="Carbon.ListBox" TargetType="ListBox">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Secondary}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Background.Tertiary}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4">
+                        <ScrollViewer Padding="{TemplateBinding Padding}"
+                                    Focusable="False">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ListBoxItem Style -->
+    <Style x:Key="Carbon.ListBoxItem" TargetType="ListBoxItem">
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Margin" Value="4" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderThickness="0"
+                            CornerRadius="4">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Primary}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TabControl Styles -->
+    <Style x:Key="Carbon.TabControl" TargetType="TabControl">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Primary}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Background.Tertiary}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" 
+                                Background="{StaticResource Carbon.Brush.Background.Secondary}"
+                                BorderThickness="0,0,0,1"
+                                BorderBrush="{StaticResource Carbon.Brush.Background.Tertiary}">
+                            <TabPanel IsItemsHost="True" />
+                        </Border>
+                        <Border Grid.Row="1" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter ContentSource="SelectedContent" />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Carbon.TabItem" TargetType="TabItem">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="0,0,0,2">
+                        <ContentPresenter ContentSource="Header"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Margin="{TemplateBinding Padding}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Interactive.Primary}" />
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- GridSplitter Style -->
+    <Style x:Key="Carbon.GridSplitter" TargetType="GridSplitter">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Tertiary}" />
+        <Setter Property="Width" Value="4" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GridSplitter">
+                    <Border Background="{TemplateBinding Background}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Primary}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Close Button Style -->
+    <Style x:Key="CloseButtonStyle" TargetType="Button">
+        <Setter Property="Width" Value="24"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Margin" Value="4,0,0,0"/>
+        <Setter Property="ToolTip" Value="Close"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="4">
+                        <Path Data="M 0,0 L 8,8 M 0,8 L 8,0"
+                              Stroke="{StaticResource Carbon.Brush.Text.Primary}"
+                              StrokeThickness="1.5"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ScrollViewer Style -->
+    <Style x:Key="Carbon.ScrollViewer" TargetType="ScrollViewer">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollViewer">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ScrollContentPresenter Grid.Column="0" Grid.Row="0"/>
+
+                        <ScrollBar x:Name="PART_VerticalScrollBar"
+                                 Grid.Column="1" Grid.Row="0"
+                                 Value="{TemplateBinding VerticalOffset}"
+                                 Maximum="{TemplateBinding ScrollableHeight}"
+                                 ViewportSize="{TemplateBinding ViewportHeight}"
+                                 Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+
+                        <ScrollBar x:Name="PART_HorizontalScrollBar"
+                                 Orientation="Horizontal"
+                                 Grid.Column="0" Grid.Row="1"
+                                 Value="{TemplateBinding HorizontalOffset}"
+                                 Maximum="{TemplateBinding ScrollableWidth}"
+                                 ViewportSize="{TemplateBinding ViewportWidth}"
+                                 Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ScrollBar Style -->
+    <Style x:Key="Carbon.ScrollBar" TargetType="ScrollBar">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Border Background="{StaticResource Carbon.Brush.Background.Secondary}"
+                            BorderThickness="0">
+                        <Track x:Name="PART_Track" 
+                               IsDirectionReversed="True"
+                               Width="8">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource Carbon.ScrollBarButton}"/>
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource Carbon.ScrollBarButton}"/>
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource Carbon.ScrollBarThumb}"/>
+                            </Track.Thumb>
+                        </Track>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ScrollBar Button Style -->
+    <Style x:Key="Carbon.ScrollBarButton" TargetType="RepeatButton">
+        <Setter Property="OverridesDefaultStyle" Value="true"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border Background="{TemplateBinding Background}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ScrollBar Thumb Style -->
+    <Style x:Key="Carbon.ScrollBarThumb" TargetType="Thumb">
+        <Setter Property="OverridesDefaultStyle" Value="true"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border Background="{StaticResource Carbon.Brush.Background.Active}"
+                            CornerRadius="4"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary> 

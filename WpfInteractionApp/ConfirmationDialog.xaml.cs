@@ -13,9 +13,13 @@ namespace WpfInteractionApp
         public ConfirmationDialog(string title, string message)
         {
             InitializeComponent();
+            
+            // Set window title and text blocks
             Title = title;
-            Message = message;
-            DataContext = this;
+            TitleBlock.Text = title;
+            MessageBlock.Text = message;
+            
+            Owner = Application.Current.MainWindow;
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)

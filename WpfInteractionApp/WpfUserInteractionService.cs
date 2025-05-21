@@ -17,7 +17,7 @@ namespace WpfInteractionApp
         public WpfUserInteractionService(MainWindow mainWindow)
         {
             _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
-             //_screenFactories["markdown"] = () => new MarkdownViewer();
+            _screenFactories["markdown"] = () => new MarkdownViewer2();
         }
 
         private IDynamicScreen? CreateScreenById(string screenId)
