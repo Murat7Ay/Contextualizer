@@ -75,8 +75,81 @@ The application uses a JSON configuration file (`handlers.json`) located at `C:\
 
 ## License
 
-[Add your license information here]
+This project is licensed under the MIT License - see below for details:
+
+```
+MIT License
+
+Copyright (c) 2024 Contextualizer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ## Contributing
 
-[Add contribution guidelines here] 
+We welcome contributions to the Contextualizer project! Here's how you can contribute:
+
+1. **Fork the Repository**
+   - Fork the project to your GitHub account
+
+2. **Create a Branch**
+   - Create a branch from `master` for your feature or bug fix
+   - Use a descriptive name for your branch (e.g., `feature/new-handler` or `fix/database-connection`)
+
+3. **Make Your Changes**
+   - Write clean, readable code
+   - Follow the existing code style and conventions
+   - Add comments where necessary
+   - Update documentation if needed
+
+4. **Test Your Changes**
+   - Ensure all existing tests pass
+   - Add new tests if you're adding new functionality
+   - Test the application thoroughly
+
+5. **Submit a Pull Request**
+   - Push your changes to your fork
+   - Create a Pull Request from your branch to our `master` branch
+   - Provide a clear description of the changes
+   - Reference any related issues
+
+6. **Code Review**
+   - Wait for the maintainers to review your PR
+   - Make any requested changes
+   - Once approved, your PR will be merged
+
+### Code Style Guidelines
+
+- Follow C# coding conventions
+- Use meaningful variable and function names
+- Keep methods focused and concise
+- Document public APIs
+- Add XML comments for public methods and classes
+
+### Reporting Issues
+
+If you find a bug or have a suggestion for improvement:
+
+1. Check if the issue already exists in our issue tracker
+2. If not, create a new issue with:
+   - A clear title and description
+   - Steps to reproduce (for bugs)
+   - Expected and actual behavior
+   - Screenshots if applicable
+   - Any relevant code snippets 
