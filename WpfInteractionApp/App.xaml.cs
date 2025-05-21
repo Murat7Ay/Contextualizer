@@ -10,7 +10,6 @@ namespace WpfInteractionApp
     {
         private HandlerManager? _handlerManager;
         private MainWindow? _mainWindow;
-        private ThemeService? _themeService;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -18,33 +17,16 @@ namespace WpfInteractionApp
 
             try
             {
-                // Clear only theme dictionaries, preserve converters
-                var themeDicts = Resources.MergedDictionaries.ToList();
-                foreach (var dict in themeDicts)
-                {
-                    Resources.MergedDictionaries.Remove(dict);
-                }
+                // Initialize and apply the saved theme
+                ThemeManager.Instance.ApplyTheme(WpfInteractionApp.Properties.Settings.Default.Theme ?? "Light");
 
-                // First load the theme colors
-                var initialTheme = WpfInteractionApp.Properties.Settings.Default.Theme;
-                var themeType = Enum.Parse<ThemeType>(initialTheme, true);
-                var themeUri = themeType == ThemeType.Dark
-                    ? new Uri("/WpfInteractionApp;component/Themes/CarbonColors.xaml", UriKind.Relative)
-                    : new Uri("/WpfInteractionApp;component/Themes/LightCarbonColors.xaml", UriKind.Relative);
-
-                Resources.MergedDictionaries.Add(new ResourceDictionary { Source = themeUri });
-
-                // Then load the styles that depend on the colors
+                // Load the base styles
                 Resources.MergedDictionaries.Add(new ResourceDictionary 
                 { 
                     Source = new Uri("/WpfInteractionApp;component/Themes/CarbonStyles.xaml", UriKind.Relative) 
                 });
 
-                // Initialize theme service
-                _themeService = new ThemeService(this);
-                ServiceLocator.Register(_themeService);
-
-                // Initialize main window after resources are loaded
+                // Initialize main window
                 _mainWindow = new MainWindow();
                 MainWindow = _mainWindow;
 
@@ -52,7 +34,7 @@ namespace WpfInteractionApp
                 var userInteractionService = new WpfUserInteractionService(_mainWindow);
                 ServiceLocator.Register<IUserInteractionService>(userInteractionService);
 
-                // Now create the HandlerManager
+                // Create the HandlerManager
                 _handlerManager = new HandlerManager(
                     userInteractionService,
                     @"C:\Finder\handlers.json" // TODO: Make this configurable

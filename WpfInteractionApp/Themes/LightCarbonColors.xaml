@@ -28,25 +28,25 @@
     <Color x:Key="Carbon.Support.Info">#0043CE</Color>
     
     <!-- Solid Color Brushes -->
-    <SolidColorBrush x:Key="Carbon.Brush.Background.Primary" Color="{StaticResource Carbon.Background.Primary}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Background.Secondary" Color="{StaticResource Carbon.Background.Secondary}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Background.Tertiary" Color="{StaticResource Carbon.Background.Tertiary}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Background.Active" Color="{StaticResource Carbon.Background.Active}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Primary" Color="{DynamicResource Carbon.Background.Primary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Secondary" Color="{DynamicResource Carbon.Background.Secondary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Tertiary" Color="{DynamicResource Carbon.Background.Tertiary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Active" Color="{DynamicResource Carbon.Background.Active}" />
     
-    <SolidColorBrush x:Key="Carbon.Brush.Text.Primary" Color="{StaticResource Carbon.Text.Primary}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Text.Secondary" Color="{StaticResource Carbon.Text.Secondary}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Text.Helper" Color="{StaticResource Carbon.Text.Helper}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Text.Primary" Color="{DynamicResource Carbon.Text.Primary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Text.Secondary" Color="{DynamicResource Carbon.Text.Secondary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Text.Helper" Color="{DynamicResource Carbon.Text.Helper}" />
     
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Primary" Color="{StaticResource Carbon.Interactive.Primary}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Secondary" Color="{StaticResource Carbon.Interactive.Secondary}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Hover" Color="{StaticResource Carbon.Interactive.Hover}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{StaticResource Carbon.Interactive.Active}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{StaticResource Carbon.Interactive.Disabled}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Primary" Color="{DynamicResource Carbon.Interactive.Primary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Secondary" Color="{DynamicResource Carbon.Interactive.Secondary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Hover" Color="{DynamicResource Carbon.Interactive.Hover}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{DynamicResource Carbon.Interactive.Active}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{DynamicResource Carbon.Interactive.Disabled}" />
     
-    <SolidColorBrush x:Key="Carbon.Brush.Support.Error" Color="{StaticResource Carbon.Support.Error}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Support.Success" Color="{StaticResource Carbon.Support.Success}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Support.Warning" Color="{StaticResource Carbon.Support.Warning}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Support.Info" Color="{StaticResource Carbon.Support.Info}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Error" Color="{DynamicResource Carbon.Support.Error}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Success" Color="{DynamicResource Carbon.Support.Success}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Warning" Color="{DynamicResource Carbon.Support.Warning}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Info" Color="{DynamicResource Carbon.Support.Info}" />
 
     <!-- Effects -->
     <DropShadowEffect x:Key="DropShadowEffect" 

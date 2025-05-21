@@ -65,11 +65,7 @@ namespace WpfInteractionApp
                                 {
                                     Content = action.Key,
                                     Margin = new Thickness(0, 5, 0, 5),
-                                    Background = new SolidColorBrush(Color.FromRgb(22, 22, 22)),
-                                    Foreground = new SolidColorBrush(Color.FromRgb(244, 244, 244)),
-                                    FontFamily = new FontFamily("Segoe UI"),
-                                    FontSize = 14,
-                                    Padding = new Thickness(10, 5, 10, 5)
+                                    Style = (Style)Application.Current.FindResource("Carbon.Button.Base")
                                 };
                                 button.Click += (s, e) => action.Value?.Invoke(context);
                                 stackPanel.Children.Add(button);

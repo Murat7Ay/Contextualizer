@@ -14,15 +14,12 @@ namespace WpfInteractionApp
         private readonly List<LogEntry> _logs = new List<LogEntry>();
         private readonly Dictionary<string, TabItem> _tabs = new Dictionary<string, TabItem>();
         private HandlerManager? _handlerManager;
-        private readonly ThemeService _themeService;
 
         public MainWindow()
         {
             InitializeComponent();
             
-            _themeService = ServiceLocator.Get<ThemeService>();
-            _themeService.ThemeChanged += OnThemeChanged;
-
+            ThemeManager.Instance.ThemeChanged += OnThemeChanged;
             LogListBox.ItemsSource = _logs;
         }
 
@@ -126,7 +123,7 @@ namespace WpfInteractionApp
             }
         }
 
-        private void OnThemeChanged(object? sender, ThemeType theme)
+        private void OnThemeChanged(object? sender, string theme)
         {
             Debug.WriteLine($"Theme changed to: {theme}");
             AddLog(new LogEntry 
@@ -139,14 +136,7 @@ namespace WpfInteractionApp
 
         private void ToggleTheme_Click(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("ToggleTheme_Click called");
-            AddLog(new LogEntry 
-            { 
-                Type = LogType.Info, 
-                Message = $"Toggling theme from: {_themeService.CurrentTheme}", 
-                Timestamp = DateTime.Now 
-            });
-            _themeService.SwitchTheme();
+            ThemeManager.Instance.ToggleTheme();
         }
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
@@ -157,7 +147,7 @@ namespace WpfInteractionApp
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-            _themeService.ThemeChanged -= OnThemeChanged;
+            ThemeManager.Instance.ThemeChanged -= OnThemeChanged;
         }
     }
 

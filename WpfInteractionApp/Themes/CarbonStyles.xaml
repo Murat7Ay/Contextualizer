@@ -4,7 +4,7 @@
     
     <!-- Base Text Styles -->
     <Style x:Key="Carbon.TextBlock.Base" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="LineHeight" Value="1.5" />
     </Style>
@@ -39,8 +39,8 @@
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Padding" Value="16,10" />
-        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Primary}" />
-        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="MinWidth" Value="100" />
@@ -65,14 +65,14 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Hover}" />
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Active}" />
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Active}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Disabled}" />
-                            <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Helper}" />
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Disabled}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Helper}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -93,8 +93,8 @@
 
     <!-- ListBox Styles -->
     <Style x:Key="Carbon.ListBox" TargetType="ListBox">
-        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Secondary}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Background.Tertiary}" />
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
@@ -145,8 +145,8 @@
 
     <!-- TabControl Styles -->
     <Style x:Key="Carbon.TabControl" TargetType="TabControl">
-        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Primary}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Background.Tertiary}" />
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Primary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Template">
@@ -178,7 +178,7 @@
     <Style x:Key="Carbon.TabItem" TargetType="TabItem">
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Padding" Value="16,12" />
@@ -196,12 +196,12 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Interactive.Primary}" />
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}" />
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -355,8 +355,8 @@
 
     <!-- Menu Styles -->
     <Style x:Key="Carbon.Menu" TargetType="Menu">
-        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Secondary}"/>
-        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}"/>
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -373,9 +373,9 @@
     </Style>
 
     <Style x:Key="Carbon.MenuItem" TargetType="MenuItem">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Primary}"/>
-        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="Padding" Value="12,8" />
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -446,6 +446,12 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <!-- Window Style -->
+    <Style x:Key="Carbon.Window" TargetType="Window">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Primary}" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
     </Style>
 
 </ResourceDictionary> 

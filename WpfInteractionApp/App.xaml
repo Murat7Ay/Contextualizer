@@ -1,11 +1,15 @@
 ﻿<Application x:Class="WpfInteractionApp.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:WpfInteractionApp.Converters">
+             xmlns:converters="clr-namespace:WpfInteractionApp.Converters"
+             xmlns:local="clr-namespace:WpfInteractionApp">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Resources will be loaded programmatically -->
+                <!-- Base styles that don't change with theme -->
+                <ResourceDictionary Source="/WpfInteractionApp;component/Themes/CarbonStyles.xaml"/>
+                
+                <!-- Theme colors will be loaded dynamically -->
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Converters -->
