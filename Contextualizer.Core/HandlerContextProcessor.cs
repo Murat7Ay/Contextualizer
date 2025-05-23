@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Contextualizer.Core
 {
     public class HandlerContextProcessor
     {
+        private static readonly Regex PlaceholderRegex = new(@"\$\(([^)]+)\)", RegexOptions.Compiled);
+
         public void PromptUserInputsAsync(List<UserInputRequest> userInputs, Dictionary<string, string> context)
         {
             if (userInputs is null)
@@ -15,7 +18,14 @@ namespace Contextualizer.Core
 
             foreach (var inpt in userInputs)
             {
-                context[inpt.Key] = ServiceLocator.Get<IUserInteractionService>().GetUserInput(inpt)!;
+                if (string.IsNullOrEmpty(inpt.Key))
+                    continue;
+
+                var userInput = ServiceLocator.Get<IUserInteractionService>().GetUserInput(inpt);
+                if (!string.IsNullOrEmpty(userInput))
+                {
+                    context[inpt.Key] = userInput;
+                }
             }
         }
 
@@ -26,18 +36,38 @@ namespace Contextualizer.Core
 
             foreach (var kvp in seeder)
             {
-                context[kvp.Key] = ReplaceDynamicValues(kvp.Value, context);
+                if (string.IsNullOrEmpty(kvp.Key))
+                    continue;
+
+                var replacedValue = ReplaceDynamicValues(kvp.Value, context);
+                if (replacedValue != null)
+                {
+                    context[kvp.Key] = replacedValue;
+                }
             }
         }
 
-
         public static string ReplaceDynamicValues(string input, Dictionary<string, string> context)
         {
-            foreach (var kvp in context)
+            if (string.IsNullOrEmpty(input) || context == null)
+                return input;
+
+            try
             {
-                input = input.Replace($"$({kvp.Key})", kvp.Value);
+                return PlaceholderRegex.Replace(input, match =>
+                {
+                    var key = match.Groups[1].Value;
+                    if (string.IsNullOrEmpty(key))
+                        return match.Value;
+
+                    return context.TryGetValue(key, out var value) ? value : match.Value;
+                });
             }
-            return input;
+            catch (Exception ex)
+            {
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error replacing dynamic values: {ex.Message}");
+                return input;
+            }
         }
     }
 }

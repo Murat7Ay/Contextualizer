@@ -32,7 +32,7 @@ namespace Contextualizer.Core
                         return;
                     }
                 }
-                var context = CreateContext(clipboardContent);
+                var context = await CreateContextAsync(clipboardContent);
                 ContextWrapper contextWrapper = new ContextWrapper(context.AsReadOnly(), HandlerConfig);
                 FindSelectorKey(clipboardContent, contextWrapper);
                 HandlerContextProcessor handlerContextProcessor = new HandlerContextProcessor();
@@ -45,7 +45,7 @@ namespace Contextualizer.Core
 
         protected abstract bool CanHandle(ClipboardContent clipboardContent);
 
-        protected abstract Dictionary<string, string> CreateContext(ClipboardContent clipboardContent);
+        protected abstract Task<Dictionary<string, string>> CreateContextAsync(ClipboardContent clipboardContent);
 
         protected abstract List<ConfigAction> GetActions();
 

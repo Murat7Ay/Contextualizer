@@ -19,7 +19,7 @@ namespace Contextualizer.Core
         }
         protected override string OutputFormat => base.HandlerConfig.OutputFormat;
 
-        protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
+        protected override async Task<Dictionary<string, string>> CreateContextAsync(ClipboardContent clipboardContent)
         {
             return new Dictionary<string, string>();
         }

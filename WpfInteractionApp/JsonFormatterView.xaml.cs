@@ -27,7 +27,7 @@ namespace WpfInteractionApp
             ToggleViewButton.Content = "Formatlı Göster";
             _showingFormatted = false;
 
-            if (context == null || !context.TryGetValue(ContextKey._input, out var json) || string.IsNullOrWhiteSpace(json))
+            if (context == null || !context.TryGetValue(ContextKey._body, out var json) || string.IsNullOrWhiteSpace(json))
             {
                 JsonTree.Items.Add(new TreeViewItem { Header = "No JSON content." });
                 _lastJson = null;

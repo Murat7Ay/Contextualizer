@@ -40,7 +40,7 @@ namespace Contextualizer.Core
             return true;
         }
 
-        protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
+        protected override async Task<Dictionary<string, string>> CreateContextAsync(ClipboardContent clipboardContent)
         {
             return fileInfo;
         }

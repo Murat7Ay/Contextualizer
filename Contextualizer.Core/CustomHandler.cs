@@ -28,7 +28,7 @@ namespace Contextualizer.Core
 
         bool IHandler.CanHandle(ClipboardContent clipboardContent) => CanHandle(clipboardContent);
 
-        protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
+        protected override async Task<Dictionary<string, string>> CreateContextAsync(ClipboardContent clipboardContent)
         {
             var contextProvider = _actionService.GetHandlerContextProvider(HandlerConfig.ContextProvider);
             return contextProvider?.CreateContext(clipboardContent) ?? new Dictionary<string, string>();

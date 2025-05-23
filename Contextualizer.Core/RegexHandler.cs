@@ -32,7 +32,7 @@ namespace Contextualizer.Core
             return CanHandle(clipboardContent);
         }
 
-        protected override Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
+        protected override async Task<Dictionary<string, string>> CreateContextAsync(ClipboardContent clipboardContent)
         {
             string input = clipboardContent.Text;
             var match = regex.Match(input);

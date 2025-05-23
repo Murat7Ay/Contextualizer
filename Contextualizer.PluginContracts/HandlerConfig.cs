@@ -59,6 +59,22 @@ namespace Contextualizer.Core
         public List<string> FileExtensions { get; set; }
         [JsonPropertyName("requires_confirmation")]
         public bool RequiresConfirmation { get; set; }
+
+        // API Handler Properties
+        [JsonPropertyName("url")]
+        public string Url { get; set; } = string.Empty;
+
+        [JsonPropertyName("method")]
+        public string? Method { get; set; }
+
+        [JsonPropertyName("headers")]
+        public Dictionary<string, string>? Headers { get; set; }
+
+        [JsonPropertyName("request_body")]
+        public string? RequestBody { get; set; }
+
+        [JsonPropertyName("content_type")]
+        public string? ContentType { get; set; }
     }
 
 }
