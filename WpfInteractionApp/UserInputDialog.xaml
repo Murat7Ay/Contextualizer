@@ -13,17 +13,98 @@
         ResizeMode="NoResize">
     
     <Window.Resources>
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Border" 
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition />
+                                                    <ColumnDefinition Width="20" />
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0"
+                                                                Margin="6,3"
+                                                                HorizontalAlignment="Left"
+                                                                VerticalAlignment="Center" />
+                                                <Path x:Name="Arrow"
+                                                      Grid.Column="1"
+                                                      Fill="{DynamicResource Carbon.Brush.Text.Primary}"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Data="M0,0 L4,4 L8,0 Z"/>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite"
+                                            Margin="6,3"
+                                            IsHitTestVisible="False"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Content="{TemplateBinding SelectionBoxItem}"
+                                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+                            <Popup x:Name="Popup"
+                                   AllowsTransparency="True"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   PopupAnimation="Slide">
+                                <Grid x:Name="DropDown"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                      SnapsToDevicePixels="True">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="{DynamicResource Carbon.Brush.Background.Secondary}"
+                                            BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
+                                            BorderThickness="1"/>
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
         <Style TargetType="ComboBoxItem">
             <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
             <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-                </Trigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-                </Trigger>
-            </Style.Triggers>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                Padding="6,3">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
     
@@ -75,9 +156,6 @@
                         Visibility="Collapsed"/>
             
             <ComboBox x:Name="SelectionComboBox"
-                      Background="{DynamicResource Carbon.Brush.Background.Secondary}"
-                      Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
-                      BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
                       Padding="8,6"
                       Visibility="Collapsed"/>
         </Grid>
