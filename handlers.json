@@ -1,0 +1,327 @@
+﻿{
+  "handlers": [
+    {
+      "name": "Corp Lookup",
+      "type": "lookup",
+      "screen_id": "markdown2",
+      "title": "Kurum Bilgileri",
+      "path": "C:\\Finder\\corp_data.txt",
+      "delimiter": "||",
+      "key_names": [
+        "drivercode",
+        "oid"
+      ],
+      "user_inputs": [
+        {
+          "key": "platform",
+          "title": "Platform Selection",
+          "message": "Please select your target platform:",
+          "is_required": true,
+          "is_selection_list": true,
+          "selection_items": [
+            {
+              "value": "windows",
+              "display": "Windows"
+            },
+            {
+              "value": "linux",
+              "display": "Linux"
+            },
+            {
+              "value": "macos",
+              "display": "macOS"
+            }
+          ],
+          "default_value": "windows"
+        },
+        {
+          "key": "api_key",
+          "title": "API Key",
+          "message": "Enter your API key:",
+          "is_required": true,
+          "is_password": true,
+          "validation_regex": "^[A-Za-z0-9-_]{32}$"
+        },
+        {
+          "key": "email",
+          "title": "Email Address",
+          "message": "Enter your email address:",
+          "is_required": true,
+          "validation_regex": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+          "default_value": "user@example.com"
+        }
+      ],
+      "value_names": [
+        "drivercode",
+        "oid",
+        "name",
+        "engine",
+        "platform"
+      ],
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_formatted_output"
+        },
+        {
+          "name": "copytoclipboard",
+          "key": "oid",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "field": "_selector_key",
+                "operator": "equals",
+                "value": "drivercode"
+              }
+            ]
+          }
+        },
+        {
+          "name": "copytoclipboard",
+          "key": "drivercode",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "field": "_selector_key",
+                "operator": "equals",
+                "value": "oid"
+              }
+            ]
+          }
+        }
+      ],
+      "output_format": "$file:C:\\Finder\\output_template\\markdown_capabilities.txt"
+    },
+    {
+      "name": "GitHub User Info",
+      "title": "Github User Info",
+      "type": "Api",
+      "screen_id": "jsonformatter",
+      "description": "GitHub kullanıcı bilgilerini getirir",
+      "requires_confirmation": true,
+      "regex": "^[a-zA-Z0-9-]+$",
+      "groups": [
+        "username"
+      ],
+      "url": "https://api.github.com/users/$(username)",
+      "method": "GET",
+      "headers": {
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "Contextualizer"
+      },
+      "output_format": "GitHub User: $(name)\nBio: ${bio}\nFollowers: $(followers)\nFollowing: $(following)",
+      "actions": [
+        {
+          "name": "copytoclipboard",
+          "key": "_self"
+        },
+        {
+          "name": "simple_print_key",
+          "key": "RawResponse",
+          "message": "GitHub user $(name) bilgileri kopyalandı"
+        }
+      ]
+    },
+    {
+      "name": "StandartType2 DBS Projesi oluştur",
+      "type": "manual",
+      "screen_id": "markdown2",
+      "title": "DBS Projesi",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_self"
+        }
+      ],
+      "user_inputs": [
+        {
+          "key": "drivercode",
+          "title": "Kurum kodunu gir",
+          "message": "Kurum kodu:",
+          "is_required": true
+        },
+        {
+          "key": "packagename",
+          "title": "Paket ismini gir",
+          "message": "Paket ismi:",
+          "is_required": true
+        }
+      ]
+    },
+    {
+      "name": "Core tarihini değiştir",
+      "type": "manual",
+      "screen_id": "markdown2",
+      "title": "Core Tarihi Değiştir",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_self"
+        }
+      ],
+      "user_inputs": [
+        {
+          "key": "date",
+          "title": "Sistem Tarihini Gir",
+          "message": "Tarih:",
+          "is_required": true
+        }
+      ]
+    },
+    {
+      "name": "Json formatter wpf",
+      "type": "custom",
+      "context_provider": "jsonvalidator",
+      "screen_id": "jsonformatter",
+      "title": "JSON Formatter",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_input"
+        }
+      ]
+    },
+    {
+      "name": "Xml formatter wpf",
+      "type": "custom",
+      "context_provider": "xmlvalidator",
+      "screen_id": "xmlformatter",
+      "title": "XML Formatter",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_input"
+        }
+      ]
+    },
+    {
+      "name": "Customer Lookup",
+      "type": "lookup",
+      "screen_id": "markdown2",
+      "title": "Müşteri Bilgileri",
+      "path": "C:\\Finder\\customer_data.txt",
+      "delimiter": "||",
+      "key_names": [
+        "customer_id",
+        "email"
+      ],
+      "value_names": [
+        "customer_id",
+        "name",
+        "email",
+        "phone"
+      ],
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "name",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "field": "email",
+                "operator": "contains",
+                "value": "@gmail.com"
+              }
+            ]
+          }
+        },
+        {
+          "name": "print_context_json",
+          "requires_confirmation": true
+        },
+        {
+          "name": "simple_print_key",
+          "key": "email"
+        }
+      ],
+      "seeder": {
+        "path": "C:\\$(customer_id).txt",
+        "delegate_cust_id": "T67526",
+        "customer_id_cloned": "$(customer_id)"
+      },
+      "user_inputs": [
+        {
+          "key": "year_of_entry",
+          "title": "Müşteri Numarası Girişi",
+          "message": "Lütfen müşteri numarasını girin:",
+          "is_required": false,
+          "validation_regex": "^\\d{4}$"
+        }
+      ],
+      "output_format": "Müşteri Bilgileri \n No: $(customer_id) \n Adı: $(name) \n E-posta: $(email) \n Telefon: $(phone) \n Yönetim: $(delegate_cust_id) \n Yıl: $(year_of_entry)",
+      "file_extensions": [
+        ".jpg",
+        ".png",
+        ".gif"
+      ]
+    },
+    {
+      "name": "Stack Trace Analysis",
+      "type": "regex",
+      "regex": "at (\\S+)\\((\\S+\\.java):(\\d+)\\)",
+      "groups": [
+        "class_name",
+        "file_name",
+        "line_number"
+      ],
+      "actions": [
+        {
+          "name": "print_details"
+        }
+      ]
+    },
+    {
+      "name": "Strategy Query",
+      "requires_confirmation": false,
+      "screen_id": "markdown2",
+      "regex": "^\\S+$",
+      "title": "Strategy Bilgileri",
+      "description": "[NorthPole].[Strategy].[Parameter] tablosundan [Name] kolonundan bilgileri getirir.",
+      "type": "database",
+      "connectionString": "Server=localhost\\SQLEXPRESS;Database=NorthPole;Trusted_Connection=True;TrustServerCertificate=True;",
+      "connector": "mssql",
+      "query": "SELECT [ParameterId],[Name],[Description],[DefaultValue],[IsArray],[Seperator],[FormatedName] FROM [Strategy].[Parameter] WHERE Name = @_input",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_formatted_output"
+        }
+      ]
+    },
+    {
+      "name": "Open File",
+      "type": "file",
+      "actions": [
+        {
+          "name": "open_file"
+        },
+        {
+          "name": "print_details"
+        }
+      ],
+      "file_extensions": [
+        ".html",
+        ".css"
+      ]
+    },
+    {
+      "name": "LGX Detail Query",
+      "type": "regex",
+      "regex": "(\\d+)\\t(\\d+)\\t(\\d{8})",
+      "groups": [
+        "oid",
+        "trxid",
+        "processdate"
+      ],
+      "actions": [
+        {
+          "name": "print_details"
+        }
+      ],
+      "output_format": "Select * from lgx.log_dtl where OID = $(oid) and trxid=$(trxid) and processdate = $(processdate)"
+    }
+  ]
+}
