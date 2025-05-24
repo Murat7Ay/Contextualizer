@@ -1,4 +1,3 @@
-using Contextualizer.Core;
 
 namespace Contextualizer.PluginContracts
 {

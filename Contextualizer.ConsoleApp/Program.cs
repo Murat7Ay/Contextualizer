@@ -1,5 +1,6 @@
 ﻿using Contextualizer.ConsoleApp;
 using Contextualizer.Core;
+using Contextualizer.PluginContracts;
 
 IUserInteractionService userInteractionService = new ConsoleUserInteraction();
 

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Contextualizer.Core
+namespace Contextualizer.PluginContracts
 {
     public class HandlerConfig
     {

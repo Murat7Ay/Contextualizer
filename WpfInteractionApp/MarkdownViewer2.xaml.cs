@@ -1,4 +1,4 @@
-﻿using Contextualizer.Core;
+﻿using Contextualizer.PluginContracts;
 using Markdig;
 using Microsoft.Web.WebView2.Core;
 using System;

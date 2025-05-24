@@ -1,4 +1,3 @@
-using Contextualizer.Core;
 using System.Collections.Generic;
 
 namespace Contextualizer.PluginContracts

@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Media;
 using System.Xml;
-using Contextualizer.Core;
+using Contextualizer.PluginContracts;
 
 namespace WpfInteractionApp
 {

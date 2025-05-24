@@ -3,6 +3,7 @@ using System;
 using System.Windows;
 using WpfInteractionApp.Services;
 using System.Linq;
+using Contextualizer.PluginContracts;
 
 namespace WpfInteractionApp
 {

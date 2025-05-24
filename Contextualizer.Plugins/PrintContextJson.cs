@@ -1,5 +1,4 @@
-﻿using Contextualizer.Core;
-using Contextualizer.PluginContracts;
+﻿using Contextualizer.PluginContracts;
 
 namespace Contextualizer.Plugins
 {
@@ -8,7 +7,7 @@ namespace Contextualizer.Plugins
         private IPluginServiceProvider pluginServiceProvider;
         public string Name => "print_context_json";
 
-        public void Action(Core.ConfigAction action, ContextWrapper context)
+        public void Action(ConfigAction action, ContextWrapper context)
         {
             pluginServiceProvider.GetService<IUserInteractionService>().ShowNotification(context.ToString());
         }

@@ -1,5 +1,5 @@
 ﻿
-namespace Contextualizer.Core
+namespace Contextualizer.PluginContracts
 {
     public interface IClipboardService
     {

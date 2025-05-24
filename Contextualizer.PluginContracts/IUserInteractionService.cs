@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Contextualizer.Core
+namespace Contextualizer.PluginContracts
 {
     public interface IUserInteractionService
     {
