@@ -6,4 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="BlazorMonaco" Version="3.1.0" />
+    <PackageReference Include="Octokit" Version="14.0.0" />
+  </ItemGroup>
+
 </Project>

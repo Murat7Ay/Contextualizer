@@ -1,5 +1,8 @@
 @page "/handler-editor/{id?}"
 @using Contextualizer.Studio.Services
+@using BlazorMonaco
+@using BlazorMonaco.Editor
+@using BlazorMonaco.Languages
 @inject IGitHubHandlerService GitHubService
 @inject NavigationManager Navigation
 
@@ -42,10 +45,10 @@
             <div class="bg-white p-4 rounded-lg shadow">
                 <h2 class="text-2xl font-bold mb-4">Handler Configuration</h2>
                 <div class="h-96 border rounded-md">
-                    <MonacoEditor @ref="_editor" 
+                    <StandaloneCodeEditor @ref="_editor" 
                                 Id="handler-editor"
-                                ConstructionOptions="EditorConstructionOptions"
-                                OnDidInit="EditorOnDidInit" />
+                                CssClass="h-full"
+                                ConstructionOptions="EditorConstructionOptions" />
                 </div>
             </div>
         </div>
@@ -68,8 +71,23 @@
     private HandlerInfo _handler = new();
     private string _tagsInput = "";
     private bool _loading = true;
-    private MonacoEditor _editor;
+    private StandaloneCodeEditor _editor;
     private string _editorContent = "{}";
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            Theme = "vs-dark",
+            Value = _editorContent,
+            RoundedSelection = true,
+            ScrollBeyondLastLine = false,
+            ReadOnly = false,
+            FontSize = 14
+        };
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -104,25 +122,6 @@
         }
 
         _loading = false;
-    }
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = _editorContent
-        };
-    }
-
-    private async Task EditorOnDidInit()
-    {
-        if (_editor != null)
-        {
-            await _editor.SetValue(_editorContent);
-        }
     }
 
     private async Task SaveHandler()
