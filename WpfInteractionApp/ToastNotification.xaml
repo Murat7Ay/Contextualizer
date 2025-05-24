@@ -25,37 +25,36 @@
                            From="1.0" To="0.0" Duration="0:0:0.3"/>
         </Storyboard>
 
-        <SolidColorBrush x:Key="Carbon.Brush.Background.Primary" Color="#2D2D2D"/>
-        <SolidColorBrush x:Key="Carbon.Brush.Background.Tertiary" Color="#404040"/>
-        <SolidColorBrush x:Key="Carbon.Brush.Selection" Color="#264F78"/>
-
         <Style x:Key="Carbon.TextBlock.Subheading" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Foreground.Primary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
         <Style x:Key="Carbon.TextBlock.Body" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#E8E8E8"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
             <Setter Property="FontSize" Value="13"/>
         </Style>
 
         <Style x:Key="Carbon.TextBox.Message" TargetType="TextBox">
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Foreground.Primary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Primary}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="IsReadOnly" Value="True"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="MaxWidth" Value="460"/>
             <Setter Property="MaxHeight" Value="300"/>
-            <Setter Property="SelectionBrush" Value="{DynamicResource Carbon.Brush.Selection}"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
                         <Border Background="{TemplateBinding Background}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
                             <ScrollViewer x:Name="PART_ContentHost"
+                                        Margin="{TemplateBinding Padding}"
                                         VerticalScrollBarVisibility="Auto"
                                         HorizontalScrollBarVisibility="Auto"/>
                         </Border>
@@ -73,10 +72,11 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="4">
                             <Path Data="M0,0 L10,10 M0,10 L10,0"
-                                  Stroke="{DynamicResource Carbon.Brush.Foreground.Secondary}"
-                                  StrokeThickness="1"
+                                  Stroke="{DynamicResource Carbon.Brush.Text.Primary}"
+                                  StrokeThickness="1.5"
                                   Width="10"
                                   Height="10"
                                   Stretch="Uniform"/>
@@ -86,19 +86,20 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Hover}"/>
+                    <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
 
-    <Border Background="{DynamicResource Carbon.Brush.Background.Primary}"
+    <Border Background="{DynamicResource Carbon.Brush.Background.Secondary}"
             BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
             BorderThickness="1"
             CornerRadius="8"
             Margin="8">
         <Border.Effect>
-            <DropShadowEffect ShadowDepth="4" 
+            <DropShadowEffect 
+                            ShadowDepth="4" 
                             Direction="270" 
                             Color="#40000000" 
                             BlurRadius="12" 
@@ -115,7 +116,7 @@
                 <TextBlock x:Name="TitleBlock" 
                           Style="{DynamicResource Carbon.TextBlock.Subheading}"
                           Visibility="{Binding Text, ElementName=TitleBlock, Converter={StaticResource StringToVisibilityConverter}}"
-                          Margin="0,0,0,4"/>
+                          Margin="0,0,0,8"/>
                 
                 <TextBox x:Name="MessageBlock" 
                         Style="{DynamicResource Carbon.TextBox.Message}"
