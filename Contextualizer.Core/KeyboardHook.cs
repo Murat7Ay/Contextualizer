@@ -1,4 +1,5 @@
-﻿using SharpHook;
+﻿using Contextualizer.PluginContracts;
+using SharpHook;
 using SharpHook.Native;
 using System;
 using System.Collections.Generic;

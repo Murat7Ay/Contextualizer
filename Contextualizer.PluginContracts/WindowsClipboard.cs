@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Contextualizer.Core
+namespace Contextualizer.PluginContracts
 {
     public class WindowsClipboard 
     {
@@ -27,7 +27,7 @@ namespace Contextualizer.Core
         static void InnerSet(string text)
         {
             EmptyClipboard();
-            IntPtr hGlobal = default;
+            nint hGlobal = default;
             try
             {
                 var bytes = (text.Length + 1) * 2;
@@ -185,9 +185,9 @@ namespace Contextualizer.Core
 
         static string? InnerGet()
         {
-            IntPtr handle = default;
+            nint handle = default;
 
-            IntPtr pointer = default;
+            nint pointer = default;
             try
             {
                 handle = GetClipboardData(cfUnicodeText);
@@ -245,8 +245,8 @@ namespace Contextualizer.Core
         // Dosya okuma işlemi (Windows API)
         private static string[]? GetFilesFromClipboard()
         {
-            IntPtr handle = GetClipboardData(CF_HDROP);
-            if (handle == IntPtr.Zero)
+            nint handle = GetClipboardData(CF_HDROP);
+            if (handle == nint.Zero)
             {
                 return null;
             }
@@ -275,34 +275,34 @@ namespace Contextualizer.Core
         static extern bool IsClipboardFormatAvailable(uint format);
 
         [DllImport("User32.dll", SetLastError = true)]
-        static extern IntPtr GetClipboardData(uint uFormat);
+        static extern nint GetClipboardData(uint uFormat);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern IntPtr GlobalLock(IntPtr hMem);
+        static extern nint GlobalLock(nint hMem);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool GlobalUnlock(IntPtr hMem);
+        static extern bool GlobalUnlock(nint hMem);
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool OpenClipboard(IntPtr hWndNewOwner);
+        static extern bool OpenClipboard(nint hWndNewOwner);
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool CloseClipboard();
 
         [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr SetClipboardData(uint uFormat, IntPtr data);
+        static extern nint SetClipboardData(uint uFormat, nint data);
 
         [DllImport("user32.dll")]
         static extern bool EmptyClipboard();
 
         [DllImport("Kernel32.dll", SetLastError = true)]
-        static extern int GlobalSize(IntPtr hMem);
+        static extern int GlobalSize(nint hMem);
 
         [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern int DragQueryFile(IntPtr hDrop, uint iFile, StringBuilder lpszFile, uint cch);
+        public static extern int DragQueryFile(nint hDrop, uint iFile, StringBuilder lpszFile, uint cch);
 
     }
 }

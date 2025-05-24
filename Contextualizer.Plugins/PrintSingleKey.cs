@@ -1,5 +1,4 @@
-﻿using Contextualizer.Core;
-using Contextualizer.PluginContracts;
+﻿using Contextualizer.PluginContracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +12,7 @@ namespace Contextualizer.Plugins
         private IPluginServiceProvider pluginServiceProvider;
         public string Name => "simple_print_key";
 
-        public void Action(Core.ConfigAction action, ContextWrapper context)
+        public void Action(ConfigAction action, ContextWrapper context)
         {
             List<KeyValuePair<string, Action<Dictionary<string, string>>>>? actions = new List<KeyValuePair<string, Action<Dictionary<string, string>>>>();
             actions.Add( new KeyValuePair<string, Action<Dictionary<string, string>>>("Print", (context) =>

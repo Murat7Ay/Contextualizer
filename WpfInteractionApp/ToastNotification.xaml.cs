@@ -1,4 +1,5 @@
 ﻿using Contextualizer.Core;
+using Contextualizer.PluginContracts;
 using System;
 using System.Text.RegularExpressions;
 using System.Windows;

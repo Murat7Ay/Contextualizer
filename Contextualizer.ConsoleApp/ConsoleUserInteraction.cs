@@ -1,4 +1,4 @@
-﻿using Contextualizer.Core;
+﻿using Contextualizer.PluginContracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;

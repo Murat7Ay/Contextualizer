@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using WpfInteractionApp.Services;
 using System.Diagnostics;
+using Contextualizer.PluginContracts;
 
 namespace WpfInteractionApp
 {

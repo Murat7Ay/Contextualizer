@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Contextualizer.Core
+namespace Contextualizer.PluginContracts
 {
     public static class KeyboardSimulator
     {
@@ -31,7 +31,7 @@ namespace Contextualizer.Core
             public ushort wScan;
             public uint dwFlags;
             public uint time;
-            public UIntPtr dwExtraInfo;
+            public nuint dwExtraInfo;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -42,7 +42,7 @@ namespace Contextualizer.Core
             public uint mouseData;
             public uint dwFlags;
             public uint time;
-            public UIntPtr dwExtraInfo;
+            public nuint dwExtraInfo;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -86,7 +86,7 @@ namespace Contextualizer.Core
                         wScan = 0,
                         dwFlags = flags,
                         time = 0,
-                        dwExtraInfo = UIntPtr.Zero
+                        dwExtraInfo = nuint.Zero
                     }
                 }
             };

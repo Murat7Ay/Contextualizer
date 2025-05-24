@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Contextualizer.Core
+namespace Contextualizer.PluginContracts
 {
     public class ConfigAction
     {

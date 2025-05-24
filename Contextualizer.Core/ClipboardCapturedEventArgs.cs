@@ -1,4 +1,6 @@
-﻿namespace Contextualizer.Core
+﻿using Contextualizer.PluginContracts;
+
+namespace Contextualizer.Core
 {
     public class ClipboardCapturedEventArgs : EventArgs
     {
