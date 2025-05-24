@@ -1,0 +1,30 @@
+@using Contextualizer.Studio.Services
+
+<div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer" @onclick="OnClick">
+    <h3 class="text-xl font-semibold mb-2">@Handler.Name</h3>
+    <p class="text-gray-600 mb-4 line-clamp-2">@Handler.Description</p>
+    
+    <div class="flex flex-wrap gap-2 mb-4">
+        @foreach (var tag in Handler.Tags)
+        {
+            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">@tag</span>
+        }
+    </div>
+    
+    <div class="flex justify-between items-center text-sm text-gray-500">
+        <div class="flex items-center gap-2">
+            <span>v@(Handler.Version)</span>
+            <span>•</span>
+            <span>@Handler.Author</span>
+        </div>
+        <span>@Handler.UpdatedAt.ToString("MMM dd, yyyy")</span>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public HandlerInfo Handler { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+} 
