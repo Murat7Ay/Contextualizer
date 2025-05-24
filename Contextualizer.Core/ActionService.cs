@@ -11,7 +11,8 @@ namespace Contextualizer.Core
     public class ActionService : IActionService
     {
         private readonly Dictionary<string, IAction> _actions = new();
-        private readonly Dictionary<string, IHandlerContextProvider> _contextProviders = new();
+        private readonly Dictionary<string, IContentValidator> _validators = new();
+        private readonly Dictionary<string, IContextProvider> _contextProviders = new();
 
         public ActionService()
         {
@@ -39,11 +40,20 @@ namespace Contextualizer.Core
                     }
 
                     var validatorTypes = assembly.GetTypes()
-                       .Where(t => typeof(IHandlerContextProvider).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                       .Where(t => typeof(IContentValidator).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
                     foreach (var type in validatorTypes)
                     {
-                        var instance = (IHandlerContextProvider)Activator.CreateInstance(type);
+                        var instance = (IContentValidator)Activator.CreateInstance(type);
+                        _validators[instance.Name] = instance;
+                    }
+
+                    var contextProviderTypes = assembly.GetTypes()
+                       .Where(t => typeof(IContextProvider).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+                    foreach (var type in contextProviderTypes)
+                    {
+                        var instance = (IContextProvider)Activator.CreateInstance(type);
                         _contextProviders[instance.Name] = instance;
                     }
 
@@ -55,7 +65,16 @@ namespace Contextualizer.Core
             }
         }
 
-        public IHandlerContextProvider? GetHandlerContextProvider(string name)
+        public IContentValidator? GetContentValidator(string name)
+        {
+            if (_validators.TryGetValue(name, out var validator))
+            {
+                return validator;
+            }
+            return null;
+        }
+
+        public IContextProvider? GetContextProvider(string name)
         {
             if (_contextProviders.TryGetValue(name, out var contextProvider))
             {
