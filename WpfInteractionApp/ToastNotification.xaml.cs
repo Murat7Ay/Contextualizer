@@ -42,6 +42,7 @@ namespace WpfInteractionApp
             MessageBlock.Text = message.Replace("\\r\\n", Environment.NewLine)
                                      .Replace("\\n", Environment.NewLine)
                                      .Replace("\\r", Environment.NewLine);
+            MessageBlock.CaretIndex = 0;
 
             // Add action button if needed
             if (onActionClicked != null)

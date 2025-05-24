@@ -22,10 +22,52 @@
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
                            From="1.0" To="0.0" Duration="0:0:0.3"/>
         </Storyboard>
+
+        <SolidColorBrush x:Key="Carbon.Brush.Background.Primary" Color="#2D2D2D"/>
+        <SolidColorBrush x:Key="Carbon.Brush.Background.Tertiary" Color="#404040"/>
+        <SolidColorBrush x:Key="Carbon.Brush.Selection" Color="#264F78"/>
+
+        <Style x:Key="Carbon.TextBlock.Subheading" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="Carbon.TextBlock.Body" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E8E8E8"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style x:Key="CloseButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <Path Data="M0,0 L10,10 M0,10 L10,0"
+                                  Stroke="#CCCCCC"
+                                  StrokeThickness="1"
+                                  Width="10"
+                                  Height="10"
+                                  Stretch="Uniform"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#40FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
-    <Border Background="{DynamicResource Carbon.Brush.Background.Primary}"
-            BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
+    <Border Background="{StaticResource Carbon.Brush.Background.Primary}"
+            BorderBrush="{StaticResource Carbon.Brush.Background.Tertiary}"
             BorderThickness="1"
             CornerRadius="8"
             Margin="8">
@@ -45,22 +87,22 @@
 
             <StackPanel x:Name="MainPanel" Grid.Column="0" Margin="0,0,16,0">
                 <TextBlock x:Name="TitleBlock" 
-                          Style="{DynamicResource Carbon.TextBlock.Subheading}"
+                          Style="{StaticResource Carbon.TextBlock.Subheading}"
                           Visibility="{Binding Text, ElementName=TitleBlock, Converter={StaticResource StringToVisibilityConverter}}"
                           Margin="0,0,0,4"/>
                 
-                <TextBlock x:Name="MessageBlock" 
-                          Style="{DynamicResource Carbon.TextBlock.Body}"
-                          TextWrapping="Wrap"
-                          IsHitTestVisible="True"
-                          Focusable="True"
-                          TextTrimming="None"
-                          SelectionBrush="{DynamicResource Carbon.Brush.Selection}"
-                          IsManipulationEnabled="True"/>
+                <TextBox x:Name="MessageBlock" 
+                        Style="{StaticResource Carbon.TextBlock.Body}"
+                        TextWrapping="Wrap"
+                        IsReadOnly="True"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        SelectionBrush="{StaticResource Carbon.Brush.Selection}"
+                        IsManipulationEnabled="True"/>
             </StackPanel>
 
             <Button Grid.Column="1"
-                    Style="{DynamicResource CloseButtonStyle}"
+                    Style="{StaticResource CloseButtonStyle}"
                     Click="CloseButton_Click"
                     VerticalAlignment="Top"/>
         </Grid>
