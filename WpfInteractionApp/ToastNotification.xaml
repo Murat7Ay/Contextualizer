@@ -5,6 +5,8 @@
         Title="Notification" 
         Height="Auto" 
         Width="400"
+        MaxWidth="500"
+        MaxHeight="400"
         WindowStyle="None" 
         ResizeMode="NoResize" 
         ShowInTaskbar="False"
@@ -28,7 +30,7 @@
         <SolidColorBrush x:Key="Carbon.Brush.Selection" Color="#264F78"/>
 
         <Style x:Key="Carbon.TextBlock.Subheading" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Foreground.Primary}"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
@@ -39,19 +41,23 @@
         </Style>
 
         <Style x:Key="Carbon.TextBox.Message" TargetType="TextBox">
-            <Setter Property="Foreground" Value="#E8E8E8"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Foreground.Primary}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="IsReadOnly" Value="True"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="SelectionBrush" Value="{StaticResource Carbon.Brush.Selection}"/>
+            <Setter Property="MaxWidth" Value="460"/>
+            <Setter Property="MaxHeight" Value="300"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource Carbon.Brush.Selection}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
                         <Border Background="{TemplateBinding Background}"
                                 BorderThickness="{TemplateBinding BorderThickness}">
-                            <ScrollViewer x:Name="PART_ContentHost"/>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                        VerticalScrollBarVisibility="Auto"
+                                        HorizontalScrollBarVisibility="Auto"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -69,7 +75,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}">
                             <Path Data="M0,0 L10,10 M0,10 L10,0"
-                                  Stroke="#CCCCCC"
+                                  Stroke="{DynamicResource Carbon.Brush.Foreground.Secondary}"
                                   StrokeThickness="1"
                                   Width="10"
                                   Height="10"
@@ -80,14 +86,14 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#40FFFFFF"/>
+                    <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Hover}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
 
-    <Border Background="{StaticResource Carbon.Brush.Background.Primary}"
-            BorderBrush="{StaticResource Carbon.Brush.Background.Tertiary}"
+    <Border Background="{DynamicResource Carbon.Brush.Background.Primary}"
+            BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
             BorderThickness="1"
             CornerRadius="8"
             Margin="8">
@@ -107,17 +113,17 @@
 
             <StackPanel x:Name="MainPanel" Grid.Column="0" Margin="0,0,16,0">
                 <TextBlock x:Name="TitleBlock" 
-                          Style="{StaticResource Carbon.TextBlock.Subheading}"
+                          Style="{DynamicResource Carbon.TextBlock.Subheading}"
                           Visibility="{Binding Text, ElementName=TitleBlock, Converter={StaticResource StringToVisibilityConverter}}"
                           Margin="0,0,0,4"/>
                 
                 <TextBox x:Name="MessageBlock" 
-                        Style="{StaticResource Carbon.TextBox.Message}"
+                        Style="{DynamicResource Carbon.TextBox.Message}"
                         IsManipulationEnabled="True"/>
             </StackPanel>
 
             <Button Grid.Column="1"
-                    Style="{StaticResource CloseButtonStyle}"
+                    Style="{DynamicResource CloseButtonStyle}"
                     Click="CloseButton_Click"
                     VerticalAlignment="Top"/>
         </Grid>
