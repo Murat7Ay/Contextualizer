@@ -39,7 +39,9 @@ namespace WpfInteractionApp
 
             // Set title and message
             TitleBlock.Text = string.IsNullOrEmpty(title) ? notificationType.ToString() : title;
-            MessageBlock.Text = message;
+            MessageBlock.Text = message.Replace("\\r\\n", Environment.NewLine)
+                                     .Replace("\\n", Environment.NewLine)
+                                     .Replace("\\r", Environment.NewLine);
 
             // Add action button if needed
             if (onActionClicked != null)

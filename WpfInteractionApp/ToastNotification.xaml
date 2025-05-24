@@ -51,7 +51,12 @@
                 
                 <TextBlock x:Name="MessageBlock" 
                           Style="{DynamicResource Carbon.TextBlock.Body}"
-                          TextWrapping="Wrap"/>
+                          TextWrapping="Wrap"
+                          IsHitTestVisible="True"
+                          Focusable="True"
+                          TextTrimming="None"
+                          SelectionBrush="{DynamicResource Carbon.Brush.Selection}"
+                          IsManipulationEnabled="True"/>
             </StackPanel>
 
             <Button Grid.Column="1"
