@@ -10,7 +10,7 @@ namespace Contextualizer.Core
     public interface IActionService
     {
         Task Action(ConfigAction action, ContextWrapper context);
-
-        IHandlerContextProvider? GetHandlerContextProvider(string name);
+        IContentValidator? GetContentValidator(string name);
+        IContextProvider? GetContextProvider(string name);
     }
 }

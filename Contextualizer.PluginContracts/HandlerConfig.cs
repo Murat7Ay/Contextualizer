@@ -18,6 +18,8 @@ namespace Contextualizer.Core
         public string Type { get; set; }
         [JsonPropertyName("screen_id")]
         public string ScreenId { get; set; }
+        [JsonPropertyName("validator")]
+        public string Validator { get; set; }
         [JsonPropertyName("context_provider")]
         public string ContextProvider { get; set; }
         [JsonPropertyName("title")]

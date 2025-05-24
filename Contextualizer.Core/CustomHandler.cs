@@ -22,15 +22,15 @@ namespace Contextualizer.Core
 
         protected override bool CanHandle(ClipboardContent clipboardContent)
         {
-            var contextProvider = _actionService.GetHandlerContextProvider(HandlerConfig.ContextProvider);
-            return contextProvider != null && contextProvider.Validate(clipboardContent);
+            var validator = _actionService.GetContentValidator(HandlerConfig.Validator);
+            return validator != null && validator.Validate(clipboardContent);
         }
 
         bool IHandler.CanHandle(ClipboardContent clipboardContent) => CanHandle(clipboardContent);
 
         protected override async Task<Dictionary<string, string>> CreateContextAsync(ClipboardContent clipboardContent)
         {
-            var contextProvider = _actionService.GetHandlerContextProvider(HandlerConfig.ContextProvider);
+            var contextProvider = _actionService.GetContextProvider(HandlerConfig.ContextProvider);
             return contextProvider?.CreateContext(clipboardContent) ?? new Dictionary<string, string>();
         }
 
