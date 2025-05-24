@@ -1,5 +1,6 @@
 ﻿using Contextualizer.Core;
 using System;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -24,6 +25,13 @@ namespace WpfInteractionApp
         private int _remainingSeconds;
         private bool _isPaused = false;
 
+        private string FormatMessage(string message)
+        {
+            if (string.IsNullOrEmpty(message)) return message;
+
+            return Regex.Unescape(message);
+        }
+
         public ToastNotification(string message, int? durationInSeconds, string title = "", LogType notificationType = LogType.Info, Action? onActionClicked = null)
         {
             InitializeComponent();
@@ -39,9 +47,7 @@ namespace WpfInteractionApp
 
             // Set title and message
             TitleBlock.Text = string.IsNullOrEmpty(title) ? notificationType.ToString() : title;
-            MessageBlock.Text = message.Replace("\\r\\n", Environment.NewLine)
-                                     .Replace("\\n", Environment.NewLine)
-                                     .Replace("\\r", Environment.NewLine);
+            MessageBlock.Text = FormatMessage(message);
             MessageBlock.CaretIndex = 0;
 
             // Add action button if needed
