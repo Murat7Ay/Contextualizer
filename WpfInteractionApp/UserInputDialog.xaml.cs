@@ -3,6 +3,9 @@ using System;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace WpfInteractionApp
 {
@@ -10,11 +13,13 @@ namespace WpfInteractionApp
     {
         private readonly UserInputRequest _request;
         public string UserInput { get; private set; }
+        public List<string> SelectedValues { get; private set; }
 
         public UserInputDialog(UserInputRequest request)
         {
             InitializeComponent();
             _request = request ?? throw new ArgumentNullException(nameof(request));
+            SelectedValues = new List<string>();
             
             // Set window title and message
             Title = request.Title;
@@ -51,47 +56,96 @@ namespace WpfInteractionApp
             }
 
             // Configure input control based on request type
-            if (_request.IsSelectionList && _request.SelectionItems != null)
+            if (_request.IsFilePicker)
             {
-                // Show ComboBox for selection list
-                SelectionComboBox.Visibility = Visibility.Visible;
+                FilePickerGrid.Visibility = Visibility.Visible;
                 InputTextBox.Visibility = Visibility.Collapsed;
                 PasswordBox.Visibility = Visibility.Collapsed;
+                SelectionComboBox.Visibility = Visibility.Collapsed;
+                MultiSelectListBox.Visibility = Visibility.Collapsed;
 
-                foreach (var item in _request.SelectionItems)
-                {
-                    SelectionComboBox.Items.Add(new ComboBoxItem 
-                    { 
-                        Content = item.Display, 
-                        Tag = item.Value 
-                    });
-                }
-
-                // Set default value if provided
                 if (!string.IsNullOrEmpty(_request.DefaultValue))
                 {
-                    var defaultItem = _request.SelectionItems.Find(i => i.Value == _request.DefaultValue);
-                    if (defaultItem != null)
+                    FilePathTextBox.Text = _request.DefaultValue;
+                }
+            }
+            else if (_request.IsSelectionList && _request.SelectionItems != null)
+            {
+                if (_request.IsMultiSelect)
+                {
+                    MultiSelectListBox.Visibility = Visibility.Visible;
+                    InputTextBox.Visibility = Visibility.Collapsed;
+                    PasswordBox.Visibility = Visibility.Collapsed;
+                    SelectionComboBox.Visibility = Visibility.Collapsed;
+                    FilePickerGrid.Visibility = Visibility.Collapsed;
+
+                    foreach (var item in _request.SelectionItems)
                     {
-                        SelectionComboBox.SelectedIndex = _request.SelectionItems.IndexOf(defaultItem);
+                        MultiSelectListBox.Items.Add(new ListBoxItem 
+                        { 
+                            Content = item.Display, 
+                            Tag = item.Value 
+                        });
+                    }
+
+                    // Set default values if provided
+                    if (!string.IsNullOrEmpty(_request.DefaultValue))
+                    {
+                        var defaultValues = _request.DefaultValue.Split(',');
+                        foreach (var defaultValue in defaultValues)
+                        {
+                            var item = MultiSelectListBox.Items.Cast<ListBoxItem>()
+                                .FirstOrDefault(i => i.Tag.ToString() == defaultValue.Trim());
+                            if (item != null)
+                            {
+                                item.IsSelected = true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    SelectionComboBox.Visibility = Visibility.Visible;
+                    InputTextBox.Visibility = Visibility.Collapsed;
+                    PasswordBox.Visibility = Visibility.Collapsed;
+                    MultiSelectListBox.Visibility = Visibility.Collapsed;
+                    FilePickerGrid.Visibility = Visibility.Collapsed;
+
+                    foreach (var item in _request.SelectionItems)
+                    {
+                        SelectionComboBox.Items.Add(new ComboBoxItem 
+                        { 
+                            Content = item.Display, 
+                            Tag = item.Value 
+                        });
+                    }
+
+                    if (!string.IsNullOrEmpty(_request.DefaultValue))
+                    {
+                        var defaultItem = _request.SelectionItems.Find(i => i.Value == _request.DefaultValue);
+                        if (defaultItem != null)
+                        {
+                            SelectionComboBox.SelectedIndex = _request.SelectionItems.IndexOf(defaultItem);
+                        }
                     }
                 }
             }
             else if (_request.IsPassword)
             {
-                // Show PasswordBox for password input
                 PasswordBox.Visibility = Visibility.Visible;
                 InputTextBox.Visibility = Visibility.Collapsed;
                 SelectionComboBox.Visibility = Visibility.Collapsed;
+                MultiSelectListBox.Visibility = Visibility.Collapsed;
+                FilePickerGrid.Visibility = Visibility.Collapsed;
             }
             else
             {
-                // Show regular TextBox
                 InputTextBox.Visibility = Visibility.Visible;
                 PasswordBox.Visibility = Visibility.Collapsed;
                 SelectionComboBox.Visibility = Visibility.Collapsed;
+                MultiSelectListBox.Visibility = Visibility.Collapsed;
+                FilePickerGrid.Visibility = Visibility.Collapsed;
 
-                // Set default value if provided
                 if (!string.IsNullOrEmpty(_request.DefaultValue))
                 {
                     InputTextBox.Text = _request.DefaultValue;
@@ -101,22 +155,58 @@ namespace WpfInteractionApp
 
         private void SetInitialFocus()
         {
-            if (_request.IsSelectionList)
-                SelectionComboBox.Focus();
+            if (_request.IsFilePicker)
+                BrowseButton.Focus();
+            else if (_request.IsSelectionList)
+            {
+                if (_request.IsMultiSelect)
+                    MultiSelectListBox.Focus();
+                else
+                    SelectionComboBox.Focus();
+            }
             else if (_request.IsPassword)
                 PasswordBox.Focus();
             else
                 InputTextBox.Focus();
         }
 
+        private void BrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Select File",
+                Filter = "All Files|*.*"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FilePathTextBox.Text = dialog.FileName;
+            }
+        }
+
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             string input;
             
-            if (_request.IsSelectionList)
+            if (_request.IsFilePicker)
             {
-                var selectedItem = SelectionComboBox.SelectedItem as ComboBoxItem;
-                input = selectedItem?.Tag?.ToString() ?? string.Empty;
+                input = FilePathTextBox.Text;
+            }
+            else if (_request.IsSelectionList)
+            {
+                if (_request.IsMultiSelect)
+                {
+                    SelectedValues = MultiSelectListBox.SelectedItems
+                        .Cast<ListBoxItem>()
+                        .Select(item => item.Tag.ToString())
+                        .ToList();
+                    input = string.Join(",", SelectedValues);
+                }
+                else
+                {
+                    var selectedItem = SelectionComboBox.SelectedItem as ComboBoxItem;
+                    input = selectedItem?.Tag?.ToString() ?? string.Empty;
+                }
             }
             else if (_request.IsPassword)
             {

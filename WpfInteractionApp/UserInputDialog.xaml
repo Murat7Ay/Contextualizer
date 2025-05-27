@@ -158,6 +158,34 @@
             <ComboBox x:Name="SelectionComboBox"
                       Padding="8,6"
                       Visibility="Collapsed"/>
+
+            <ListBox x:Name="MultiSelectListBox"
+                     Background="{DynamicResource Carbon.Brush.Background.Secondary}"
+                     Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                     BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
+                     Padding="8,6"
+                     SelectionMode="Multiple"
+                     Visibility="Collapsed"/>
+
+            <Grid x:Name="FilePickerGrid" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="FilePathTextBox"
+                         Grid.Column="0"
+                         Background="{DynamicResource Carbon.Brush.Background.Secondary}"
+                         Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                         BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
+                         Padding="8,6"
+                         IsReadOnly="True"/>
+                <Button x:Name="BrowseButton"
+                        Grid.Column="1"
+                        Content="Browse"
+                        Style="{DynamicResource Carbon.Button.Secondary}"
+                        Click="BrowseButton_Click"
+                        Margin="8,0,0,0"/>
+            </Grid>
         </Grid>
 
         <StackPanel Grid.Row="4" 
