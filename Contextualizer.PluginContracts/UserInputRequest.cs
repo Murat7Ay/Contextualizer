@@ -23,9 +23,12 @@ namespace Contextualizer.PluginContracts
         public bool IsSelectionList { get; set; } = false;
         [JsonPropertyName("is_password")]
         public bool IsPassword { get; set; } = false;
-
         [JsonPropertyName("selection_items")]
         public List<SelectionItem>? SelectionItems { get; set; }
+        [JsonPropertyName("is_multi_select")]
+        public bool IsMultiSelect { get; set; } = false; 
+        [JsonPropertyName("is_file_picker")]
+        public bool IsFilePicker { get; set; } = false;
         [JsonPropertyName("default_value")]
         public string DefaultValue { get; set; } = string.Empty;
     }
