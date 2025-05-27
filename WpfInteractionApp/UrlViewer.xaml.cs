@@ -10,23 +10,30 @@ namespace WpfInteractionApp
     public partial class UrlViewer : UserControl, IDynamicScreen
     {
         private bool _isWebViewInitialized;
+        private string _sharedProfilePath;
 
         public UrlViewer()
         {
             InitializeComponent();
             _isWebViewInitialized = false;
-            InitializeWebView();
         }
 
         private async void InitializeWebView()
         {
             try
             {
-                await WebView.EnsureCoreWebView2Async();
-                _isWebViewInitialized = true;
+                if (!string.IsNullOrEmpty(_sharedProfilePath))
+                {
+                    var env = await CoreWebView2Environment.CreateAsync(null, _sharedProfilePath);
+                    await WebView.EnsureCoreWebView2Async(env);
+                }
+                else
+                {
+                    await WebView.EnsureCoreWebView2Async();
+                }
 
-                // WebView2'ye JavaScript mesajlarını dinleme yeteneği ekle
-                WebView.WebMessageReceived += WebView_WebMessageReceived;
+                _isWebViewInitialized = true;
+                WebView.CoreWebView2.WebMessageReceived += WebView_WebMessageReceived;
 
                 if (!string.IsNullOrEmpty(Url))
                 {
@@ -106,13 +113,20 @@ namespace WpfInteractionApp
 
         public void SetScreenInformation(Dictionary<string, string> context)
         {
-            Context = context ?? throw new ArgumentNullException(nameof(context));
-            if (!context.TryGetValue(ContextKey._body, out var url))
+            if (context.TryGetValue("shared_webview_profile", out string profilePath))
             {
-                Url = string.Empty;
-                return;
+                _sharedProfilePath = profilePath;
             }
-            Url = url;
+
+            if (context.TryGetValue("url", out string url))
+            {
+                Url = url;
+            }
+
+            if (!_isWebViewInitialized)
+            {
+                InitializeWebView();
+            }
         }
     }
 } 
