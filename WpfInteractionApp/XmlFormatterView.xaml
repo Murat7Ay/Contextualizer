@@ -1,4 +1,5 @@
-﻿<UserControl x:Class="WpfInteractionApp.XmlFormatterView"
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl x:Class="WpfInteractionApp.XmlFormatterView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -11,6 +12,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        
         <Button x:Name="ToggleViewButton"
                 Content="Formatlı Göster"
                 Click="ToggleViewButton_Click"
@@ -19,18 +21,31 @@
                 HorizontalAlignment="Left"
                 Margin="8"
                 Padding="8,2"/>
-        <ScrollViewer Grid.Row="1" Margin="8" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" x:Name="XmlTreeScroll">
-            <TreeView x:Name="XmlTree" Height="300"/>
+                
+        <ScrollViewer Grid.Row="1" 
+                     Margin="8" 
+                     VerticalScrollBarVisibility="Auto" 
+                     HorizontalScrollBarVisibility="Auto" 
+                     x:Name="XmlTreeScroll">
+            <TreeView x:Name="XmlTree" 
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"/>
         </ScrollViewer>
-        <ScrollViewer Grid.Row="1" Margin="8" Visibility="Collapsed" x:Name="FormattedXmlBoxScroll"
-                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        
+        <ScrollViewer Grid.Row="1" 
+                     Margin="8" 
+                     Visibility="Collapsed" 
+                     x:Name="FormattedXmlBoxScroll"
+                     VerticalScrollBarVisibility="Auto" 
+                     HorizontalScrollBarVisibility="Auto">
             <TextBox x:Name="FormattedXmlBox"
                      FontFamily="Consolas"
                      FontSize="14"
                      IsReadOnly="True"
-                     Height="300"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"
                      BorderThickness="0"
-                     Background="White"
+                     Background="Transparent"
                      TextWrapping="NoWrap"/>
         </ScrollViewer>
     </Grid>

@@ -56,22 +56,34 @@ namespace WpfInteractionApp
                         UIElement content = (UIElement)screen;
                         if (actions != null && actions.Count > 0)
                         {
-                            var stackPanel = new StackPanel { Margin = new Thickness(10) };
-                            stackPanel.Children.Add(content);
+                            var grid = new Grid();
+                            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+                            Grid.SetRow(content, 0);
+                            grid.Children.Add(content);
+
+                            var buttonPanel = new StackPanel 
+                            { 
+                                Orientation = Orientation.Horizontal,
+                                HorizontalAlignment = HorizontalAlignment.Right,
+                                Margin = new Thickness(10)
+                            };
+                            Grid.SetRow(buttonPanel, 1);
 
                             foreach (var action in actions)
                             {
                                 var button = new Button
                                 {
                                     Content = action.Key,
-                                    Margin = new Thickness(0, 5, 0, 5),
+                                    Margin = new Thickness(5, 0, 0, 0),
                                     Style = (Style)Application.Current.FindResource("Carbon.Button.Base")
                                 };
                                 button.Click += (s, e) => action.Value?.Invoke(context);
-                                stackPanel.Children.Add(button);
+                                buttonPanel.Children.Add(button);
                             }
-                            // screenId+title ile benzersiz sekme aç
-                            _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, stackPanel);
+                            grid.Children.Add(buttonPanel);
+                            _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, grid);
                         }
                         else
                         {

@@ -1,4 +1,5 @@
-﻿<Window x:Class="WpfInteractionApp.MainWindow"
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="WpfInteractionApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Contextualizer" Height="800" Width="1200"
@@ -14,17 +15,32 @@
             <MenuItem Header="Manual Handlers" Name="ManualHandlersMenu" Style="{DynamicResource Carbon.MenuItem}"/>
         </Menu>
 
-        <Grid DockPanel.Dock="Bottom">
+        <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="*" MinHeight="200"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto" MinHeight="100" MaxHeight="400"/>
+                <RowDefinition Height="200" MinHeight="100" MaxHeight="400"/>
             </Grid.RowDefinitions>
 
             <TabControl Grid.Row="0" 
                        Name="TabControl" 
-                       Style="{DynamicResource Carbon.TabControl}"
-                       VerticalAlignment="Stretch"/>
+                       Style="{DynamicResource Carbon.TabControl}">
+                <TabControl.Template>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TabPanel Grid.Row="0" 
+                                     IsItemsHost="True" 
+                                     Panel.ZIndex="1"/>
+                            <ContentPresenter Grid.Row="1" 
+                                            ContentSource="SelectedContent"/>
+                        </Grid>
+                    </ControlTemplate>
+                </TabControl.Template>
+            </TabControl>
 
             <GridSplitter Grid.Row="1"
                          Height="5"
@@ -32,13 +48,13 @@
                          VerticalAlignment="Center"
                          Background="{DynamicResource Carbon.Brush.Background.Tertiary}"
                          ShowsPreview="True"
-                         ResizeDirection="Rows"/>
+                         ResizeDirection="Rows"
+                         ResizeBehavior="PreviousAndNext"/>
 
             <ListBox Grid.Row="2" 
                      Name="LogListBox"
                      Style="{DynamicResource Carbon.ListBox}"
-                     ItemContainerStyle="{DynamicResource Carbon.ListBoxItem}"
-                     Height="200">
+                     ItemContainerStyle="{DynamicResource Carbon.ListBoxItem}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">

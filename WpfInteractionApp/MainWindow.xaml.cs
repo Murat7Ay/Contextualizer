@@ -82,7 +82,10 @@ namespace WpfInteractionApp
             {
                 var tabItem = new TabItem
                 {
-                    Content = content,
+                    Content = new Grid
+                    {
+                        Children = { content }
+                    },
                     IsSelected = true,
                 };
 
