@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl x:Class="WpfInteractionApp.UrlViewer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+             MinWidth="400" MinHeight="300">
+    <Grid Background="{StaticResource Carbon.Brush.Background.Primary}">
+        <wv2:WebView2 x:Name="WebView"
+                      DefaultBackgroundColor="#F4F4F4"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"/>
+    </Grid>
+</UserControl> 
