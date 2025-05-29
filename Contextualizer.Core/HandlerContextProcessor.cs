@@ -14,21 +14,32 @@ namespace Contextualizer.Core
 
         public void PromptUserInputsAsync(List<UserInputRequest> userInputs, Dictionary<string, string> context)
         {
-            if (userInputs is null)
+            if (userInputs == null || userInputs.Count == 0)
                 return;
 
-            foreach (var inpt in userInputs)
+            var userInteractionService = ServiceLocator.Get<IUserInteractionService>();
+
+            foreach (var input in userInputs)
             {
-                if (string.IsNullOrEmpty(inpt.Key))
+                if (string.IsNullOrWhiteSpace(input?.Key))
                     continue;
 
-                var userInput = ServiceLocator.Get<IUserInteractionService>().GetUserInput(inpt);
-                if (!string.IsNullOrEmpty(userInput))
+                if (!string.IsNullOrEmpty(input.DependentKey) &&
+                    context.TryGetValue(input.DependentKey, out var dependentValue) &&
+                    input.DependentSelectionItemMap?.TryGetValue(dependentValue, out var dependentSelection) == true)
                 {
-                    context[inpt.Key] = userInput;
+                    input.SelectionItems = dependentSelection.SelectionItems;
+                    input.DefaultValue = dependentSelection.DefaultValue;
+                }
+
+                var userInput = userInteractionService.GetUserInput(input);
+                if (!string.IsNullOrWhiteSpace(userInput))
+                {
+                    context[input.Key] = userInput;
                 }
             }
         }
+
         //TODO: seed context with default values from seeder
         public void ContextSeederSeed(Dictionary<string, string> seeder, Dictionary<string, string> context)
         {
