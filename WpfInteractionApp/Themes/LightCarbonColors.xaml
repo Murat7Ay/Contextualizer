@@ -15,7 +15,7 @@
     <Color x:Key="Carbon.Text.Helper">#6F6F6F</Color>
     
     <!-- Interactive Colors -->
-    <Color x:Key="Carbon.Interactive.Primary">#0050B3</Color>
+    <Color x:Key="Carbon.Interactive.Primary">#4589FF</Color>
     <Color x:Key="Carbon.Interactive.Secondary">#E8E8E8</Color>
     <Color x:Key="Carbon.Interactive.Hover">#E5F0FF</Color>
     <Color x:Key="Carbon.Interactive.Active">#D0E2FF</Color>
