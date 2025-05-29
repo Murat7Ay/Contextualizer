@@ -125,6 +125,93 @@
       ]
     },
     {
+      "name": "PL SQL Deneme",
+      "type": "manual",
+      "screen_id": "plsql_editor",
+      "title": "PL SQL Editor",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "query"
+        }
+      ],
+      "seeder": {
+        "query": "SELECT * FROM DUAL;"
+      }
+    },
+    {
+      "name": "Branch Viewer",
+      "type": "manual",
+      "screen_id": "url_viewer",
+      "title": "Branch Viewer Enpara",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "url"
+        }
+      ],
+      "user_inputs": [
+        {
+          "key": "organizationName",
+          "title": "Organization Selection",
+          "message": "Please select Organization:",
+          "is_required": true,
+          "is_selection_list": true,
+          "selection_items": [
+            {
+              "value": "CoreFinans",
+              "display": "Core Finans"
+            },
+            {
+              "value": "Enpara",
+              "display": "Enpara"
+            }
+          ],
+          "default_value": "CoreFinans"
+        },
+        {
+          "key": "projectName",
+          "title": "Project Selection",
+          "message": "Please select project name:",
+          "is_required": true,
+          "is_selection_list": true,
+          "dependent_key": "organizationName",
+          "dependent_selection_item_map": {
+            "Enpara": {
+              "selection_items": [
+                {
+                  "value": "CashManagementPayments",
+                  "display": "Cash Management Payments"
+                }
+              ],
+              "default_value": "CashManagementPayments"
+            },
+            "CoreFinans": {
+              "selection_items": [
+                {
+                  "value": "CashManagementPayments",
+                  "display": "Cash Management Payments"
+                },
+                {
+                  "value": "CashManagement",
+                  "display": "Cash Management"
+                },
+                {
+                  "value": "Open Banking",
+                  "display": "OpenBanking"
+                }
+              ],
+              "default_value": "CashManagement"
+            }
+          }
+        }
+      ],
+      "seeder": {
+        "shared_webview_profile": "C:\\Finder\\sharedviewprofile",
+        "url": "http://github.com/murat7Ay/"
+      }
+    },
+    {
       "name": "StandartType2 DBS Projesi oluştur",
       "type": "manual",
       "screen_id": "markdown2",
@@ -146,6 +233,36 @@
           "key": "packagename",
           "title": "Paket ismini gir",
           "message": "Paket ismi:",
+          "is_required": true
+        },
+        {
+          "key": "platform_multi_select",
+          "title": "Platform Selection",
+          "message": "Please select your target platform:",
+          "is_required": true,
+          "is_selection_list": true,
+          "is_multi_select": true,
+          "selection_items": [
+            {
+              "value": "windows",
+              "display": "Windows"
+            },
+            {
+              "value": "linux",
+              "display": "Linux"
+            },
+            {
+              "value": "macos",
+              "display": "macOS"
+            }
+          ],
+          "default_value": "windows,linux"
+        },
+        {
+          "key": "filepath",
+          "title": "Paket ismini gir",
+          "message": "Paket ismi:",
+          "is_file_picker": true,
           "is_required": true
         }
       ]
@@ -174,6 +291,7 @@
       "name": "Json formatter wpf",
       "type": "custom",
       "context_provider": "jsonvalidator",
+      "validator": "jsonvalidator",
       "screen_id": "jsonformatter",
       "title": "JSON Formatter",
       "actions": [
@@ -188,6 +306,7 @@
       "type": "custom",
       "context_provider": "xmlvalidator",
       "screen_id": "xmlformatter",
+      "validator": "xmlvalidator",
       "title": "XML Formatter",
       "actions": [
         {
@@ -216,7 +335,7 @@
       "actions": [
         {
           "name": "simple_print_key",
-          "key": "name",
+          "key": "_self",
           "conditions": {
             "operator": "and",
             "conditions": [
