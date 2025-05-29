@@ -26,9 +26,22 @@ namespace Contextualizer.PluginContracts
         [JsonPropertyName("selection_items")]
         public List<SelectionItem>? SelectionItems { get; set; }
         [JsonPropertyName("is_multi_select")]
-        public bool IsMultiSelect { get; set; } = false; 
+        public bool IsMultiSelect { get; set; } = false;
         [JsonPropertyName("is_file_picker")]
         public bool IsFilePicker { get; set; } = false;
+        [JsonPropertyName("default_value")]
+        public string DefaultValue { get; set; } = string.Empty;
+        [JsonPropertyName("dependent_key")]
+        public string? DependentKey { get; set; } = null;
+        [JsonPropertyName("dependent_selection_item_map")]
+        public Dictionary<string, DependentSelectionItemMap>? DependentSelectionItemMap { get; set; } = null;
+
+    }
+
+    public class DependentSelectionItemMap
+    {
+        [JsonPropertyName("selection_items")]
+        public List<SelectionItem> SelectionItems { get; set; } = new List<SelectionItem>();
         [JsonPropertyName("default_value")]
         public string DefaultValue { get; set; } = string.Empty;
     }
