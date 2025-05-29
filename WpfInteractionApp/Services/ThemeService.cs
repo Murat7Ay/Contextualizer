@@ -34,13 +34,13 @@ namespace WpfInteractionApp.Services
             // Load saved theme from settings
             try
             {
-                CurrentTheme = Enum.Parse<ThemeType>(Settings.Default.Theme, true);
+                CurrentTheme = Enum.Parse<ThemeType>(WpfInteractionApp.Properties.Settings.Default.Theme, true);
             }
             catch
             {
                 CurrentTheme = ThemeType.Dark;
-                Settings.Default.Theme = CurrentTheme.ToString();
-                Settings.Default.Save();
+                WpfInteractionApp.Properties.Settings.Default.Theme = CurrentTheme.ToString();
+                WpfInteractionApp.Properties.Settings.Default.Save();
             }
             Debug.WriteLine($"Initial theme loaded from settings: {CurrentTheme}");
         }
@@ -108,8 +108,8 @@ namespace WpfInteractionApp.Services
                 CurrentTheme = theme;
 
                 // Save theme setting
-                Settings.Default.Theme = theme.ToString();
-                Settings.Default.Save();
+                WpfInteractionApp.Properties.Settings.Default.Theme = theme.ToString();
+                WpfInteractionApp.Properties.Settings.Default.Save();
                 Debug.WriteLine($"Theme setting saved: {theme}");
 
                 // Notify subscribers

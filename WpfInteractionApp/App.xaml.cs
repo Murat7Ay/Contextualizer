@@ -11,6 +11,7 @@ namespace WpfInteractionApp
     {
         private HandlerManager? _handlerManager;
         private MainWindow? _mainWindow;
+        private SettingsService? _settingsService;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -27,6 +28,10 @@ namespace WpfInteractionApp
                     Source = new Uri("/WpfInteractionApp;component/Themes/CarbonStyles.xaml", UriKind.Relative) 
                 });
 
+                // Initialize settings service
+                _settingsService = new SettingsService();
+                ServiceLocator.Register<SettingsService>(_settingsService);
+
                 // Initialize main window
                 _mainWindow = new MainWindow();
                 MainWindow = _mainWindow;
@@ -38,7 +43,7 @@ namespace WpfInteractionApp
                 // Create the HandlerManager
                 _handlerManager = new HandlerManager(
                     userInteractionService,
-                    @"C:\Finder\handlers.json" // TODO: Make this configurable
+                    _settingsService
                 );
 
                 // Initialize HandlerManager in MainWindow

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Contextualizer.Core.Services;
 
 namespace Contextualizer.Core
 {
@@ -12,23 +13,24 @@ namespace Contextualizer.Core
         private readonly List<IHandler> _handlers;
         private readonly List<IHandler> _manualHandlers;
         private readonly KeyboardHook _hook;
+        private readonly ISettingsService _settingsService;
 
-        public HandlerManager(IUserInteractionService userInteractionService, string handlersFilePath)
+        public HandlerManager(IUserInteractionService userInteractionService, ISettingsService settingsService)
         {
-            DynamicAssemblyLoader.LoadAssembliesFromFolder(@"C:\Finder\Plugins");
+            _settingsService = settingsService;
+            DynamicAssemblyLoader.LoadAssembliesFromFolder(_settingsService.PluginsDirectory);
 
             IActionService actionService = new ActionService();
             ServiceLocator.Register<IActionService>(actionService);
             ServiceLocator.Register<IClipboardService>(new WindowsClipboardService());
             ServiceLocator.Register<IUserInteractionService>(userInteractionService);
-            List<IHandler> handlers = HandlerLoader.Load(handlersFilePath);
+            List<IHandler> handlers = HandlerLoader.Load(_settingsService.HandlersFilePath);
             _handlers = handlers.Where(h => h is not ITriggerableHandler).ToList();
             _manualHandlers = handlers.Where(h => h is ITriggerableHandler).ToList();
-            _hook = new KeyboardHook();
+            _hook = new KeyboardHook(_settingsService);
             _hook.TextCaptured += OnTextCaptured;
             _hook.LogMessage += OnLogMessage;
         }
-
 
         public async Task StartAsync()
         {
@@ -66,7 +68,7 @@ namespace Contextualizer.Core
 
         public List<string> GetManualHandlerNames()
         {
-            return _manualHandlers.Select(s => s.HandlerConfig.Name).ToList(); ;
+            return _manualHandlers.Select(s => s.HandlerConfig.Name).ToList();
         }
 
         public void ExecuteManualHandler(string handlerName)
