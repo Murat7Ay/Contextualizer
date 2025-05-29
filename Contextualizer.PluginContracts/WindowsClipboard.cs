@@ -72,9 +72,8 @@ namespace Contextualizer.PluginContracts
             }
         }
 
-        public static bool ClipWait(int seconds)
+        public static bool ClipWait(int timeout)
         {
-            int timeout = seconds * 1000; // Milisaniyeye çevir
             int elapsed = 0;
 
             while (elapsed < timeout)
