@@ -148,6 +148,20 @@ namespace WpfInteractionApp
             Application.Current.Shutdown();
         }
 
+        private async void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var settingsService = ServiceLocator.Get<SettingsService>();
+            var settingsWindow = new SettingsWindow(settingsService.Settings);
+            
+            if (settingsWindow.ShowDialog() == true)
+            {
+                settingsService.SaveSettings();
+                // TODO: Restart the application or reload settings
+                MessageBox.Show("Settings saved. Please restart the application for changes to take effect.", 
+                    "Settings", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);

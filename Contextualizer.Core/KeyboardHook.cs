@@ -1,4 +1,5 @@
-﻿using Contextualizer.PluginContracts;
+﻿using Contextualizer.Core.Services;
+using Contextualizer.PluginContracts;
 using SharpHook;
 using SharpHook.Native;
 using System;
@@ -15,8 +16,13 @@ namespace Contextualizer.Core
     {
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private IGlobalHook? _hook;
-        private const int ClipboardWaitTimeout = 5;
         private bool _isDisposed;
+        private ISettingsService _settingsService;
+
+        public KeyboardHook(ISettingsService settingsService)
+        {
+            _settingsService = settingsService;
+        }
 
         public event EventHandler<ClipboardCapturedEventArgs>? TextCaptured;
         public event EventHandler<LogMessageEventArgs>? LogMessage;
@@ -31,6 +37,7 @@ namespace Contextualizer.Core
         {
             LogMessage?.Invoke(this, new LogMessageEventArgs(level, message));
         }
+
         public Task StartAsync()
         {
             if (_hook != null) throw new InvalidOperationException("Hook is already started.");
@@ -38,7 +45,17 @@ namespace Contextualizer.Core
             _hook = new SimpleGlobalHook();
             _hook.KeyPressed += OnKeyPressed;
 
-            Log(LogType.Info, "Press Ctrl+W to capture selected text...");
+            var modifiers = new List<string>();
+            if (_settingsService.HasModifierKey("Ctrl")) modifiers.Add("Ctrl");
+            if (_settingsService.HasModifierKey("Alt")) modifiers.Add("Alt");
+            if (_settingsService.HasModifierKey("Shift")) modifiers.Add("Shift");
+            if (_settingsService.HasModifierKey("Win")) modifiers.Add("Win");
+
+            var shortcutText = modifiers.Count > 0 
+                ? string.Join("+", modifiers) + "+" + _settingsService.ShortcutKey
+                : _settingsService.ShortcutKey;
+
+            Log(LogType.Info, $"Press {shortcutText} to capture selected text...");
             return _hook.RunAsync();
         }
 
@@ -51,14 +68,29 @@ namespace Contextualizer.Core
             _hook = null;
         }
 
-
         private void OnKeyPressed(object? sender, KeyboardHookEventArgs args)
         {
-            if (args.RawEvent.Mask.HasMeta() && args.Data.KeyCode == KeyCode.VcW)
-            {
-                args.SuppressEvent = true;
+            bool ctrlPressed = args.RawEvent.Mask.HasCtrl();
+            bool altPressed = args.RawEvent.Mask.HasAlt();
+            bool shiftPressed = args.RawEvent.Mask.HasShift();
+            bool winPressed = args.RawEvent.Mask.HasMeta();
 
-                _ = Task.Run(() => ProcessKeyPressAsync(args.Data.KeyCode));
+            bool ctrlRequired = _settingsService.HasModifierKey("Ctrl");
+            bool altRequired = _settingsService.HasModifierKey("Alt");
+            bool shiftRequired = _settingsService.HasModifierKey("Shift");
+            bool winRequired = _settingsService.HasModifierKey("Win");
+
+            if (Enum.TryParse<KeyCode>("Vc"+_settingsService.ShortcutKey.ToUpper(), true, out KeyCode requiredKey))
+            {
+                if (ctrlPressed == ctrlRequired &&
+                altPressed == altRequired &&
+                shiftPressed == shiftRequired &&
+                winPressed == winRequired &&
+    args.Data.KeyCode == requiredKey)
+                {
+                    args.SuppressEvent = true;
+                    _ = Task.Run(() => ProcessKeyPressAsync(args.Data.KeyCode));
+                }
             }
         }
 
@@ -104,13 +136,13 @@ namespace Contextualizer.Core
             try
             {
                 SetForegroundWindow(hwnd);
-                Thread.Sleep(100); // Consider making this configurable
+                Thread.Sleep(_settingsService.WindowActivationDelay); // Consider making this configurable
 
                 WindowsClipboard.ClearClipboard();
-                Thread.Sleep(800);  // Consider making this configurable
+                Thread.Sleep(_settingsService.ClipboardClearDelay);  // Consider making this configurable
 
                 KeyboardSimulator.SimulateCtrlC();
-                if (!WindowsClipboard.ClipWait(ClipboardWaitTimeout))
+                if (!WindowsClipboard.ClipWait(_settingsService.ClipboardWaitTimeout))
                 {
                     Log(LogType.Error, "Clipboard timeout."); // Report the timeout
                     return new ClipboardContent();
@@ -124,7 +156,6 @@ namespace Contextualizer.Core
                 return new ClipboardContent();
             }
         }
-
 
         protected virtual void OnTextCaptured(ClipboardContent clipboardContent)
         {

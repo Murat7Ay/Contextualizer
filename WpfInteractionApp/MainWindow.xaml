@@ -12,6 +12,9 @@
             <MenuItem Header="Theme" Style="{DynamicResource Carbon.MenuItem}">
                 <MenuItem Header="Toggle Theme" Click="ToggleTheme_Click" Style="{DynamicResource Carbon.MenuItem}"/>
             </MenuItem>
+            <MenuItem Header="Settings" Style="{DynamicResource Carbon.MenuItem}">
+                <MenuItem Header="Application Settings" Click="SettingsMenuItem_Click" Style="{DynamicResource Carbon.MenuItem}"/>
+            </MenuItem>
             <MenuItem Header="Manual Handlers" Name="ManualHandlersMenu" Style="{DynamicResource Carbon.MenuItem}"/>
         </Menu>
 
