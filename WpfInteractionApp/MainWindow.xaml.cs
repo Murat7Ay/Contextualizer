@@ -1,12 +1,13 @@
 ﻿using Contextualizer.Core;
+using Contextualizer.PluginContracts;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using WpfInteractionApp.Services;
-using System.Diagnostics;
-using Contextualizer.PluginContracts;
 
 namespace WpfInteractionApp
 {
@@ -19,7 +20,7 @@ namespace WpfInteractionApp
         public MainWindow()
         {
             InitializeComponent();
-            
+
             ThemeManager.Instance.ThemeChanged += OnThemeChanged;
             LogListBox.ItemsSource = _logs;
         }
@@ -36,7 +37,7 @@ namespace WpfInteractionApp
 
             ManualHandlersMenu.Items.Clear();
             var handlers = _handlerManager.GetManualHandlerNames();
-            
+
             foreach (var handler in handlers)
             {
                 var menuItem = new MenuItem
@@ -130,12 +131,42 @@ namespace WpfInteractionApp
         private void OnThemeChanged(object? sender, string theme)
         {
             Debug.WriteLine($"Theme changed to: {theme}");
-            AddLog(new LogEntry 
-            { 
-                Type = LogType.Info, 
-                Message = $"Theme changed to: {theme}", 
-                Timestamp = DateTime.Now 
+            AddLog(new LogEntry
+            {
+                Type = LogType.Info,
+                Message = $"Theme changed to: {theme}",
+                Timestamp = DateTime.Now
             });
+
+            foreach (var tab in _tabs.Values)
+            {
+                if (tab.Content is Grid grid)
+                {
+                    foreach (var child in grid.Children)
+                    {
+                        if (child is DependencyObject depObj)
+                        {
+                            foreach (var themeAware in FindThemeAwareChildren(depObj))
+                            {
+                                themeAware.OnThemeChanged(theme);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        private static IEnumerable<IThemeAware> FindThemeAwareChildren(DependencyObject parent)
+        {
+            if (parent is IThemeAware aware)
+                yield return aware;
+
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                foreach (var descendant in FindThemeAwareChildren(child))
+                    yield return descendant;
+            }
         }
 
         private void ToggleTheme_Click(object sender, RoutedEventArgs e)
@@ -152,12 +183,12 @@ namespace WpfInteractionApp
         {
             var settingsService = ServiceLocator.Get<SettingsService>();
             var settingsWindow = new SettingsWindow(settingsService.Settings);
-            
+
             if (settingsWindow.ShowDialog() == true)
             {
                 settingsService.SaveSettings();
                 // TODO: Restart the application or reload settings
-                MessageBox.Show("Settings saved. Please restart the application for changes to take effect.", 
+                MessageBox.Show("Settings saved. Please restart the application for changes to take effect.",
                     "Settings", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
