@@ -36,6 +36,11 @@ namespace WpfInteractionApp
             try
             {
                 await WebView.EnsureCoreWebView2Async();
+                string aceFolderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "ace");
+                WebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                    "local", // virtual hostname
+                    aceFolderPath,
+                    CoreWebView2HostResourceAccessKind.Allow);
                 _isWebViewInitialized = true;
 
                 // WebView2'ye JavaScript mesajlarını dinleme yeteneği ekle
@@ -79,10 +84,10 @@ namespace WpfInteractionApp
                     <head>
                         <meta charset='utf-8'>
                         <title>PL/SQL Editor</title>
-                        <script src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js'></script>
-                        <script src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/mode-sql.js'></script>
-                        <script src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/theme-sqlserver.js'></script>
-                        <script src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/theme-monokai.js'></script>
+                        <script src='https://local/ace.js'></script>
+                        <script src='https://local/mode-sql.js'></script>
+                        <script src='https://local/theme-sqlserver.js'></script>
+                        <script src='https://local/theme-monokai.js'></script>
                         <style>
                             body {{
                                 margin: 0;
