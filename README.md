@@ -17,13 +17,28 @@ Contextualizer is a powerful Windows application that provides context-aware cli
   - Extensible architecture supporting custom plugins
   - Dynamic plugin loading
   - Well-defined plugin contracts
+  - Plugin-specific settings management
 
 - **Modern User Interface**:
-  - Clean, dark-themed WPF interface
+  - Clean, modern WPF interface with dark/light theme support
   - Tab-based content management
   - Real-time activity logging
   - Toast notifications
   - Support for markdown, JSON, and XML formatting
+  - PL/SQL editor with syntax highlighting
+  - Markdown viewer with live preview
+  - User input dialogs with validation
+
+- **Advanced Features**:
+  - Theme-aware components
+  - Dynamic screen management
+  - Context-based content processing
+  - Customizable user interactions
+  - Toast notifications with actions
+  - Confirmation dialogs
+  - Multi-line text input support
+  - File picker integration
+  - Selection lists with multi-select support
 
 ## System Requirements
 
@@ -35,14 +50,21 @@ Contextualizer is a powerful Windows application that provides context-aware cli
 
 ## Configuration
 
-The application uses a JSON configuration file (`handlers.json`) located at `C:\Finder\handlers.json` to define handlers and their behaviors. Plugins should be placed in the `C:\Finder\Plugins` directory.
+The application uses a JSON configuration file (`handlers.json`) to define handlers and their behaviors. The configuration includes:
+
+- Handler definitions
+- Plugin settings
+- Database connections
+- Lookup data
+- Custom actions
+- Theme preferences
 
 ## Project Structure
 
 - **Contextualizer.Core**: Core business logic and handler implementations
 - **Contextualizer.PluginContracts**: Interface definitions for the plugin system
 - **Contextualizer.Plugins**: Built-in plugin implementations
-- **WpfInteractionApp**: WPF-based user interface
+- **WpfInteractionApp**: WPF-based user interface with modern components
 - **Contextualizer.ConsoleApp**: Console application interface (alternative to WPF)
 
 ## Development
@@ -62,6 +84,8 @@ The application uses a JSON configuration file (`handlers.json`) located at `C:\
    - `IHandler` for custom handlers
    - `IAction` for custom actions
    - `IHandlerContextProvider` for custom context providers
+   - `IDynamicScreen` for custom UI components
+   - `IThemeAware` for theme-aware components
 
 ## Dependencies
 
@@ -70,8 +94,8 @@ The application uses a JSON configuration file (`handlers.json`) located at `C:\
 - Microsoft.Data.SqlClient: For SQL Server connections
 - Oracle.ManagedDataAccess.Core: For Oracle connections
 - Markdig: For markdown processing
-- MdXaml: For markdown rendering
 - Microsoft.Web.WebView2: For web view components
+- System.Text.Json: For JSON processing
 
 ## License
 
@@ -141,6 +165,9 @@ We welcome contributions to the Contextualizer project! Here's how you can contr
 - Keep methods focused and concise
 - Document public APIs
 - Add XML comments for public methods and classes
+- Implement interfaces for extensibility
+- Use dependency injection where appropriate
+- Follow SOLID principles
 
 ### Reporting Issues
 
