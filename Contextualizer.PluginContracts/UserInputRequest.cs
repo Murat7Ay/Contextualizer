@@ -29,6 +29,8 @@ namespace Contextualizer.PluginContracts
         public bool IsMultiSelect { get; set; } = false;
         [JsonPropertyName("is_file_picker")]
         public bool IsFilePicker { get; set; } = false;
+        [JsonPropertyName("is_multi_line")]
+        public bool IsMultiLine { get; set; } = false;
         [JsonPropertyName("default_value")]
         public string DefaultValue { get; set; } = string.Empty;
         [JsonPropertyName("dependent_key")]
