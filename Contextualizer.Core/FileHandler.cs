@@ -21,23 +21,28 @@ namespace Contextualizer.Core
 
         protected override bool CanHandle(ClipboardContent clipboardContent)
         {
-            return clipboardContent.IsFile && clipboardContent.Files.Any() && CanHandle(clipboardContent);
-        }
+            if (!clipboardContent.IsFile || !clipboardContent.Files.Any())
+                return false;
 
-        bool IHandler.CanHandle(ClipboardContent clipboardContent)
-        {
             for (int i = 0; i < clipboardContent.Files.Length; i++)
             {
                 var fileProperties = GetFullFileInfoDictionary(clipboardContent.Files[i], i);
+                fileInfo.TryGetValue(FileInfoKeys.Extension + i, out var extension);
 
-                if (!fileInfo.TryGetValue(FileInfoKeys.Extension + i, out var extension) || fileInfo.ContainsKey(FileInfoKeys.NotFound) || string.IsNullOrWhiteSpace(extension) || !base.HandlerConfig.FileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+                if (fileInfo.ContainsKey(FileInfoKeys.NotFound) || string.IsNullOrWhiteSpace(extension) || !base.HandlerConfig.FileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                 {
                     return false;
                 }
 
-                fileInfo.Concat(fileProperties);
+                fileInfo = fileInfo.Concat(fileProperties).ToDictionary(kvp=> kvp.Key, kvp => kvp.Value);
             }
             return true;
+        }
+
+        bool IHandler.CanHandle(ClipboardContent clipboardContent)
+        {
+            return CanHandle(clipboardContent);
+
         }
 
         protected override async Task<Dictionary<string, string>> CreateContextAsync(ClipboardContent clipboardContent)
