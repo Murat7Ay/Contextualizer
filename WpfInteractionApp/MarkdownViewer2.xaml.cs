@@ -9,7 +9,7 @@ using WpfInteractionApp.Services;
 
 namespace WpfInteractionApp
 {
-    public partial class MarkdownViewer2 : UserControl, IDynamicScreen
+    public partial class MarkdownViewer2 : UserControl, IDynamicScreen, IThemeAware
     {
         private readonly MarkdownPipeline _pipeline;
         private bool _isWebViewInitialized;
@@ -23,24 +23,12 @@ namespace WpfInteractionApp
                 .UseTaskLists()
                 .UseEmojiAndSmiley()
                 .Build();
+            _currentTheme = ThemeManager.Instance.CurrentTheme.ToLower();
             _isWebViewInitialized = false;
             InitializeWebView();
-
-            _currentTheme = ThemeManager.Instance.CurrentTheme.ToLower();
-
-            // Tema değişikliğini dinle
-            ThemeManager.Instance.ThemeChanged += OnThemeChanged;
-            
-            // Unloaded event'ini dinle
-            this.Unloaded += MarkdownViewer2_Unloaded;
         }
 
-        private void MarkdownViewer2_Unloaded(object sender, RoutedEventArgs e)
-        {
-            ThemeManager.Instance.ThemeChanged -= OnThemeChanged;
-        }
-
-        private void OnThemeChanged(object? sender, string theme)
+        public void OnThemeChanged(string theme)
         {
             _currentTheme = theme.ToLower();
             if (_isWebViewInitialized)

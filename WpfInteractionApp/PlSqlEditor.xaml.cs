@@ -8,7 +8,7 @@ using WpfInteractionApp.Services;
 
 namespace WpfInteractionApp
 {
-    public partial class PlSqlEditor : UserControl, IDynamicScreen
+    public partial class PlSqlEditor : UserControl, IDynamicScreen, IThemeAware
     {
         private bool _isWebViewInitialized;
         private string _currentTheme = "light";
@@ -18,22 +18,9 @@ namespace WpfInteractionApp
             InitializeComponent();
             _isWebViewInitialized = false;
             InitializeWebView();
-
-            _currentTheme = ThemeManager.Instance.CurrentTheme.ToLower();
-
-            // Tema değişikliğini dinle
-            ThemeManager.Instance.ThemeChanged += OnThemeChanged;
-            
-            // Unloaded event'ini dinle
-            this.Unloaded += PlSqlEditor_Unloaded;
         }
 
-        private void PlSqlEditor_Unloaded(object sender, RoutedEventArgs e)
-        {
-            ThemeManager.Instance.ThemeChanged -= OnThemeChanged;
-        }
-
-        private void OnThemeChanged(object? sender, string theme)
+        public void OnThemeChanged(string theme)
         {
             _currentTheme = theme.ToLower();
             if (_isWebViewInitialized)
