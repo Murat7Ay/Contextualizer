@@ -150,6 +150,22 @@ namespace WpfInteractionApp
                 {
                     InputTextBox.Text = _request.DefaultValue;
                 }
+
+                // Configure multiline settings
+                if (_request.IsMultiLine)
+                {
+                    InputTextBox.AcceptsReturn = true;
+                    InputTextBox.TextWrapping = TextWrapping.Wrap;
+                    InputTextBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+                    InputTextBox.Height = 100; // Set a default height for multiline
+                }
+                else
+                {
+                    InputTextBox.AcceptsReturn = false;
+                    InputTextBox.TextWrapping = TextWrapping.NoWrap;
+                    InputTextBox.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+                    InputTextBox.Height = double.NaN; // Reset to default height
+                }
             }
         }
 
