@@ -19,6 +19,8 @@ namespace WpfInteractionApp
             _isWebViewInitialized = false;
             InitializeWebView();
 
+            _currentTheme = ThemeManager.Instance.CurrentTheme.ToLower();
+
             // Tema değişikliğini dinle
             ThemeManager.Instance.ThemeChanged += OnThemeChanged;
             
