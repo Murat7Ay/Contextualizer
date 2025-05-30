@@ -40,13 +40,12 @@ namespace Contextualizer.Core
             }
         }
 
-        //TODO: seed context with default values from seeder
         public void ContextSeederSeed(Dictionary<string, string> seeder, Dictionary<string, string> context)
         {
             if (seeder is null)
                 return;
-
-            foreach (var kvp in seeder)
+            var resolvedSeeder = ResolveSeeder(seeder);
+            foreach (var kvp in resolvedSeeder)
             {
                 if (string.IsNullOrEmpty(kvp.Key))
                     continue;
@@ -57,6 +56,15 @@ namespace Contextualizer.Core
                     context[kvp.Key] = replacedValue;
                 }
             }
+        }
+        private Dictionary<string, string> ResolveSeeder(Dictionary<string, string> seeder)
+        {
+            var resolved = new Dictionary<string, string>(seeder);
+            foreach (var key in seeder.Keys)
+            {
+                resolved[key] = HandlerContextProcessor.ReplaceDynamicValues(seeder[key], resolved);
+            }
+            return resolved;
         }
 
         public static string ReplaceDynamicValues(string input, Dictionary<string, string> context)
