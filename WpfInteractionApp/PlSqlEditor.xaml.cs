@@ -17,6 +17,7 @@ namespace WpfInteractionApp
         {
             InitializeComponent();
             _isWebViewInitialized = false;
+            _currentTheme = ThemeManager.Instance.CurrentTheme.ToLower();
             InitializeWebView();
         }
 
