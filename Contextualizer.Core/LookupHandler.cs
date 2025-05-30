@@ -31,6 +31,11 @@ namespace Contextualizer.Core
                         continue; // Skip invalid lines
                     }
 
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        parts[i] = parts[i].Replace("{{NEWLINE}}", Environment.NewLine); 
+                    }
+
                     var values = HandlerConfig.ValueNames.Zip(parts, (name, value) => new { name, value })
                         .ToDictionary(x => x.name, x => x.value);
 
