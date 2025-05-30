@@ -52,7 +52,7 @@ namespace Contextualizer.Core
 
                 string input = clipboardContent.Text;
                 var match = regex.Match(input);
-                parameters[ContextKey._input] = input;
+                parameters["p_input"] = input;
 
                 if (match.Success)
                 {
@@ -64,7 +64,7 @@ namespace Contextualizer.Core
             }
             else
             {
-                parameters[ContextKey._input] = clipboardContent.Text;
+                parameters["p_input"] = clipboardContent.Text;
             }
             return true;
         }
