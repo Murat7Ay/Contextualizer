@@ -9,6 +9,37 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Ace\ace.js" />
+    <None Remove="Assets\Ace\ace.min.js" />
+    <None Remove="Assets\Ace\mode-sql.js" />
+    <None Remove="Assets\Ace\mode-sql.min.js" />
+    <None Remove="Assets\Ace\theme-monokai.js" />
+    <None Remove="Assets\Ace\theme-monokai.min.js" />
+    <None Remove="Assets\Ace\theme-sqlserver.js" />
+    <None Remove="Assets\Ace\theme-sqlserver.min.js" />
+    <None Remove="Assets\Ace\theme-textmate.js" />
+    <None Remove="Assets\Ace\theme-textmate.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Ace\ace.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Ace\mode-sql.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Ace\theme-monokai.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Ace\theme-sqlserver.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Ace\theme-textmate.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Markdig" Version="0.37.0" />
     <PackageReference Include="MdXaml" Version="1.27.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
