@@ -9,13 +9,14 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Button x:Name="ToggleViewButton"
-        Content="Formatlı Göster"
-        Click="ToggleViewButton_Click"
-        Width="120"
-        Height="30"
-        HorizontalAlignment="Left"
-        Margin="8"
-        Padding="8,2"/>
+                Content="Formatlı Göster"
+                Click="ToggleViewButton_Click"
+                Width="120"
+                Height="30"
+                Style="{StaticResource Carbon.Button.Secondary}"
+                HorizontalAlignment="Left"
+                Margin="8"
+                Padding="8,2"/>
         <ScrollViewer Grid.Row="1" Margin="8" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" x:Name="JsonTreeScroll">
             <TreeView x:Name="JsonTree" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                       Background="{DynamicResource Carbon.Brush.Background.Secondary}"

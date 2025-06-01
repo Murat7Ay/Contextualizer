@@ -18,6 +18,7 @@
                 Click="ToggleViewButton_Click"
                 Width="120"
                 Height="30"
+                Style="{StaticResource Carbon.Button.Secondary}"
                 HorizontalAlignment="Left"
                 Margin="8"
                 Padding="8,2"/>
