@@ -79,7 +79,7 @@ namespace Contextualizer.Core
             var queryResults = await connection.QueryAsync(HandlerConfig.Query, dynamicParameters, commandTimeout: 3);
             int rowCount = queryResults.Count();
 
-            if(rowCount == 0)
+            if (rowCount == 0)
             {
                 var options = new JsonSerializerOptions
                 {
@@ -89,11 +89,9 @@ namespace Contextualizer.Core
 
                 string parametersJson = JsonSerializer.Serialize(parameters, options);
 
-                throw new Exception(
-                    $"No records found matching the criteria.{Environment.NewLine}" +
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"No records found matching the criteria.{Environment.NewLine}" +
                     $"Query: {HandlerConfig.Query}{Environment.NewLine}" +
-                    $"Parameters:{Environment.NewLine}{parametersJson}"
-                );
+                    $"Parameters:{Environment.NewLine}{parametersJson}");
             }
 
             resultSet[ContextKey._count] = rowCount.ToString();
@@ -205,9 +203,9 @@ namespace Contextualizer.Core
 
         public string GenerateMarkdownTable(Dictionary<string, string> resultSet)
         {
-            if (resultSet == null || resultSet.Count == 0)
+            if (resultSet[ContextKey._count] == "0")
             {
-                return "No data available.";
+                return $"No data available. {parameters["p_input"]}";
             }
 
             // Extract unique column headers from the keys
