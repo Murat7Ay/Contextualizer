@@ -74,7 +74,6 @@ namespace Contextualizer.Core
             resultSet = new Dictionary<string, string>();
 
             using IDbConnection connection = CreateConnection();
-            connection.Open();
             DynamicParameters dynamicParameters = CreateDynamicParameters();
             var queryResults = await connection.QueryAsync(HandlerConfig.Query, dynamicParameters, commandTimeout: 3);
             int rowCount = queryResults.Count();
