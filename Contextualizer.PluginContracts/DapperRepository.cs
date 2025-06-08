@@ -12,9 +12,8 @@ namespace Contextualizer.PluginContracts
 {
     public class DapperRepository
     {
-        public HandlerConfig HandlerConfig { get; }
-
-        public DapperRepository(HandlerConfig handlerConfig)
+        public HandlerConfig? HandlerConfig { get; set; }
+        public void Initialize(HandlerConfig handlerConfig)
         {
             HandlerConfig = handlerConfig ?? throw new ArgumentNullException(nameof(handlerConfig));
         }
@@ -25,6 +24,27 @@ namespace Contextualizer.PluginContracts
             {
                 "mssql" => new SqlConnection(HandlerConfig.ConnectionString),
                 "plsql" => new OracleConnection(HandlerConfig.ConnectionString),
+                _ => throw new NotSupportedException($"Connector type '{HandlerConfig.Connector}' is not supported.")
+            };
+        }
+
+        public DynamicParameters CreateDynamicPameters(IEnumerable<string> keys, Dictionary<string, string> context)
+        {
+            string alias = GetParameterAlias();
+            var dynamicParameters = new DynamicParameters();
+            foreach (var key in keys)
+            {
+                dynamicParameters.Add($"{alias}{key}", context[key]);
+            }
+            return dynamicParameters;
+        }
+
+        private string GetParameterAlias()
+        {
+            return HandlerConfig.Connector.ToLowerInvariant() switch
+            {
+                "mssql" => "@",
+                "plsql" => ":",
                 _ => throw new NotSupportedException($"Connector type '{HandlerConfig.Connector}' is not supported.")
             };
         }
