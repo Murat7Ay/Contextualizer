@@ -30,7 +30,7 @@ namespace Contextualizer.Core
             parameters = new Dictionary<string, string>();
         }
 
-        protected override string OutputFormat => GenerateMarkdownTable(resultSet);
+        protected override string OutputFormat => HandlerConfig.OutputFormat ?? GenerateMarkdownTable(resultSet);
 
         protected override bool CanHandle(ClipboardContent clipboardContent)
         {
@@ -224,6 +224,10 @@ namespace Contextualizer.Core
 
             // Build the Markdown table
             var markdownBuilder = new StringBuilder();
+
+            markdownBuilder.AppendLine($"Captured Text:{parameters["p_input"]}");
+            markdownBuilder.AppendLine();
+            markdownBuilder.AppendLine("---");
 
             // Add headers
             markdownBuilder.Append("| Row | ");
