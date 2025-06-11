@@ -12,7 +12,7 @@ namespace Contextualizer.Plugins
         private IPluginServiceProvider pluginServiceProvider;
         public string Name => "simple_print_key";
 
-        public void Action(ConfigAction action, ContextWrapper context)
+        public Task Action(ConfigAction action, ContextWrapper context)
         {
             List<KeyValuePair<string, Action<Dictionary<string, string>>>>? actions = new List<KeyValuePair<string, Action<Dictionary<string, string>>>>();
             actions.Add( new KeyValuePair<string, Action<Dictionary<string, string>>>("Print", (context) =>
@@ -24,6 +24,7 @@ namespace Contextualizer.Plugins
             context[ContextKey._body] = context[action.Key];
 
             pluginServiceProvider.GetService<IUserInteractionService>().ShowWindow(context._handlerConfig.ScreenId, context._handlerConfig.Title, context, actions);
+            return Task.CompletedTask;  
         }
 
         public void Initialize(IPluginServiceProvider serviceProvider)

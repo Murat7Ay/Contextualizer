@@ -12,7 +12,7 @@ namespace Contextualizer.Plugins
         private IPluginServiceProvider _pluginServiceProvider;
         public string Name => "print_details";
 
-        public void Action(ConfigAction action, ContextWrapper context)
+        public Task Action(ConfigAction action, ContextWrapper context)
         {
             var userInteractionService = _pluginServiceProvider.GetService<IUserInteractionService>();
 
@@ -30,6 +30,7 @@ namespace Contextualizer.Plugins
             {
                 userInteractionService.ShowNotification("Context empty.", LogType.Warning);
             }
+            return Task.CompletedTask;  
         }
 
         public void Initialize(IPluginServiceProvider serviceProvider)

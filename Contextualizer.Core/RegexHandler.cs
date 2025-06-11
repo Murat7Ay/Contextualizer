@@ -22,14 +22,14 @@ namespace Contextualizer.Core
 
         public HandlerConfig HandlerConfig => base.HandlerConfig;
 
-        protected override bool CanHandle(ClipboardContent clipboardContent)
+        protected override async Task<bool> CanHandleAsync(ClipboardContent clipboardContent)
         {
             return regex.IsMatch(clipboardContent.Text);
         }
 
-        bool IHandler.CanHandle(ClipboardContent clipboardContent)
+        async Task<bool> IHandler.CanHandle(ClipboardContent clipboardContent)
         {
-            return CanHandle(clipboardContent);
+            return await CanHandleAsync(clipboardContent);
         }
 
         protected override async Task<Dictionary<string, string>> CreateContextAsync(ClipboardContent clipboardContent)

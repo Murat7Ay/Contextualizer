@@ -21,7 +21,8 @@ namespace Contextualizer.Core
 
         public async Task Execute(ClipboardContent clipboardContent)
         {
-            if (CanHandle(clipboardContent))
+            bool canHandle = await CanHandleAsync(clipboardContent);
+            if (canHandle)
             {
                 if (HandlerConfig.RequiresConfirmation)
                 {
@@ -44,7 +45,7 @@ namespace Contextualizer.Core
             }
         }
 
-        protected abstract bool CanHandle(ClipboardContent clipboardContent);
+        protected abstract Task<bool> CanHandleAsync(ClipboardContent clipboardContent);
 
         protected abstract Task<Dictionary<string, string>> CreateContextAsync(ClipboardContent clipboardContent);
 

@@ -1,4 +1,3 @@
-using Contextualizer.Core;
 using Contextualizer.PluginContracts;
 using System.Text.Json;
 
@@ -8,27 +7,27 @@ namespace Contextualizer.Plugins
     {
         public string Name => "jsonvalidator";
 
-        public bool Validate(ClipboardContent clipboardContent)
+        public Task<bool> Validate(ClipboardContent clipboardContent)
         {
             if (string.IsNullOrEmpty(clipboardContent.Text))
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             var input = clipboardContent.Text.Trim();
 
             if (!(input.StartsWith("{") && input.EndsWith("}")) &&
                 !(input.StartsWith("[") && input.EndsWith("]")))
-                return false;
+                return Task.FromResult(false);
 
             try
             {
                 var jsonDocument = JsonDocument.Parse(clipboardContent.Text);
-                return true;
+                return Task.FromResult(true);
             }
             catch (JsonException)
             {
-                return false;
+                return Task.FromResult(false);
             }
         }
     }

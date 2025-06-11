@@ -19,7 +19,7 @@ namespace Contextualizer.Core
             
         }
 
-        protected override bool CanHandle(ClipboardContent clipboardContent)
+        protected override async Task<bool> CanHandleAsync(ClipboardContent clipboardContent)
         {
             fileInfo = new Dictionary<string, string>();
 
@@ -42,9 +42,9 @@ namespace Contextualizer.Core
             return true;
         }
 
-        bool IHandler.CanHandle(ClipboardContent clipboardContent)
+        async Task<bool> IHandler.CanHandle(ClipboardContent clipboardContent)
         {
-            return CanHandle(clipboardContent);
+            return await CanHandleAsync(clipboardContent);
 
         }
 

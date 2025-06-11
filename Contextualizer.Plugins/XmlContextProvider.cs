@@ -1,5 +1,4 @@
-﻿using Contextualizer.Core;
-using Contextualizer.PluginContracts;
+﻿using Contextualizer.PluginContracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +11,11 @@ namespace Contextualizer.Plugins
     {
         public string Name => "xmlvalidator";
 
-        public Dictionary<string, string> CreateContext(ClipboardContent clipboardContent)
+        public Task<Dictionary<string, string>> CreateContext(ClipboardContent clipboardContent)
         {
             var dic = new Dictionary<string, string>();
             dic.Add(ContextKey._input, clipboardContent.Text);
-            return dic;
+            return Task.FromResult(dic);
         }
     }
 }

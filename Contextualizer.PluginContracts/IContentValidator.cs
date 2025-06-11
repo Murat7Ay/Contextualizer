@@ -4,6 +4,6 @@ namespace Contextualizer.PluginContracts
     public interface IContentValidator
     {
         string Name { get; }
-        bool Validate(ClipboardContent clipboardContent);
+        Task<bool> Validate(ClipboardContent clipboardContent);
     }
 } 
