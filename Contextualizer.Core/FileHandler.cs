@@ -16,18 +16,20 @@ namespace Contextualizer.Core
 
         public FileHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
-            fileInfo = new Dictionary<string, string>();
+            
         }
 
         protected override bool CanHandle(ClipboardContent clipboardContent)
         {
+            fileInfo = new Dictionary<string, string>();
+
             if (!clipboardContent.IsFile || !clipboardContent.Files.Any())
                 return false;
 
             for (int i = 0; i < clipboardContent.Files.Length; i++)
             {
                 var fileProperties = GetFullFileInfoDictionary(clipboardContent.Files[i], i);
-                fileInfo.TryGetValue(FileInfoKeys.Extension + i, out var extension);
+                fileProperties.TryGetValue(FileInfoKeys.Extension + i, out var extension);
 
                 if (fileInfo.ContainsKey(FileInfoKeys.NotFound) || string.IsNullOrWhiteSpace(extension) || !base.HandlerConfig.FileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                 {
@@ -36,6 +38,7 @@ namespace Contextualizer.Core
 
                 fileInfo = fileInfo.Concat(fileProperties).ToDictionary(kvp=> kvp.Key, kvp => kvp.Value);
             }
+            fileInfo.Add(ContextKey._count, clipboardContent.Files.Length.ToString());
             return true;
         }
 
