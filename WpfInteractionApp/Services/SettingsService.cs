@@ -26,6 +26,7 @@ namespace WpfInteractionApp.Services
 
         public string HandlersFilePath => _settings.HandlersFilePath;
         public string PluginsDirectory => _settings.PluginsDirectory;
+        public string MarketplaceDirectory => _settings.MarketplaceDirectory;
         public int ClipboardWaitTimeout => _settings.ClipboardWaitTimeout;
         public int WindowActivationDelay => _settings.WindowActivationDelay;
         public int ClipboardClearDelay => _settings.ClipboardClearDelay;

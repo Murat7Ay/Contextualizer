@@ -43,6 +43,16 @@ namespace WpfInteractionApp
             }
         }
 
+        public string MarketplaceDirectory
+        {
+            get => _settings.MarketplaceDirectory;
+            set
+            {
+                _settings.MarketplaceDirectory = value;
+                OnPropertyChanged(nameof(MarketplaceDirectory));
+            }
+        }
+
         public bool IsCtrlChecked
         {
             get => _isCtrlChecked;
@@ -196,6 +206,19 @@ namespace WpfInteractionApp
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 PluginsDirectory = dialog.SelectedPath;
+            }
+        }
+
+        private void BrowseMarketplaceDir_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                SelectedPath = MarketplaceDirectory
+            };
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                MarketplaceDirectory = dialog.SelectedPath;
             }
         }
 

@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using WpfInteractionApp.Services;
+using Contextualizer.Core.Services;
 
 namespace WpfInteractionApp
 {
@@ -20,7 +21,6 @@ namespace WpfInteractionApp
         public MainWindow()
         {
             InitializeComponent();
-
             ThemeManager.Instance.ThemeChanged += OnThemeChanged;
             LogListBox.ItemsSource = _logs;
         }
@@ -191,6 +191,12 @@ namespace WpfInteractionApp
                 MessageBox.Show("Settings saved. Please restart the application for changes to take effect.",
                     "Settings", MessageBoxButton.OK, MessageBoxImage.Information);
             }
+        }
+
+        private void OpenHandlerMarketplace_Click(object sender, RoutedEventArgs e)
+        {
+            var marketplaceWindow = new HandlerMarketplaceWindow();
+            marketplaceWindow.Show();
         }
 
         protected override void OnClosed(EventArgs e)

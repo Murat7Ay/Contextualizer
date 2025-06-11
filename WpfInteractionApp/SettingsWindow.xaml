@@ -61,6 +61,15 @@
                                     Style="{DynamicResource Carbon.Button.Secondary}"/>
                             <TextBox x:Name="PluginsDirTextBox" Text="{Binding PluginsDirectory}"/>
                         </DockPanel>
+                        <DockPanel Margin="0,5">
+                            <Label Content="Marketplace Directory:" Width="150"/>
+                            <Button Content="Browse..." 
+                                    DockPanel.Dock="Right" 
+                                    Margin="5,0,0,0" 
+                                    Click="BrowseMarketplaceDir_Click"
+                                    Style="{DynamicResource Carbon.Button.Secondary}"/>
+                            <TextBox x:Name="MarketplaceDirTextBox" Text="{Binding MarketplaceDirectory}"/>
+                        </DockPanel>
                     </StackPanel>
                 </GroupBox>
 
