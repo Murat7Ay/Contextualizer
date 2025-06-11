@@ -8,20 +8,12 @@ namespace WpfInteractionApp.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool isInstalled)
-            {
-                return isInstalled ? "Yüklü" : "Yüklü Değil";
-            }
-            return "Yüklü Değil";
+            return (bool)value ? "Installed" : "Not Installed";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is string str)
-            {
-                return str == "Yüklü";
-            }
-            return false;
+            throw new NotImplementedException();
         }
     }
 } 
