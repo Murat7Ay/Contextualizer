@@ -1,5 +1,4 @@
-﻿using Contextualizer.Core;
-using Contextualizer.PluginContracts;
+﻿using Contextualizer.PluginContracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,28 +11,28 @@ namespace Contextualizer.Plugins
     {
         public string Name => "xmlvalidator";
 
-        public bool Validate(ClipboardContent clipboardContent)
+        public Task<bool> Validate(ClipboardContent clipboardContent)
         {
             if (string.IsNullOrEmpty(clipboardContent.Text))
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             var input = clipboardContent.Text.Trim();
 
             if (!input.StartsWith("<"))
-                return false;
+                return Task.FromResult(false);
 
             //validate xml string
             try
             {
                 var doc = new System.Xml.XmlDocument();
                 doc.LoadXml(clipboardContent.Text);
-                return true;
+                return Task.FromResult(true);
             }
             catch (System.Xml.XmlException)
             {
-                return false;
+                return Task.FromResult(false);
             }
         }
     }

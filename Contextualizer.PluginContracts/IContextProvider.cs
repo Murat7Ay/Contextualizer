@@ -5,6 +5,6 @@ namespace Contextualizer.PluginContracts
     public interface IContextProvider
     {
         string Name { get; }
-        Dictionary<string, string> CreateContext(ClipboardContent clipboardContent);
+        Task<Dictionary<string, string>> CreateContext(ClipboardContent clipboardContent);
     }
 } 

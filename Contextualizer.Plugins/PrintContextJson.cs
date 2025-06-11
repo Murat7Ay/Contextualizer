@@ -7,9 +7,10 @@ namespace Contextualizer.Plugins
         private IPluginServiceProvider pluginServiceProvider;
         public string Name => "print_context_json";
 
-        public void Action(ConfigAction action, ContextWrapper context)
+        public Task Action(ConfigAction action, ContextWrapper context)
         {
             pluginServiceProvider.GetService<IUserInteractionService>().ShowNotification(context.ToString());
+            return Task.CompletedTask;
         }
 
         public void Initialize(IPluginServiceProvider serviceProvider)

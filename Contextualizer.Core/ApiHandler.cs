@@ -43,7 +43,7 @@ namespace Contextualizer.Core
             }
         }
 
-        protected override bool CanHandle(ClipboardContent clipboardContent)
+        protected override async Task<bool> CanHandleAsync(ClipboardContent clipboardContent)
         {
             if (!clipboardContent.IsText || string.IsNullOrWhiteSpace(clipboardContent.Text))
                 return false;
@@ -166,9 +166,9 @@ namespace Contextualizer.Core
             return base.HandlerConfig.Actions;
         }
 
-        bool IHandler.CanHandle(ClipboardContent clipboardContent)
+        async Task<bool> IHandler.CanHandle(ClipboardContent clipboardContent)
         {
-            return CanHandle(clipboardContent);
+            return await CanHandleAsync(clipboardContent);
         }
     }
 }

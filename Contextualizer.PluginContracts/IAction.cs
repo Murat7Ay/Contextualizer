@@ -11,6 +11,6 @@ namespace Contextualizer.PluginContracts
     {
         string Name { get; }
         void Initialize(IPluginServiceProvider serviceProvider);
-        void Action(ConfigAction action, ContextWrapper context);
+        Task Action(ConfigAction action, ContextWrapper context);
     }
 }

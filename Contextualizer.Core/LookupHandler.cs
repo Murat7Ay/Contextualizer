@@ -33,7 +33,7 @@ namespace Contextualizer.Core
 
                     for (int i = 0; i < parts.Length; i++)
                     {
-                        parts[i] = parts[i].Replace("{{NEWLINE}}", Environment.NewLine); 
+                        parts[i] = parts[i].Replace("{{NEWLINE}}", Environment.NewLine);
                     }
 
                     var values = HandlerConfig.ValueNames.Zip(parts, (name, value) => new { name, value })
@@ -53,14 +53,14 @@ namespace Contextualizer.Core
             return data;
         }
 
-        protected override bool CanHandle(ClipboardContent clipboardContent)
+        protected override async Task<bool> CanHandleAsync(ClipboardContent clipboardContent)
         {
             return data.ContainsKey(clipboardContent.Text);
         }
 
-        bool IHandler.CanHandle(ClipboardContent clipboardContent)
+        async Task<bool> IHandler.CanHandle(ClipboardContent clipboardContent)
         {
-            return CanHandle(clipboardContent);
+            return await CanHandleAsync(clipboardContent);
         }
         public HandlerConfig HandlerConfig => base.HandlerConfig;
 

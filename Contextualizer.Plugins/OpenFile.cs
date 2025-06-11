@@ -13,10 +13,11 @@ namespace Contextualizer.Plugins
         private IPluginServiceProvider pluginServiceProvider;
         public string Name => "open_file";
 
-        public void Action(ConfigAction action, ContextWrapper context)
+        public Task Action(ConfigAction action, ContextWrapper context)
         {
             pluginServiceProvider.GetService<IUserInteractionService>().Log(LogType.Info, context[FileInfoKeys.LastAccessUtc]);
             Process.Start(context[FileInfoKeys.FullPath]);
+            return Task.CompletedTask;
         }
 
         public void Initialize(IPluginServiceProvider serviceProvider)

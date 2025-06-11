@@ -13,7 +13,7 @@ namespace Contextualizer.Core
         public ManualHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
         }
-        protected override bool CanHandle(ClipboardContent clipboardContent)
+        protected override async Task<bool> CanHandleAsync(ClipboardContent clipboardContent)
         {
             return true;
         }
@@ -29,7 +29,7 @@ namespace Contextualizer.Core
             return base.HandlerConfig.Actions;
         }
 
-        bool IHandler.CanHandle(ClipboardContent clipboardContent)
+        async Task<bool> IHandler.CanHandle(ClipboardContent clipboardContent)
         {
             return true;
         }

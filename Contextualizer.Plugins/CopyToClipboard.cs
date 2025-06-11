@@ -13,14 +13,15 @@ namespace Contextualizer.Plugins
 
         public string Name => "copytoclipboard";
 
-        public void Action(ConfigAction action, ContextWrapper context)
+        public Task Action(ConfigAction action, ContextWrapper context)
         {
             string value = context[action.Key].ToString();
 
             serviceProvider.GetService<IClipboardService>().SetText(value);
 
-            serviceProvider.GetService<IUserInteractionService>().ShowNotification($"{action.Key.ToUpper()} : {value} Clipboard kopyalandı. ", LogType.Info, "Kurum Bilgisi", 5, null);
+            serviceProvider.GetService<IUserInteractionService>().ShowNotification($"{action.Key.ToUpper()} : {value} Clipboard kopyalandı. ", LogType.Info, "Clipboard", 5, null);
 
+            return Task.CompletedTask;
         }
 
         public void Initialize(IPluginServiceProvider serviceProvider)
