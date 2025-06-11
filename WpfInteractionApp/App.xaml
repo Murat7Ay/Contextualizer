@@ -1,8 +1,8 @@
 ﻿<Application x:Class="WpfInteractionApp.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:WpfInteractionApp.Converters"
-             xmlns:local="clr-namespace:WpfInteractionApp">
+             xmlns:local="clr-namespace:WpfInteractionApp"
+             xmlns:converters="clr-namespace:WpfInteractionApp.Converters">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -14,6 +14,8 @@
 
             <!-- Converters -->
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+            <converters:ArrayToStringConverter x:Key="ArrayToStringConverter"/>
+            <converters:BoolToInstalledConverter x:Key="BoolToInstalledConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

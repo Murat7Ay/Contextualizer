@@ -1,0 +1,55 @@
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace Contextualizer.PluginContracts.Models
+{
+    public class HandlerPackage
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("version")]
+        public string Version { get; set; }
+
+        [JsonPropertyName("author")]
+        public string Author { get; set; }
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+
+        [JsonPropertyName("tags")]
+        public string[] Tags { get; set; }
+
+        [JsonPropertyName("dependencies")]
+        public string[] Dependencies { get; set; }
+
+        [JsonPropertyName("handlerJson")]
+        public JsonElement HandlerJson { get; set; }
+
+        [JsonPropertyName("downloadCount")]
+        public int DownloadCount { get; set; }
+
+        [JsonPropertyName("lastUpdated")]
+        public DateTime LastUpdated { get; set; }
+
+        [JsonPropertyName("source")]
+        public string Source { get; set; }
+
+        [JsonPropertyName("isInstalled")]
+        public bool IsInstalled { get; set; }
+
+        [JsonPropertyName("requiredPlugins")]
+        public string[] RequiredPlugins { get; set; }
+
+        [JsonPropertyName("metadata")]
+        public Dictionary<string, string> Metadata { get; set; }
+
+        [JsonPropertyName("hasUpdate")]
+        public bool HasUpdate { get; set; }
+    }
+} 

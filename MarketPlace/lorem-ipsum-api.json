@@ -1,0 +1,46 @@
+{
+  "id": "lorem-ipsum-api",
+  "name": "Lorem Ipsum API",
+  "version": "1.0.0",
+  "author": "Contextualizer Team",
+  "description": "Lorem Ipsum metinleri oluşturmak için API handler'ı",
+  "tags": ["api", "text", "lorem-ipsum"],
+  "dependencies": [],
+  "handlerJson": {
+    "name": "Lorem Ipsum API",
+    "title": "Lorem Ipsum Generator",
+    "type": "Api",
+    "screen_id": "jsonformatter",
+    "description": "Lorem Ipsum metinleri oluşturur",
+    "requires_confirmation": false,
+    "regex": "^\\d+$",
+    "groups": ["paragraphs"],
+    "url": "https://baconipsum.com/api/?type=meat-and-filler&paras=$(paragraphs)",
+    "method": "GET",
+    "headers": {
+      "Accept": "application/json",
+      "User-Agent": "Contextualizer"
+    },
+    "output_format": "Lorem Ipsum Metni:\n\n$(0)\n\n$(1)\n\n$(2)",
+    "actions": [
+      {
+        "name": "copytoclipboard",
+        "key": "_self"
+      },
+      {
+        "name": "simple_print_key",
+        "key": "RawResponse",
+        "message": "Lorem Ipsum metni kopyalandı"
+      }
+    ]
+  },
+  "downloadCount": 0,
+  "lastUpdated": "2024-03-20T10:00:00Z",
+  "source": "marketplace",
+  "isInstalled": false,
+  "requiredPlugins": [],
+  "metadata": {
+    "category": "Text Generation",
+    "website": "https://baconipsum.com"
+  }
+} 
