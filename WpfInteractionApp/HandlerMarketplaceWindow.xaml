@@ -184,6 +184,13 @@
                     <GridViewColumn Header="Name" Width="200" DisplayMemberBinding="{Binding Name}"/>
                     <GridViewColumn Header="Version" Width="80" DisplayMemberBinding="{Binding Version}"/>
                     <GridViewColumn Header="Author" Width="120" DisplayMemberBinding="{Binding Author}"/>
+                    <GridViewColumn Header="Dependencies" Width="150">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Dependencies, Converter={StaticResource ArrayToStringConverter}}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                     <GridViewColumn Header="Description" Width="300" DisplayMemberBinding="{Binding Description}"/>
                     <GridViewColumn Header="Tags" Width="150">
                         <GridViewColumn.CellTemplate>

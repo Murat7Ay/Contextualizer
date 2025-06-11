@@ -38,6 +38,7 @@ namespace WpfInteractionApp.Services
         public async Task<IEnumerable<HandlerPackage>> ListAvailableHandlersAsync(string searchTerm = null, string[] tags = null)
         {
             var handlers = new List<HandlerPackage>();
+            var installedHandlers = await GetInstalledHandlersAsync();
             var files = Directory.GetFiles(_marketplacePath, "*.json")
                                .Where(f => !f.Contains("installed"));
 
@@ -59,7 +60,27 @@ namespace WpfInteractionApp.Services
                         continue;
 
                     // Handler'ın yüklü olup olmadığını kontrol et
-                    package.IsInstalled = File.Exists(Path.Combine(_installedHandlersPath, $"{package.Id}.json"));
+                    var installedHandler = installedHandlers.FirstOrDefault(h => h.Id == package.Id);
+                    package.IsInstalled = installedHandler != null;
+
+                    // Güncelleme kontrolü
+                    if (package.IsInstalled && installedHandler != null)
+                    {
+                        try
+                        {
+                            var installedVersion = Version.Parse(installedHandler.Version);
+                            var marketplaceVersion = Version.Parse(package.Version);
+                            package.HasUpdate = marketplaceVersion > installedVersion;
+                        }
+                        catch
+                        {
+                            package.HasUpdate = false;
+                        }
+                    }
+                    else
+                    {
+                        package.HasUpdate = false;
+                    }
 
                     // Action'ları dependency olarak ekle
                     if (package.HandlerJson.TryGetProperty("actions", out var actions))
@@ -67,7 +88,7 @@ namespace WpfInteractionApp.Services
                         var actionDependencies = new List<string>();
                         foreach (var action in actions.EnumerateArray())
                         {
-                            if (action.TryGetProperty("type", out var type))
+                            if (action.TryGetProperty("name", out var type))
                             {
                                 actionDependencies.Add(type.GetString());
                             }
@@ -127,14 +148,38 @@ namespace WpfInteractionApp.Services
 
         public async Task<bool> UpdateHandlerAsync(string handlerId)
         {
-            var package = await GetHandlerDetailsAsync(handlerId);
-            if (package == null) return false;
+            var marketplacePackage = await GetHandlerDetailsAsync(handlerId);
+            if (marketplacePackage == null) return false;
 
-            // Önce eski handler'ı kaldır
-            await RemoveHandlerAsync(handlerId);
-            
-            // Yeni versiyonu kur
-            return await InstallHandlerAsync(handlerId);
+            var installedPath = Path.Combine(_installedHandlersPath, $"{handlerId}.json");
+            if (!File.Exists(installedPath)) return false;
+
+            var installedJson = await File.ReadAllTextAsync(installedPath);
+            var installedPackage = JsonSerializer.Deserialize<HandlerPackage>(installedJson, _jsonOptions);
+            if (installedPackage == null) return false;
+
+            try
+            {
+                var installedVersion = Version.Parse(installedPackage.Version);
+                var marketplaceVersion = Version.Parse(marketplacePackage.Version);
+
+                if (marketplaceVersion <= installedVersion)
+                {
+                    Console.WriteLine($"Handler {handlerId} is already up to date. Installed: {installedVersion}, Marketplace: {marketplaceVersion}");
+                    return false;
+                }
+
+                // Önce eski handler'ı kaldır
+                await RemoveHandlerAsync(handlerId);
+                
+                // Yeni versiyonu kur
+                return await InstallHandlerAsync(handlerId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating handler {handlerId}: {ex.Message}");
+                return false;
+            }
         }
 
         public async Task<bool> RemoveHandlerAsync(string handlerId)
@@ -238,6 +283,8 @@ namespace WpfInteractionApp.Services
             var handlers = new List<HandlerPackage>();
             var installedHandlers = await GetInstalledHandlersAsync();
 
+            Console.WriteLine($"Found {installedHandlers.Count()} installed handlers");
+
             foreach (var file in Directory.GetFiles(_marketplacePath, "*.json"))
             {
                 try
@@ -251,6 +298,8 @@ namespace WpfInteractionApp.Services
                         var installedHandler = installedHandlers.FirstOrDefault(h => h.Id == handler.Id);
                         handler.IsInstalled = installedHandler != null;
 
+                        Console.WriteLine($"Handler: {handler.Id}, Installed: {handler.IsInstalled}");
+
                         // Güncelleme kontrolü
                         if (handler.IsInstalled && installedHandler != null)
                         {
@@ -259,6 +308,11 @@ namespace WpfInteractionApp.Services
                                 var installedVersion = Version.Parse(installedHandler.Version);
                                 var marketplaceVersion = Version.Parse(handler.Version);
                                 handler.HasUpdate = marketplaceVersion > installedVersion;
+
+                                Console.WriteLine($"Version comparison for {handler.Id}:");
+                                Console.WriteLine($"  Installed version: {installedVersion}");
+                                Console.WriteLine($"  Marketplace version: {marketplaceVersion}");
+                                Console.WriteLine($"  Has update: {handler.HasUpdate}");
                             }
                             catch (Exception ex)
                             {
