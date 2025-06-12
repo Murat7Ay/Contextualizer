@@ -95,6 +95,21 @@ namespace WpfInteractionApp.Services
                 var newThemeDict = _themeResources[themeName];
                 Debug.WriteLine($"Adding new theme dictionary: {newThemeDict.Source}");
                 app.Resources.MergedDictionaries.Add(newThemeDict);
+
+                // Stil değişikliği için yeni yaklaşım
+                var stylesDict = app.Resources.MergedDictionaries
+                    .FirstOrDefault(d => d.Source?.OriginalString.Contains("CarbonStyles.xaml") == true);
+
+                if (stylesDict != null)
+                {
+                    // Stilleri yeniden yükle
+                    app.Resources.MergedDictionaries.Remove(stylesDict);
+                    var newStylesDict = new ResourceDictionary 
+                    { 
+                        Source = new Uri("/WpfInteractionApp;component/Themes/CarbonStyles.xaml", UriKind.Relative) 
+                    };
+                    app.Resources.MergedDictionaries.Add(newStylesDict);
+                }
                 
                 _currentTheme = themeName;
                 
