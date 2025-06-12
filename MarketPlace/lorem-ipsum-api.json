@@ -34,11 +34,6 @@
       }
     ]
   },
-  "downloadCount": 0,
-  "lastUpdated": "2024-03-20T10:00:00Z",
-  "source": "marketplace",
-  "isInstalled": false,
-  "requiredPlugins": [],
   "metadata": {
     "category": "Text Generation",
     "website": "https://baconipsum.com"

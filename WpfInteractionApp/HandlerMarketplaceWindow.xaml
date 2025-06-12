@@ -181,6 +181,13 @@
                   SelectionChanged="HandlersList_SelectionChanged">
             <ListView.View>
                 <GridView>
+                    <GridViewColumn Header="Status" Width="100">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding IsInstalled, Converter={StaticResource BoolToInstalledConverter}}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                     <GridViewColumn Header="Name" Width="200" DisplayMemberBinding="{Binding Name}"/>
                     <GridViewColumn Header="Version" Width="80" DisplayMemberBinding="{Binding Version}"/>
                     <GridViewColumn Header="Author" Width="120" DisplayMemberBinding="{Binding Author}"/>
@@ -196,13 +203,6 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Tags, Converter={StaticResource ArrayToStringConverter}}"/>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Status" Width="100">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding IsInstalled, Converter={StaticResource BoolToInstalledConverter}}"/>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
