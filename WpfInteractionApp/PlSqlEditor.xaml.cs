@@ -89,6 +89,7 @@ namespace WpfInteractionApp
                         <script src='https://local/mode-sql.js'></script>
                         <script src='https://local/theme-sqlserver.js'></script>
                         <script src='https://local/theme-monokai.js'></script>
+                        <script src='https://local/theme-tomorrow-night.js'></script>
                         <style>
                             body {{
                                 margin: 0;
@@ -110,7 +111,7 @@ namespace WpfInteractionApp
                         <div id='editor'></div>
                         <script>
                             var editor = ace.edit('editor');
-                            editor.setTheme('ace/theme/{(_currentTheme == "dark" ? "monokai" : _currentTheme == "dim" ? "monokai" : "sqlserver")}');
+                            editor.setTheme('ace/theme/{(_currentTheme == "dark" ? "monokai" : _currentTheme == "dim" ? "tomorrow-night" : "sqlserver")}');
                             editor.session.setMode('ace/mode/sql');
                             editor.setOptions({{
                                 fontSize: '14px',

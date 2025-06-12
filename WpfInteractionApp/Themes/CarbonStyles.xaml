@@ -2,6 +2,18 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
+    <!-- Additional Colors -->
+    <Color x:Key="Carbon.Color.Background.Active">#393939</Color>
+    <Color x:Key="Carbon.Color.Text.Helper">#8D8D8D</Color>
+    <Color x:Key="Carbon.Color.Interactive.Active">#393939</Color>
+    <Color x:Key="Carbon.Color.Interactive.Disabled">#393939</Color>
+
+    <!-- Additional Brushes -->
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Active" Color="{StaticResource Carbon.Color.Background.Active}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Text.Helper" Color="{StaticResource Carbon.Color.Text.Helper}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{StaticResource Carbon.Color.Interactive.Active}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{StaticResource Carbon.Color.Interactive.Disabled}"/>
+
     <!-- Base Text Styles -->
     <Style x:Key="Carbon.TextBlock.Base" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
