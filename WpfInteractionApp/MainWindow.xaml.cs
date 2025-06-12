@@ -171,7 +171,22 @@ namespace WpfInteractionApp
 
         private void ToggleTheme_Click(object sender, RoutedEventArgs e)
         {
-            ThemeManager.Instance.ToggleTheme();
+            ThemeManager.Instance.CycleTheme();
+        }
+
+        private void LightTheme_Click(object sender, RoutedEventArgs e)
+        {
+            ThemeManager.Instance.ApplyTheme("Light");
+        }
+
+        private void DarkTheme_Click(object sender, RoutedEventArgs e)
+        {
+            ThemeManager.Instance.ApplyTheme("Dark");
+        }
+
+        private void DimTheme_Click(object sender, RoutedEventArgs e)
+        {
+            ThemeManager.Instance.ApplyTheme("Dim");
         }
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)

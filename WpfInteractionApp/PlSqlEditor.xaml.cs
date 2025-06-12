@@ -27,7 +27,7 @@ namespace WpfInteractionApp
             if (_isWebViewInitialized)
             {
                 // JavaScript'e tema değişikliğini bildir
-                var script = $"setTheme('{(_currentTheme == "dark" ? "monokai" : "sqlserver")}')";
+                var script = $"setTheme('{(_currentTheme == "dark" ? "monokai" : _currentTheme == "dim" ? "monokai" : "sqlserver")}')";
                 WebView.CoreWebView2.ExecuteScriptAsync(script);
             }
         }
@@ -94,8 +94,8 @@ namespace WpfInteractionApp
                                 margin: 0;
                                 padding: 0;
                                 font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
-                                background-color: {(_currentTheme == "dark" ? "#161616" : "#f4f4f4")};
-                                color: {(_currentTheme == "dark" ? "#ffffff" : "#161616")};
+                                background-color: {(_currentTheme == "dark" ? "#161616" : _currentTheme == "dim" ? "#474747" : "#f4f4f4")};
+                                color: {(_currentTheme == "dark" ? "#ffffff" : _currentTheme == "dim" ? "#ffffff" : "#161616")};
                             }}
                             #editor {{
                                 position: absolute;
@@ -110,7 +110,7 @@ namespace WpfInteractionApp
                         <div id='editor'></div>
                         <script>
                             var editor = ace.edit('editor');
-                            editor.setTheme('ace/theme/{(_currentTheme == "dark" ? "monokai" : "sqlserver")}');
+                            editor.setTheme('ace/theme/{(_currentTheme == "dark" ? "monokai" : _currentTheme == "dim" ? "monokai" : "sqlserver")}');
                             editor.session.setMode('ace/mode/sql');
                             editor.setOptions({{
                                 fontSize: '14px',
