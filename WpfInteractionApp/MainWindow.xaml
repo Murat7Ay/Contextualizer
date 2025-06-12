@@ -10,7 +10,27 @@
                 <MenuItem Header="Exit" Click="ExitMenuItem_Click" Style="{DynamicResource Carbon.MenuItem}"/>
             </MenuItem>
             <MenuItem Header="Theme" Style="{DynamicResource Carbon.MenuItem}">
-                <MenuItem Header="Toggle Theme" Click="ToggleTheme_Click" Style="{DynamicResource Carbon.MenuItem}"/>
+                <MenuItem Header="Light" Click="LightTheme_Click" Style="{DynamicResource Carbon.MenuItem}">
+                    <MenuItem.Icon>
+                        <Path Data="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z" 
+                              Fill="{DynamicResource Carbon.Brush.Text.Primary}" 
+                              Width="16" Height="16"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Dark" Click="DarkTheme_Click" Style="{DynamicResource Carbon.MenuItem}">
+                    <MenuItem.Icon>
+                        <Path Data="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" 
+                              Fill="{DynamicResource Carbon.Brush.Text.Primary}" 
+                              Width="16" Height="16"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Dim" Click="DimTheme_Click" Style="{DynamicResource Carbon.MenuItem}">
+                    <MenuItem.Icon>
+                        <Path Data="M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zm-2 5.79V18h-3.52L12 20.48 9.52 18H6v-3.52L3.52 12 6 9.52V6h3.52L12 3.52 14.48 6H18v3.52L20.48 12 18 14.48z" 
+                              Fill="{DynamicResource Carbon.Brush.Text.Primary}" 
+                              Width="16" Height="16"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="Settings" Style="{DynamicResource Carbon.MenuItem}">
                 <MenuItem Header="Application Settings" Click="SettingsMenuItem_Click" Style="{DynamicResource Carbon.MenuItem}"/>

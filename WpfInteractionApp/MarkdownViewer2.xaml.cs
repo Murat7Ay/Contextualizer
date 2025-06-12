@@ -79,9 +79,9 @@ namespace WpfInteractionApp
                             body {{ 
                                 font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
                                 line-height: 1.5;
-                                color: {(_currentTheme == "dark" ? "#f4f4f4" : "#161616")};
+                                color: {(_currentTheme == "dark" ? "#f4f4f4" : _currentTheme == "dim" ? "#ffffff" : "#161616")};
                                 margin: 2rem;
-                                background-color: {(_currentTheme == "dark" ? "#161616" : "#f4f4f4")};
+                                background-color: {(_currentTheme == "dark" ? "#161616" : _currentTheme == "dim" ? "#474747" : "#f4f4f4")};
                                 max-width: 960px;
                                 margin: 2rem auto;
                                 padding: 0 2rem;
@@ -89,7 +89,7 @@ namespace WpfInteractionApp
                             
                             h1, h2, h3, h4, h5, h6 {{
                                 font-weight: 400;
-                                color: {(_currentTheme == "dark" ? "#f4f4f4" : "#161616")};
+                                color: {(_currentTheme == "dark" ? "#f4f4f4" : _currentTheme == "dim" ? "#ffffff" : "#161616")};
                                 margin-top: 2rem;
                                 margin-bottom: 1rem;
                                 line-height: 1.25;
@@ -108,10 +108,10 @@ namespace WpfInteractionApp
                             }}
                             
                             pre {{ 
-                                background-color: {(_currentTheme == "dark" ? "#262626" : "#ffffff")};
+                                background-color: {(_currentTheme == "dark" ? "#262626" : _currentTheme == "dim" ? "#5A5A5A" : "#ffffff")};
                                 padding: 1rem;
                                 border-radius: 4px;
-                                border: 1px solid {(_currentTheme == "dark" ? "#393939" : "#e0e0e0")};
+                                border: 1px solid {(_currentTheme == "dark" ? "#393939" : _currentTheme == "dim" ? "#8D8D8D" : "#e0e0e0")};
                                 overflow-x: auto;
                                 margin: 1rem 0;
                             }}
@@ -120,9 +120,9 @@ namespace WpfInteractionApp
                                 font-family: 'IBM Plex Mono', 'Consolas', monospace;
                                 font-size: 0.875rem;
                                 padding: 0.2rem 0.4rem;
-                                background-color: {(_currentTheme == "dark" ? "#262626" : "#f4f4f4")};
+                                background-color: {(_currentTheme == "dark" ? "#262626" : _currentTheme == "dim" ? "#5A5A5A" : "#f4f4f4")};
                                 border-radius: 2px;
-                                color: {(_currentTheme == "dark" ? "#f4f4f4" : "#161616")};
+                                color: {(_currentTheme == "dark" ? "#f4f4f4" : _currentTheme == "dim" ? "#ffffff" : "#161616")};
                             }}
                             
                             pre code {{
@@ -133,12 +133,12 @@ namespace WpfInteractionApp
                             }}
                             
                             blockquote {{
-                                border-left: 4px solid {(_currentTheme == "dark" ? "#78a9ff" : "#0f62fe")};
+                                border-left: 4px solid {(_currentTheme == "dark" ? "#78a9ff" : _currentTheme == "dim" ? "#A8A8A8" : "#0f62fe")};
                                 margin: 1.5rem 0;
                                 padding: 0.5rem 1rem;
-                                background-color: {(_currentTheme == "dark" ? "#262626" : "#ffffff")};
+                                background-color: {(_currentTheme == "dark" ? "#262626" : _currentTheme == "dim" ? "#5A5A5A" : "#ffffff")};
                                 border-radius: 0 4px 4px 0;
-                                color: {(_currentTheme == "dark" ? "#c6c6c6" : "#525252")};
+                                color: {(_currentTheme == "dark" ? "#c6c6c6" : _currentTheme == "dim" ? "#D0D0D0" : "#525252")};
                             }}
                             
                             ul, ol {{
@@ -151,7 +151,7 @@ namespace WpfInteractionApp
                             }}
                             
                             a {{
-                                color: {(_currentTheme == "dark" ? "#78a9ff" : "#0f62fe")};
+                                color: {(_currentTheme == "dark" ? "#78a9ff" : _currentTheme == "dim" ? "#A8A8A8" : "#0f62fe")};
                                 text-decoration: none;
                             }}
                             
@@ -161,7 +161,7 @@ namespace WpfInteractionApp
                             
                             hr {{
                                 border: none;
-                                border-top: 1px solid {(_currentTheme == "dark" ? "#393939" : "#e0e0e0")};
+                                border-top: 1px solid {(_currentTheme == "dark" ? "#393939" : _currentTheme == "dim" ? "#8D8D8D" : "#e0e0e0")};
                                 margin: 2rem 0;
                             }}
                             
@@ -169,24 +169,24 @@ namespace WpfInteractionApp
                                 border-collapse: collapse;
                                 width: 100%;
                                 margin: 1.5rem 0;
-                                background-color: {(_currentTheme == "dark" ? "#262626" : "#ffffff")};
-                                border: 1px solid {(_currentTheme == "dark" ? "#393939" : "#e0e0e0")};
+                                background-color: {(_currentTheme == "dark" ? "#262626" : _currentTheme == "dim" ? "#5A5A5A" : "#ffffff")};
+                                border: 1px solid {(_currentTheme == "dark" ? "#393939" : _currentTheme == "dim" ? "#8D8D8D" : "#e0e0e0")};
                             }}
                             
                             th, td {{
-                                border: 1px solid {(_currentTheme == "dark" ? "#393939" : "#e0e0e0")};
+                                border: 1px solid {(_currentTheme == "dark" ? "#393939" : _currentTheme == "dim" ? "#8D8D8D" : "#e0e0e0")};
                                 padding: 0.875rem 1rem;
                                 text-align: left;
                             }}
                             
                             th {{
-                                background-color: {(_currentTheme == "dark" ? "#393939" : "#f4f4f4")};
+                                background-color: {(_currentTheme == "dark" ? "#393939" : _currentTheme == "dim" ? "#8D8D8D" : "#f4f4f4")};
                                 font-weight: 600;
-                                color: {(_currentTheme == "dark" ? "#f4f4f4" : "#161616")};
+                                color: {(_currentTheme == "dark" ? "#f4f4f4" : _currentTheme == "dim" ? "#ffffff" : "#161616")};
                             }}
                             
                             tr:nth-child(even) {{
-                                background-color: {(_currentTheme == "dark" ? "#2c2c2c" : "#fafafa")};
+                                background-color: {(_currentTheme == "dark" ? "#2c2c2c" : _currentTheme == "dim" ? "#8D8D8D" : "#fafafa")};
                             }}
                             
                             img {{
@@ -217,8 +217,8 @@ namespace WpfInteractionApp
                                 word-break: normal;
                                 tab-size: 4;
                                 hyphens: none;
-                                background: {(_currentTheme == "dark" ? "#262626" : "#ffffff")};
-                                color: {(_currentTheme == "dark" ? "#f4f4f4" : "#161616")};
+                                background: {(_currentTheme == "dark" ? "#262626" : _currentTheme == "dim" ? "#5A5A5A" : "#ffffff")};
+                                color: {(_currentTheme == "dark" ? "#f4f4f4" : _currentTheme == "dim" ? "#ffffff" : "#161616")};
                             }}
                         </style>
                     </head>
