@@ -11,17 +11,17 @@ using System.Threading.Tasks;
 
 namespace WpfInteractionApp.Services
 {
-    public class FileHandlerMarketplace : IHandlerMarketplace
+    public class FileHandlerExchange : IHandlerExchange
     {
-        private readonly string _marketplacePath;
+        private readonly string _exchangePath;
         private readonly string _handlersFilePath;
         private readonly string _installedHandlersPath;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        public FileHandlerMarketplace()
+        public FileHandlerExchange()
         {
             ISettingsService settingsService = ServiceLocator.Get<SettingsService>();
-            _marketplacePath = settingsService.MarketplaceDirectory;
+            _exchangePath = settingsService.ExchangeDirectory;
             _handlersFilePath = settingsService.HandlersFilePath;
             _installedHandlersPath = Path.Combine(Path.GetDirectoryName(_handlersFilePath), "installed");
             _jsonOptions = new JsonSerializerOptions
@@ -31,7 +31,7 @@ namespace WpfInteractionApp.Services
             };
 
             // Gerekli dizinleri oluştur
-            Directory.CreateDirectory(_marketplacePath);
+            Directory.CreateDirectory(_exchangePath);
             Directory.CreateDirectory(_installedHandlersPath);
         }
 
@@ -39,7 +39,7 @@ namespace WpfInteractionApp.Services
         {
             var handlers = new List<HandlerPackage>();
             var installedHandlers = await GetInstalledHandlersAsync();
-            var files = Directory.GetFiles(_marketplacePath, "*.json")
+            var files = Directory.GetFiles(_exchangePath, "*.json")
                                .Where(f => !f.Contains("installed"));
 
             foreach (var file in files)
@@ -69,8 +69,8 @@ namespace WpfInteractionApp.Services
                         try
                         {
                             var installedVersion = Version.Parse(installedHandler.Version);
-                            var marketplaceVersion = Version.Parse(package.Version);
-                            package.HasUpdate = marketplaceVersion > installedVersion;
+                            var exchangeVersion = Version.Parse(package.Version);
+                            package.HasUpdate = exchangeVersion > installedVersion;
                         }
                         catch
                         {
@@ -110,7 +110,7 @@ namespace WpfInteractionApp.Services
 
         public async Task<HandlerPackage> GetHandlerDetailsAsync(string handlerId)
         {
-            var filePath = Path.Combine(_marketplacePath, $"{handlerId}.json");
+            var filePath = Path.Combine(_exchangePath, $"{handlerId}.json");
             if (!File.Exists(filePath))
                 return null;
 
@@ -148,8 +148,8 @@ namespace WpfInteractionApp.Services
 
         public async Task<bool> UpdateHandlerAsync(string handlerId)
         {
-            var marketplacePackage = await GetHandlerDetailsAsync(handlerId);
-            if (marketplacePackage == null) return false;
+            var exchangePackage = await GetHandlerDetailsAsync(handlerId);
+            if (exchangePackage == null) return false;
 
             var installedPath = Path.Combine(_installedHandlersPath, $"{handlerId}.json");
             if (!File.Exists(installedPath)) return false;
@@ -161,11 +161,10 @@ namespace WpfInteractionApp.Services
             try
             {
                 var installedVersion = Version.Parse(installedPackage.Version);
-                var marketplaceVersion = Version.Parse(marketplacePackage.Version);
+                var exchangeVersion = Version.Parse(exchangePackage.Version);
 
-                if (marketplaceVersion <= installedVersion)
+                if (exchangeVersion <= installedVersion)
                 {
-                    Console.WriteLine($"Handler {handlerId} is already up to date. Installed: {installedVersion}, Marketplace: {marketplaceVersion}");
                     return false;
                 }
 
@@ -216,7 +215,7 @@ namespace WpfInteractionApp.Services
             if (!await ValidateHandlerAsync(package))
                 return false;
 
-            var filePath = Path.Combine(_marketplacePath, $"{package.Id}.json");
+            var filePath = Path.Combine(_exchangePath, $"{package.Id}.json");
             await File.WriteAllTextAsync(filePath, 
                 JsonSerializer.Serialize(package, _jsonOptions));
             return true;
@@ -285,7 +284,7 @@ namespace WpfInteractionApp.Services
 
             Console.WriteLine($"Found {installedHandlers.Count()} installed handlers");
 
-            foreach (var file in Directory.GetFiles(_marketplacePath, "*.json"))
+            foreach (var file in Directory.GetFiles(_exchangePath, "*.json"))
             {
                 try
                 {
@@ -306,13 +305,8 @@ namespace WpfInteractionApp.Services
                             try
                             {
                                 var installedVersion = Version.Parse(installedHandler.Version);
-                                var marketplaceVersion = Version.Parse(handler.Version);
-                                handler.HasUpdate = marketplaceVersion > installedVersion;
-
-                                Console.WriteLine($"Version comparison for {handler.Id}:");
-                                Console.WriteLine($"  Installed version: {installedVersion}");
-                                Console.WriteLine($"  Marketplace version: {marketplaceVersion}");
-                                Console.WriteLine($"  Has update: {handler.HasUpdate}");
+                                var exchangeVersion = Version.Parse(handler.Version);
+                                handler.HasUpdate = exchangeVersion > installedVersion;
                             }
                             catch (Exception ex)
                             {

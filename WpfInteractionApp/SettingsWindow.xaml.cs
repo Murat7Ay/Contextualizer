@@ -43,13 +43,13 @@ namespace WpfInteractionApp
             }
         }
 
-        public string MarketplaceDirectory
+        public string ExchangeDirectory
         {
-            get => _settings.MarketplaceDirectory;
+            get => _settings.ExchangeDirectory;
             set
             {
-                _settings.MarketplaceDirectory = value;
-                OnPropertyChanged(nameof(MarketplaceDirectory));
+                _settings.ExchangeDirectory = value;
+                OnPropertyChanged(nameof(ExchangeDirectory));
             }
         }
 
@@ -209,16 +209,16 @@ namespace WpfInteractionApp
             }
         }
 
-        private void BrowseMarketplaceDir_Click(object sender, RoutedEventArgs e)
+        private void BrowseExchangeDir_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog
             {
-                SelectedPath = MarketplaceDirectory
+                SelectedPath = ExchangeDirectory
             };
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                MarketplaceDirectory = dialog.SelectedPath;
+                ExchangeDirectory = dialog.SelectedPath;
             }
         }
 

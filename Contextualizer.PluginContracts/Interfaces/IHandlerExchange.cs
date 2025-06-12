@@ -4,7 +4,7 @@ using Contextualizer.PluginContracts.Models;
 
 namespace Contextualizer.PluginContracts.Interfaces
 {
-    public interface IHandlerMarketplace
+    public interface IHandlerExchange
     {
         Task<IEnumerable<HandlerPackage>> ListAvailableHandlersAsync(string searchTerm = null, string[] tags = null);
         Task<HandlerPackage> GetHandlerDetailsAsync(string handlerId);

@@ -14,7 +14,7 @@
             </MenuItem>
             <MenuItem Header="Settings" Style="{DynamicResource Carbon.MenuItem}">
                 <MenuItem Header="Application Settings" Click="SettingsMenuItem_Click" Style="{DynamicResource Carbon.MenuItem}"/>
-                <MenuItem Header="Handler Marketplace" Click="OpenHandlerMarketplace_Click" Style="{DynamicResource Carbon.MenuItem}"/>
+                <MenuItem Header="Handler Exchange" Click="OpenHandlerExchange_Click" Style="{DynamicResource Carbon.MenuItem}"/>
             </MenuItem>
             <MenuItem Header="Manual Handlers" Name="ManualHandlersMenu" Style="{DynamicResource Carbon.MenuItem}"/>
         </Menu>
