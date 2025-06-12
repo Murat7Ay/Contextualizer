@@ -193,10 +193,10 @@ namespace WpfInteractionApp
             }
         }
 
-        private void OpenHandlerMarketplace_Click(object sender, RoutedEventArgs e)
+        private void OpenHandlerExchange_Click(object sender, RoutedEventArgs e)
         {
-            var marketplaceWindow = new HandlerMarketplaceWindow();
-            marketplaceWindow.Show();
+            var exchangeWindow = new HandlerExchangeWindow();
+            exchangeWindow.Show();
         }
 
         protected override void OnClosed(EventArgs e)

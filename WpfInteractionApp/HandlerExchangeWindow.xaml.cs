@@ -14,29 +14,29 @@ using Contextualizer.Core;
 
 namespace WpfInteractionApp
 {
-    public partial class HandlerMarketplaceWindow : Window
+    public partial class HandlerExchangeWindow : Window
     {
-        private readonly IHandlerMarketplace _marketplace;
+        private readonly IHandlerExchange _handlerExchange;
         private readonly ISettingsService _settingsService;
         private ObservableCollection<HandlerPackage> _handlers;
         private ObservableCollection<string> _tags;
         private HandlerPackage _selectedHandler;
 
-        public HandlerMarketplaceWindow()
+        public HandlerExchangeWindow()
         {
             InitializeComponent();
             
-            _marketplace = new FileHandlerMarketplace();
+            _handlerExchange = new FileHandlerExchange();
             _handlers = new ObservableCollection<HandlerPackage>();
             _tags = new ObservableCollection<string>();
             
             HandlersList.ItemsSource = _handlers;
             TagFilter.ItemsSource = _tags;
             
-            Loaded += HandlerMarketplaceWindow_Loaded;
+            Loaded += HandlerExchangeWindow_Loaded;
         }
 
-        private async void HandlerMarketplaceWindow_Loaded(object sender, RoutedEventArgs e)
+        private async void HandlerExchangeWindow_Loaded(object sender, RoutedEventArgs e)
         {
             await RefreshHandlers();
         }
@@ -45,7 +45,7 @@ namespace WpfInteractionApp
         {
             try
             {
-                var handlers = await _marketplace.ListAvailableHandlersAsync();
+                var handlers = await _handlerExchange.ListAvailableHandlersAsync();
                 _handlers.Clear();
                 foreach (var handler in handlers)
                 {
@@ -138,7 +138,7 @@ namespace WpfInteractionApp
 
             try
             {
-                await _marketplace.InstallHandlerAsync(_selectedHandler.Id);
+                await _handlerExchange.InstallHandlerAsync(_selectedHandler.Id);
                 await RefreshHandlers();
                 MessageBox.Show("Handler installed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -154,7 +154,7 @@ namespace WpfInteractionApp
 
             try
             {
-                await _marketplace.UpdateHandlerAsync(_selectedHandler.Id);
+                await _handlerExchange.UpdateHandlerAsync(_selectedHandler.Id);
                 await RefreshHandlers();
                 MessageBox.Show("Handler updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -179,7 +179,7 @@ namespace WpfInteractionApp
             {
                 try
                 {
-                    await _marketplace.RemoveHandlerAsync(_selectedHandler.Id);
+                    await _handlerExchange.RemoveHandlerAsync(_selectedHandler.Id);
                     await RefreshHandlers();
                     MessageBox.Show("Handler removed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }

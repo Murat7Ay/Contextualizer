@@ -6,7 +6,7 @@ namespace Contextualizer.Core.Services
     {
         string HandlersFilePath { get; }
         string PluginsDirectory { get; }
-        string MarketplaceDirectory { get; }
+        string ExchangeDirectory { get; }
         int ClipboardWaitTimeout { get; }
         int WindowActivationDelay { get; }
         int ClipboardClearDelay { get; }

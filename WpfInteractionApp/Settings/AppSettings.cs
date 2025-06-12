@@ -11,8 +11,8 @@ namespace WpfInteractionApp.Settings
         [JsonPropertyName("plugins_directory")]
         public string PluginsDirectory { get; set; } = @"C:\Finder\Plugins";
 
-        [JsonPropertyName("marketplace_directory")]
-        public string MarketplaceDirectory { get; set; } = @"C:\Finder\Marketplace";
+        [JsonPropertyName("exchange_directory")]
+        public string ExchangeDirectory { get; set; } = @"C:\Finder\Exchange";
 
         [JsonPropertyName("keyboard_shortcut")]
         public KeyboardShortcut KeyboardShortcut { get; set; } = new KeyboardShortcut();
