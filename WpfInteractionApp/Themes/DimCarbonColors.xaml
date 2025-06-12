@@ -5,10 +5,12 @@
     <Color x:Key="Carbon.Color.Background.Primary">#474747</Color>
     <Color x:Key="Carbon.Color.Background.Secondary">#5A5A5A</Color>
     <Color x:Key="Carbon.Color.Background.Tertiary">#8D8D8D</Color>
+    <Color x:Key="Carbon.Color.Background.Active">#8D8D8D</Color>
     
     <Color x:Key="Carbon.Color.Text.Primary">#FFFFFF</Color>
     <Color x:Key="Carbon.Color.Text.Secondary">#D0D0D0</Color>
     <Color x:Key="Carbon.Color.Text.Disabled">#8D8D8D</Color>
+    <Color x:Key="Carbon.Color.Text.Helper">#8D8D8D</Color>
     
     <Color x:Key="Carbon.Color.Border.Primary">#8D8D8D</Color>
     <Color x:Key="Carbon.Color.Border.Secondary">#A8A8A8</Color>
@@ -16,15 +18,19 @@
     <Color x:Key="Carbon.Color.Interactive.Primary">#A8A8A8</Color>
     <Color x:Key="Carbon.Color.Interactive.Secondary">#8D8D8D</Color>
     <Color x:Key="Carbon.Color.Interactive.Hover">#A8A8A8</Color>
+    <Color x:Key="Carbon.Color.Interactive.Active">#8D8D8D</Color>
+    <Color x:Key="Carbon.Color.Interactive.Disabled">#8D8D8D</Color>
     
     <!-- Brushes -->
     <SolidColorBrush x:Key="Carbon.Brush.Background.Primary" Color="{StaticResource Carbon.Color.Background.Primary}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Background.Secondary" Color="{StaticResource Carbon.Color.Background.Secondary}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Background.Tertiary" Color="{StaticResource Carbon.Color.Background.Tertiary}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Active" Color="{StaticResource Carbon.Color.Background.Active}"/>
     
     <SolidColorBrush x:Key="Carbon.Brush.Text.Primary" Color="{StaticResource Carbon.Color.Text.Primary}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Text.Secondary" Color="{StaticResource Carbon.Color.Text.Secondary}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Text.Disabled" Color="{StaticResource Carbon.Color.Text.Disabled}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Text.Helper" Color="{StaticResource Carbon.Color.Text.Helper}"/>
     
     <SolidColorBrush x:Key="Carbon.Brush.Border.Primary" Color="{StaticResource Carbon.Color.Border.Primary}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Border.Secondary" Color="{StaticResource Carbon.Color.Border.Secondary}"/>
@@ -32,4 +38,6 @@
     <SolidColorBrush x:Key="Carbon.Brush.Interactive.Primary" Color="{StaticResource Carbon.Color.Interactive.Primary}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Interactive.Secondary" Color="{StaticResource Carbon.Color.Interactive.Secondary}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Interactive.Hover" Color="{StaticResource Carbon.Color.Interactive.Hover}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{StaticResource Carbon.Color.Interactive.Active}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{StaticResource Carbon.Color.Interactive.Disabled}"/>
 </ResourceDictionary> 
