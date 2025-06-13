@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Plugins
 {
+    /// <summary>
+    /// Provides functionality to validate whether clipboard content contains valid XML.
+    /// </summary>
+    /// <remarks>This class implements the <see cref="IContentValidator"/> interface to validate clipboard
+    /// content. It checks if the content is a well-formed XML string. The validation is performed
+    /// asynchronously.</remarks>
     public class XmlContentValidator : IContentValidator
     {
         public string Name => "xmlvalidator";

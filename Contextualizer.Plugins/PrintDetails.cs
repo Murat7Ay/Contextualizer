@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Plugins
 {
+    /// <summary>
+    /// Represents an action that displays the details of a given context using a notification service.
+    /// </summary>
+    /// <remarks>This action retrieves a user interaction service from the provided plugin service provider
+    /// and uses it to display key-value pairs from the specified context. If the context is empty or null, a warning
+    /// notification is displayed instead.</remarks>
     public class PrintDetails : IAction
     {
         private IPluginServiceProvider _pluginServiceProvider;

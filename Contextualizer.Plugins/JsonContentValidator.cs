@@ -3,6 +3,12 @@ using System.Text.Json;
 
 namespace Contextualizer.Plugins
 {
+    /// <summary>
+    /// Provides functionality to validate whether clipboard content contains valid JSON.
+    /// </summary>
+    /// <remarks>This validator checks if the text content of a <see cref="ClipboardContent"/> instance is a
+    /// syntactically valid JSON object or array. The validation is performed by attempting to parse the text as JSON.
+    /// If the text is null, empty, or not valid JSON, the validation fails.</remarks>
     public class JsonContentValidator : IContentValidator
     {
         public string Name => "jsonvalidator";

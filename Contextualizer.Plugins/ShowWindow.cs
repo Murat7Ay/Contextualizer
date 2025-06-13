@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Plugins
 {
+    /// <summary>
+    /// Represents an action that displays a window with specified configuration and context.
+    /// </summary>
+    /// <remarks>This class implements the <see cref="IAction"/> interface and provides functionality to
+    /// display a window using the provided context and configuration. The window's screen ID and title are determined
+    /// by the handler configuration in the context.</remarks>
     public class ShowWindow : IAction
     {
         private IPluginServiceProvider pluginServiceProvider;
