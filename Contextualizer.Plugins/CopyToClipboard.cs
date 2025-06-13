@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Plugins
 {
+    /// <summary>
+    /// Represents an action that copies a specified value to the clipboard and displays a notification.
+    /// </summary>
+    /// <remarks>This action retrieves a value from the provided context using the specified key, copies it to
+    /// the clipboard, and shows a notification to the user indicating that the value has been successfully
+    /// copied.</remarks>
     public class CopyToClipboard : IAction
     {
         private IPluginServiceProvider serviceProvider;

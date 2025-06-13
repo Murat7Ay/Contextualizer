@@ -8,7 +8,12 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Plugins
 {
-    internal class OpenFile : IAction
+    /// <summary>
+    /// Represents an action that opens a file using the system's default application.
+    /// </summary>
+    /// <remarks>This action retrieves the file path from the provided context and attempts to open the file.
+    /// It also logs the last access time of the file, if available, using the user interaction service.</remarks>
+    public class OpenFile : IAction
     {
         private IPluginServiceProvider pluginServiceProvider;
         public string Name => "open_file";
