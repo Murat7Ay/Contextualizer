@@ -15,11 +15,11 @@
     <Color x:Key="Carbon.Text.Helper">#8D8D8D</Color>
     
     <!-- Interactive Colors -->
-    <Color x:Key="Carbon.Interactive.Primary">#0F62FE</Color>
-    <Color x:Key="Carbon.Interactive.Secondary">#393939</Color>
-    <Color x:Key="Carbon.Interactive.Hover">#0353E9</Color>
-    <Color x:Key="Carbon.Interactive.Active">#002D9C</Color>
-    <Color x:Key="Carbon.Interactive.Disabled">#525252</Color>
+    <Color x:Key="Carbon.Color.Interactive.Primary">#4589FF</Color>
+    <Color x:Key="Carbon.Color.Interactive.Secondary">#6F6F6F</Color>
+    <Color x:Key="Carbon.Color.Interactive.Hover">#0353E9</Color>
+    <Color x:Key="Carbon.Color.Interactive.Active">#002D9C</Color>
+    <Color x:Key="Carbon.Color.Interactive.Disabled">#6F6F6F</Color>
     
     <!-- Support Colors -->
     <Color x:Key="Carbon.Support.Error">#FA4D56</Color>
@@ -37,11 +37,11 @@
     <SolidColorBrush x:Key="Carbon.Brush.Text.Secondary" Color="{DynamicResource Carbon.Text.Secondary}" />
     <SolidColorBrush x:Key="Carbon.Brush.Text.Helper" Color="{DynamicResource Carbon.Text.Helper}" />
     
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Primary" Color="{DynamicResource Carbon.Interactive.Primary}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Secondary" Color="{DynamicResource Carbon.Interactive.Secondary}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Hover" Color="{DynamicResource Carbon.Interactive.Hover}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{DynamicResource Carbon.Interactive.Active}" />
-    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{DynamicResource Carbon.Interactive.Disabled}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Primary" Color="{DynamicResource Carbon.Color.Interactive.Primary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Secondary" Color="{DynamicResource Carbon.Color.Interactive.Secondary}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Hover" Color="{DynamicResource Carbon.Color.Interactive.Hover}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{DynamicResource Carbon.Color.Interactive.Active}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{DynamicResource Carbon.Color.Interactive.Disabled}" />
     
     <SolidColorBrush x:Key="Carbon.Brush.Support.Error" Color="{DynamicResource Carbon.Support.Error}" />
     <SolidColorBrush x:Key="Carbon.Brush.Support.Success" Color="{DynamicResource Carbon.Support.Success}" />

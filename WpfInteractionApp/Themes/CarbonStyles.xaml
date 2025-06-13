@@ -2,6 +2,18 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
+    <!-- Additional Colors -->
+    <Color x:Key="Carbon.Color.Background.Active">#393939</Color>
+    <Color x:Key="Carbon.Color.Text.Helper">#8D8D8D</Color>
+    <Color x:Key="Carbon.Color.Interactive.Active">#393939</Color>
+    <Color x:Key="Carbon.Color.Interactive.Disabled">#393939</Color>
+
+    <!-- Additional Brushes -->
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Active" Color="{StaticResource Carbon.Color.Background.Active}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Text.Helper" Color="{StaticResource Carbon.Color.Text.Helper}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{StaticResource Carbon.Color.Interactive.Active}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{StaticResource Carbon.Color.Interactive.Disabled}"/>
+
     <!-- Base Text Styles -->
     <Style x:Key="Carbon.TextBlock.Base" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
@@ -40,7 +52,7 @@
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Padding" Value="16,10" />
         <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
-        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="MinWidth" Value="100" />
@@ -81,12 +93,271 @@
     </Style>
 
     <Style x:Key="Carbon.Button.Secondary" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
-        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Interactive.Secondary}" />
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Secondary}" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Interactive.Primary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}" />
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Light Theme Button Styles -->
+    <Style x:Key="Carbon.Button.Light" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"
+                                        Margin="{TemplateBinding Padding}">
+                            <ContentPresenter.Effect>
+                                <DropShadowEffect ShadowDepth="1" 
+                                                Direction="270" 
+                                                Color="#40000000" 
+                                                BlurRadius="4" 
+                                                Opacity="0.2"/>
+                            </ContentPresenter.Effect>
+                        </ContentPresenter>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}" />
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect ShadowDepth="2" 
+                                                    Direction="270" 
+                                                    Color="#40000000" 
+                                                    BlurRadius="6" 
+                                                    Opacity="0.3"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Active}" />
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect ShadowDepth="0" 
+                                                    Direction="270" 
+                                                    Color="#40000000" 
+                                                    BlurRadius="0" 
+                                                    Opacity="0"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Disabled}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Helper}" />
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect ShadowDepth="0" 
+                                                    Direction="270" 
+                                                    Color="#40000000" 
+                                                    BlurRadius="0" 
+                                                    Opacity="0"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Carbon.Button.Light.Secondary" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Light}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+                <Setter Property="Foreground" Value="#FFFFFF" />
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect ShadowDepth="2" 
+                                        Direction="270" 
+                                        Color="#40000000" 
+                                        BlurRadius="6" 
+                                        Opacity="0.3"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Active}" />
+                <Setter Property="Foreground" Value="#FFFFFF" />
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect ShadowDepth="0" 
+                                        Direction="270" 
+                                        Color="#40000000" 
+                                        BlurRadius="0" 
+                                        Opacity="0"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Disabled}" />
+                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Disabled}" />
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect ShadowDepth="0" 
+                                        Direction="270" 
+                                        Color="#40000000" 
+                                        BlurRadius="0" 
+                                        Opacity="0"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Dark Theme Button Styles -->
+    <Style x:Key="Carbon.Button.Dark" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"
+                                        Margin="{TemplateBinding Padding}">
+                            <ContentPresenter.Effect>
+                                <DropShadowEffect ShadowDepth="1" 
+                                                Direction="270" 
+                                                Color="#40000000" 
+                                                BlurRadius="4" 
+                                                Opacity="0.3"/>
+                            </ContentPresenter.Effect>
+                        </ContentPresenter>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}" />
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect ShadowDepth="2" 
+                                                    Direction="270" 
+                                                    Color="#40000000" 
+                                                    BlurRadius="6" 
+                                                    Opacity="0.4"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Active}" />
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect ShadowDepth="0" 
+                                                    Direction="270" 
+                                                    Color="#40000000" 
+                                                    BlurRadius="0" 
+                                                    Opacity="0"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Disabled}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Helper}" />
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect ShadowDepth="0" 
+                                                    Direction="270" 
+                                                    Color="#40000000" 
+                                                    BlurRadius="0" 
+                                                    Opacity="0"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Carbon.Button.Dark.Secondary" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Dark}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+                <Setter Property="Foreground" Value="#FFFFFF" />
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect ShadowDepth="2" 
+                                        Direction="270" 
+                                        Color="#40000000" 
+                                        BlurRadius="6" 
+                                        Opacity="0.4"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Active}" />
+                <Setter Property="Foreground" Value="#FFFFFF" />
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect ShadowDepth="0" 
+                                        Direction="270" 
+                                        Color="#40000000" 
+                                        BlurRadius="0" 
+                                        Opacity="0"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Disabled}" />
+                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Disabled}" />
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect ShadowDepth="0" 
+                                        Direction="270" 
+                                        Color="#40000000" 
+                                        BlurRadius="0" 
+                                        Opacity="0"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Dim Theme Button Styles -->
+    <Style x:Key="Carbon.Button.Dim" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Active}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="Carbon.Button.Dim.Secondary" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Dim}">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Secondary}" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -372,8 +643,9 @@
         </Setter>
     </Style>
 
-    <Style x:Key="Carbon.MenuItem" TargetType="MenuItem">
-        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}" />
+    <!-- Base MenuItem Style -->
+    <Style x:Key="Carbon.MenuItem.Base" TargetType="MenuItem">
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
         <Setter Property="Padding" Value="12,8" />
         <Setter Property="FontSize" Value="14"/>
@@ -431,22 +703,53 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Text.Helper}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Helper}"/>
                         </Trigger>
                         <Trigger Property="HasItems" Value="False">
                             <Setter TargetName="SubMenuPath" Property="Visibility" Value="Collapsed"/>
                         </Trigger>
                         <Trigger Property="IsSubmenuOpen" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- Light Theme MenuItem Style -->
+    <Style x:Key="Carbon.MenuItem.Light" TargetType="MenuItem" BasedOn="{StaticResource Carbon.MenuItem.Base}">
+        <Style.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
+            </Trigger>
+            <Trigger Property="IsSubmenuOpen" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Dark Theme MenuItem Style -->
+    <Style x:Key="Carbon.MenuItem.Dark" TargetType="MenuItem" BasedOn="{StaticResource Carbon.MenuItem.Base}">
+        <Style.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
+            </Trigger>
+            <Trigger Property="IsSubmenuOpen" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Default MenuItem Style -->
+    <Style x:Key="Carbon.MenuItem" TargetType="MenuItem" BasedOn="{StaticResource Carbon.MenuItem.Base}"/>
 
     <!-- Window Style -->
     <Style x:Key="Carbon.Window" TargetType="Window">
