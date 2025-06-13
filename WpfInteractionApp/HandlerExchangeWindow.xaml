@@ -153,10 +153,10 @@
         <!-- Arama ve Filtreleme -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
             <TextBox x:Name="SearchBox" Width="200" Margin="0,0,10,0" 
-                     TextChanged="SearchBox_TextChanged"
+                     Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
                      ToolTip="Search in handler name or description"/>
             <ComboBox x:Name="TagFilter" Width="150" Margin="0,0,10,0"
-                      SelectionChanged="TagFilter_SelectionChanged"
+                      SelectedItem="{Binding SelectedTag}"
                       ToolTip="Filter by tag"/>
             <Button Content="Refresh" Click="Refresh_Click" Margin="0,0,10,0"
                     Style="{DynamicResource Carbon.Button.Secondary}"/>
@@ -178,7 +178,8 @@
         <!-- Handler Listesi -->
         <ListView Grid.Row="2" x:Name="HandlersList" 
                   Margin="0,0,0,10"
-                  SelectionChanged="HandlersList_SelectionChanged">
+                  ItemsSource="{Binding Handlers}"
+                  SelectedItem="{Binding SelectedHandler}">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Status" Width="100">
@@ -219,16 +220,19 @@
                     Content="Install" 
                     Width="100" 
                     Click="Install_Click"
+                    IsEnabled="{Binding CanInstall}"
                     Style="{DynamicResource Carbon.Button.Base}"/>
             <Button x:Name="UpdateButton" 
                     Content="Update" 
                     Width="100" 
                     Click="Update_Click"
+                    IsEnabled="{Binding CanUpdate}"
                     Style="{DynamicResource Carbon.Button.Base}"/>
             <Button x:Name="RemoveButton" 
                     Content="Remove" 
                     Width="100" 
                     Click="Remove_Click"
+                    IsEnabled="{Binding CanRemove}"
                     Style="{DynamicResource Carbon.Button.Base}"/>
             <Button Content="Close" 
                     Width="100" 

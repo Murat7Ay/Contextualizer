@@ -1,9 +1,11 @@
 using System;
+using WpfInteractionApp.Settings;
 
 namespace Contextualizer.Core.Services
 {
     public interface ISettingsService
     {
+        AppSettings Settings { get; }
         string HandlersFilePath { get; }
         string PluginsDirectory { get; }
         string ExchangeDirectory { get; }

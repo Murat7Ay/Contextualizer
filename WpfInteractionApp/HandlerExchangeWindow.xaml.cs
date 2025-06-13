@@ -11,58 +11,99 @@ using Contextualizer.PluginContracts.Models;
 using Contextualizer.Core.Services;
 using WpfInteractionApp.Services;
 using Contextualizer.Core;
+using System.ComponentModel;
 
 namespace WpfInteractionApp
 {
-    public partial class HandlerExchangeWindow : Window
+    public partial class HandlerExchangeWindow : Window, INotifyPropertyChanged
     {
-        private readonly IHandlerExchange _handlerExchange;
-        private readonly ISettingsService _settingsService;
-        private ObservableCollection<HandlerPackage> _handlers;
-        private ObservableCollection<string> _tags;
+        private readonly HandlerExchangeService _exchangeService;
+        private readonly ObservableCollection<HandlerPackage> _handlers;
+        private string _searchTerm;
+        private string _selectedTag;
         private HandlerPackage _selectedHandler;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public ObservableCollection<HandlerPackage> Handlers => _handlers;
+
+        public string SearchTerm
+        {
+            get => _searchTerm;
+            set
+            {
+                _searchTerm = value;
+                OnPropertyChanged(nameof(SearchTerm));
+                _ = RefreshHandlersAsync();
+            }
+        }
+
+        public string SelectedTag
+        {
+            get => _selectedTag;
+            set
+            {
+                _selectedTag = value;
+                OnPropertyChanged(nameof(SelectedTag));
+                _ = RefreshHandlersAsync();
+            }
+        }
+
+        public HandlerPackage SelectedHandler
+        {
+            get => _selectedHandler;
+            set
+            {
+                _selectedHandler = value;
+                OnPropertyChanged(nameof(SelectedHandler));
+                OnPropertyChanged(nameof(CanInstall));
+                OnPropertyChanged(nameof(CanUpdate));
+                OnPropertyChanged(nameof(CanRemove));
+            }
+        }
+
+        public bool CanInstall => SelectedHandler != null && !SelectedHandler.IsInstalled;
+        public bool CanUpdate => SelectedHandler != null && SelectedHandler.IsInstalled && SelectedHandler.HasUpdate;
+        public bool CanRemove => SelectedHandler != null && SelectedHandler.IsInstalled;
 
         public HandlerExchangeWindow()
         {
             InitializeComponent();
-            
-            _handlerExchange = new FileHandlerExchange();
+
+            var settingsService = ServiceLocator.Get<SettingsService>();
+            var directoryManager = new PluginDirectoryManager(settingsService);
+            _exchangeService = new HandlerExchangeService(settingsService, directoryManager);
+
             _handlers = new ObservableCollection<HandlerPackage>();
-            _tags = new ObservableCollection<string>();
-            
-            HandlersList.ItemsSource = _handlers;
-            TagFilter.ItemsSource = _tags;
-            
-            Loaded += HandlerExchangeWindow_Loaded;
+            DataContext = this;
+
+            _ = LoadInitialDataAsync();
         }
 
-        private async void HandlerExchangeWindow_Loaded(object sender, RoutedEventArgs e)
+        private async Task LoadInitialDataAsync()
         {
-            await RefreshHandlers();
+            await RefreshHandlersAsync();
+            var tags = await _exchangeService.GetAvailableTagsAsync();
+            TagFilter.ItemsSource = tags;
         }
 
-        private async Task RefreshHandlers()
+        private async Task RefreshHandlersAsync()
         {
             try
             {
-                var handlers = await _handlerExchange.ListAvailableHandlersAsync();
+                var handlers = await _exchangeService.ListAvailableHandlersAsync(SearchTerm, 
+                    SelectedTag != null ? new[] { SelectedTag } : null);
+                
                 _handlers.Clear();
                 foreach (var handler in handlers)
                 {
                     _handlers.Add(handler);
                 }
-
-                // Etiketleri güncelle
-                var allTags = handlers.SelectMany(h => h.Tags).Distinct().OrderBy(t => t);
-                _tags.Clear();
-                foreach (var tag in allTags)
-                {
-                    _tags.Add(tag);
-                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading handlers: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error refreshing handlers: {ex.Message}", "Error", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -134,65 +175,94 @@ namespace WpfInteractionApp
 
         private async void Install_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedHandler == null) return;
+            if (SelectedHandler == null) return;
 
             try
             {
-                await _handlerExchange.InstallHandlerAsync(_selectedHandler.Id);
-                await RefreshHandlers();
-                MessageBox.Show("Handler installed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                var result = await _exchangeService.InstallHandlerAsync(SelectedHandler.Id);
+                if (result)
+                {
+                    await RefreshHandlersAsync();
+                    MessageBox.Show("Handler installed successfully.", "Success", 
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to install handler.", "Error", 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error installing handler: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error installing handler: {ex.Message}", "Error", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private async void Update_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedHandler == null) return;
+            if (SelectedHandler == null) return;
 
             try
             {
-                await _handlerExchange.UpdateHandlerAsync(_selectedHandler.Id);
-                await RefreshHandlers();
-                MessageBox.Show("Handler updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                var result = await _exchangeService.UpdateHandlerAsync(SelectedHandler.Id);
+                if (result)
+                {
+                    await RefreshHandlersAsync();
+                    MessageBox.Show("Handler updated successfully.", "Success", 
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to update handler.", "Error", 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error updating handler: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error updating handler: {ex.Message}", "Error", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private async void Remove_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedHandler == null) return;
+            if (SelectedHandler == null) return;
 
             var result = MessageBox.Show(
                 "Are you sure you want to remove this handler?",
                 "Confirm Removal",
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Question
-            );
+                MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
             {
                 try
                 {
-                    await _handlerExchange.RemoveHandlerAsync(_selectedHandler.Id);
-                    await RefreshHandlers();
-                    MessageBox.Show("Handler removed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    var success = await _exchangeService.RemoveHandlerAsync(SelectedHandler.Id);
+                    if (success)
+                    {
+                        await RefreshHandlersAsync();
+                        MessageBox.Show("Handler removed successfully.", "Success", 
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to remove handler.", "Error", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error removing handler: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Error removing handler: {ex.Message}", "Error", 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
         private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
-            await RefreshHandlers();
+            await RefreshHandlersAsync();
         }
 
         private void AddHandler_Click(object sender, RoutedEventArgs e)
@@ -204,6 +274,11 @@ namespace WpfInteractionApp
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 } 

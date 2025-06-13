@@ -211,7 +211,8 @@ namespace WpfInteractionApp
         private void OpenHandlerExchange_Click(object sender, RoutedEventArgs e)
         {
             var exchangeWindow = new HandlerExchangeWindow();
-            exchangeWindow.Show();
+            exchangeWindow.Owner = this;
+            exchangeWindow.ShowDialog();
         }
 
         protected override void OnClosed(EventArgs e)

@@ -41,5 +41,11 @@ namespace Contextualizer.PluginContracts.Models
         [JsonPropertyName("hasUpdate")]
         [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
         public bool HasUpdate { get; set; }
+
+        [JsonPropertyName("installDate")]
+        public DateTime InstallDate { get; set; }
+
+        [JsonPropertyName("documentationPath")]
+        public string DocumentationPath { get; set; }
     }
 } 

@@ -12,6 +12,7 @@ namespace WpfInteractionApp
         private HandlerManager? _handlerManager;
         private MainWindow? _mainWindow;
         private SettingsService? _settingsService;
+        private HandlerExchangeService? _handlerExchangeService;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -31,6 +32,14 @@ namespace WpfInteractionApp
                 // Initialize settings service
                 _settingsService = new SettingsService();
                 ServiceLocator.Register<SettingsService>(_settingsService);
+
+                // Initialize plugin directory manager
+                var directoryManager = new PluginDirectoryManager(_settingsService);
+                ServiceLocator.Register<PluginDirectoryManager>(directoryManager);
+
+                // Initialize handler exchange service
+                _handlerExchangeService = new HandlerExchangeService(_settingsService, directoryManager);
+                ServiceLocator.Register<HandlerExchangeService>(_handlerExchangeService);
 
                 // Initialize main window
                 _mainWindow = new MainWindow();

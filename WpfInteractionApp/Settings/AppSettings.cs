@@ -25,6 +25,27 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("clipboard_clear_delay")]
         public int ClipboardClearDelay { get; set; } = 800;
+
+        [JsonPropertyName("plugin_settings")]
+        public PluginSettings PluginSettings { get; set; } = new PluginSettings();
+    }
+
+    public class PluginSettings
+    {
+        [JsonPropertyName("installed_directory")]
+        public string InstalledDirectory { get; set; } = "Installed";
+
+        [JsonPropertyName("cache_directory")]
+        public string CacheDirectory { get; set; } = "Cache";
+
+        [JsonPropertyName("temp_directory")]
+        public string TempDirectory { get; set; } = "Temp";
+
+        [JsonPropertyName("auto_update")]
+        public bool AutoUpdate { get; set; } = true;
+
+        [JsonPropertyName("validate_on_load")]
+        public bool ValidateOnLoad { get; set; } = true;
     }
 
     public class KeyboardShortcut
