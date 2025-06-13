@@ -162,7 +162,7 @@ namespace Contextualizer.PluginContracts
             if (IsClipboardFormatAvailable(cfUnicodeText))
             {
                 content.Success = true;
-                content.Text = GetText() ?? string.Empty;
+                content.Text = GetText()?.Trim() ?? string.Empty;
                 content.IsText = true;
             }
             else if (IsClipboardFormatAvailable(CF_HDROP))
