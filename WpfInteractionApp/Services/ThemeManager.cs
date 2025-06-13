@@ -45,6 +45,13 @@ namespace WpfInteractionApp.Services
                 };
                 _themeResources["Dark"] = darkColors;
 
+                // Load Dim theme resources
+                var dimColors = new ResourceDictionary
+                {
+                    Source = new Uri("/WpfInteractionApp;component/Themes/DimCarbonColors.xaml", UriKind.Relative)
+                };
+                _themeResources["Dim"] = dimColors;
+
                 Debug.WriteLine("Theme resources loaded successfully");
             }
             catch (Exception ex)
@@ -74,7 +81,8 @@ namespace WpfInteractionApp.Services
                         if (d.Source == null) return false;
                         var sourceString = d.Source.ToString();
                         return sourceString.Contains("CarbonColors.xaml", StringComparison.OrdinalIgnoreCase) ||
-                               sourceString.Contains("LightCarbonColors.xaml", StringComparison.OrdinalIgnoreCase);
+                               sourceString.Contains("LightCarbonColors.xaml", StringComparison.OrdinalIgnoreCase) ||
+                               sourceString.Contains("DimCarbonColors.xaml", StringComparison.OrdinalIgnoreCase);
                     });
 
                 if (oldThemeDict != null)
@@ -87,6 +95,21 @@ namespace WpfInteractionApp.Services
                 var newThemeDict = _themeResources[themeName];
                 Debug.WriteLine($"Adding new theme dictionary: {newThemeDict.Source}");
                 app.Resources.MergedDictionaries.Add(newThemeDict);
+
+                // Stil değişikliği için yeni yaklaşım
+                var stylesDict = app.Resources.MergedDictionaries
+                    .FirstOrDefault(d => d.Source?.OriginalString.Contains("CarbonStyles.xaml") == true);
+
+                if (stylesDict != null)
+                {
+                    // Stilleri yeniden yükle
+                    app.Resources.MergedDictionaries.Remove(stylesDict);
+                    var newStylesDict = new ResourceDictionary 
+                    { 
+                        Source = new Uri("/WpfInteractionApp;component/Themes/CarbonStyles.xaml", UriKind.Relative) 
+                    };
+                    app.Resources.MergedDictionaries.Add(newStylesDict);
+                }
                 
                 _currentTheme = themeName;
                 
@@ -104,15 +127,16 @@ namespace WpfInteractionApp.Services
             }
         }
 
-        public void ToggleTheme()
+        public void CycleTheme()
         {
-            Debug.WriteLine($"Toggling theme from: {_currentTheme}");
-            var newTheme = _currentTheme == "Light" ? "Dark" : "Light";
-            ApplyTheme(newTheme);
+            var themes = new[] { "Light", "Dark", "Dim" };
+            var currentIndex = Array.IndexOf(themes, _currentTheme);
+            var nextIndex = (currentIndex + 1) % themes.Length;
+            ApplyTheme(themes[nextIndex]);
         }
 
         public string CurrentTheme => _currentTheme;
 
-        public bool IsDarkTheme => _currentTheme == "Dark";
+        public bool IsDarkTheme => _currentTheme == "Dark" || _currentTheme == "Dim";
     }
 }
