@@ -15,11 +15,18 @@
     <Color x:Key="Carbon.Color.Border.Primary">#8D8D8D</Color>
     <Color x:Key="Carbon.Color.Border.Secondary">#A8A8A8</Color>
     
-    <Color x:Key="Carbon.Color.Interactive.Primary">#A8A8A8</Color>
-    <Color x:Key="Carbon.Color.Interactive.Secondary">#8D8D8D</Color>
-    <Color x:Key="Carbon.Color.Interactive.Hover">#A8A8A8</Color>
-    <Color x:Key="Carbon.Color.Interactive.Active">#8D8D8D</Color>
+    <!-- Interactive Colors - Updated for better visibility and contrast -->
+    <Color x:Key="Carbon.Color.Interactive.Primary">#3D8BFD</Color>
+    <Color x:Key="Carbon.Color.Interactive.Secondary">#6F6F6F</Color>
+    <Color x:Key="Carbon.Color.Interactive.Hover">#2B7AF7</Color>
+    <Color x:Key="Carbon.Color.Interactive.Active">#1A69E8</Color>
     <Color x:Key="Carbon.Color.Interactive.Disabled">#8D8D8D</Color>
+    
+    <!-- Support Colors -->
+    <Color x:Key="Carbon.Support.Error">#FF4D4D</Color>
+    <Color x:Key="Carbon.Support.Success">#42BE65</Color>
+    <Color x:Key="Carbon.Support.Warning">#F1C21B</Color>
+    <Color x:Key="Carbon.Support.Info">#3D8BFD</Color>
     
     <!-- Brushes -->
     <SolidColorBrush x:Key="Carbon.Brush.Background.Primary" Color="{StaticResource Carbon.Color.Background.Primary}"/>
@@ -40,4 +47,18 @@
     <SolidColorBrush x:Key="Carbon.Brush.Interactive.Hover" Color="{StaticResource Carbon.Color.Interactive.Hover}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{StaticResource Carbon.Color.Interactive.Active}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{StaticResource Carbon.Color.Interactive.Disabled}"/>
+
+    <!-- Support Brushes -->
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Error" Color="{StaticResource Carbon.Support.Error}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Success" Color="{StaticResource Carbon.Support.Success}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Warning" Color="{StaticResource Carbon.Support.Warning}"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Support.Info" Color="{StaticResource Carbon.Support.Info}"/>
+
+    <!-- Effects -->
+    <DropShadowEffect x:Key="DropShadowEffect" 
+                      ShadowDepth="4" 
+                      Direction="270" 
+                      Color="#40000000" 
+                      BlurRadius="12" 
+                      Opacity="0.2"/>
 </ResourceDictionary> 
