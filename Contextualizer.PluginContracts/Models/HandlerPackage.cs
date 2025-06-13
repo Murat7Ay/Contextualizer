@@ -28,6 +28,9 @@ namespace Contextualizer.PluginContracts.Models
         [JsonPropertyName("dependencies")]
         public string[] Dependencies { get; set; }
 
+        [JsonPropertyName("pluginPaths")]
+        public string[] PluginPaths { get; set; }
+
         [JsonPropertyName("handlerJson")]
         public JsonElement HandlerJson { get; set; }
 
