@@ -9,5 +9,6 @@ namespace Contextualizer.PluginContracts
     public interface ISyntheticContent
     {
         public ClipboardContent CreateSyntheticContent(UserInputRequest? userInputRequest);
+        IHandler? GetActualHandler { get; }
     }
 }

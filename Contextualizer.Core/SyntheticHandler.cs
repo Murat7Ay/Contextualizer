@@ -12,8 +12,15 @@ namespace Contextualizer.Core
 
         protected override string OutputFormat => string.Empty;
 
+        private IHandler? _actualHandler = null;
+
         public SyntheticHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
+            if (!string.IsNullOrEmpty(handlerConfig.ActualType))
+            {
+                handlerConfig.Type = handlerConfig.ActualType;
+                _actualHandler = HandlerFactory.Create(handlerConfig);
+            }
         }
 
         protected override async Task<bool> CanHandleAsync(ClipboardContent clipboardContent)
@@ -67,5 +74,7 @@ namespace Contextualizer.Core
                 Text = userInput
             };
         }
+
+        public IHandler? GetActualHandler  => _actualHandler;
     }
 }
