@@ -108,8 +108,30 @@ namespace Contextualizer.Core
                     }
                 }
 
-                actionInstance.Action(configAction, contextWrapper);
+                // Execute main action with proper await
+                await actionInstance.Action(configAction, contextWrapper);
                 ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{configAction.Name}' finished.");
+
+                // Execute inner actions sequentially if they exist
+                if (configAction.InnerActions != null && configAction.InnerActions.Count > 0)
+                {
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Executing {configAction.InnerActions.Count} inner actions for '{configAction.Name}'.");
+                    
+                    foreach (var innerAction in configAction.InnerActions)
+                    {
+                        try
+                        {
+                            await Action(innerAction, contextWrapper);
+                        }
+                        catch (Exception ex)
+                        {
+                            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error executing inner action '{innerAction.Name}': {ex.Message}");
+                            // Continue with next inner action even if one fails
+                        }
+                    }
+                    
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"All inner actions for '{configAction.Name}' completed.");
+                }
             }
             else
             {
