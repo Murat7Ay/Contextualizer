@@ -22,6 +22,7 @@ namespace Contextualizer.Core
                 var handlerConfig = JsonSerializer.Deserialize<HandlerConfig>(handlerConfigElement.ToString());
 
                 var handler = HandlerFactory.Create(handlerConfig);
+                
                 if (handler != null)
                     handlers.Add(handler);
             }
