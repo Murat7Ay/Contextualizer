@@ -77,6 +77,14 @@ namespace Contextualizer.PluginContracts
 
         [JsonPropertyName("content_type")]
         public string? ContentType { get; set; }
+
+        // Synthetic handler property
+        [JsonPropertyName("reference_handler")]
+        public string? ReferenceHandler { get; set; }
+        [JsonPropertyName("actual_type")]
+        public string? ActualType { get; set; }
+        [JsonPropertyName("synthetic_input")]
+        public UserInputRequest? SyntheticInput { get; set; }
     }
 
 }

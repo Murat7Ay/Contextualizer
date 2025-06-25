@@ -24,6 +24,7 @@ namespace Contextualizer.Core
             ServiceLocator.Register<IActionService>(actionService);
             ServiceLocator.Register<IClipboardService>(new WindowsClipboardService());
             ServiceLocator.Register<IUserInteractionService>(userInteractionService);
+            ServiceLocator.Register<HandlerManager>(this);
             List<IHandler> handlers = HandlerLoader.Load(_settingsService.HandlersFilePath);
             _handlers = handlers.Where(h => h is not ITriggerableHandler).ToList();
             _manualHandlers = handlers.Where(h => h is ITriggerableHandler).ToList();
@@ -80,8 +81,32 @@ namespace Contextualizer.Core
                 return;
             }
 
+            if (handler is ISyntheticContent syntheticHandler)
+            {
+                var clipboardContent = syntheticHandler.CreateSyntheticContent(handler.HandlerConfig.SyntheticInput);
+                var referenceHandler = GetHandlerByName(handler.HandlerConfig.ReferenceHandler);
+                if(referenceHandler != null) {
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Executing reference handler: {referenceHandler.HandlerConfig.Name}");
+                    referenceHandler.Execute(clipboardContent);
+                }
+                else
+                {
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Reference handler not found: {handler.HandlerConfig.ReferenceHandler}");
+                }
+                return;
+            }
+
             var context = new ClipboardContent(); 
             handler.Execute(context);
+        }
+
+        public IHandler? GetHandlerByName(string handlerName)
+        {
+            // Search in both regular and manual handlers (from private readonly List<IHandler> _handlers)
+            var handler = _handlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase));
+            if (handler != null) return handler;
+
+            return _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase));
         }
 
         public void Dispose()
