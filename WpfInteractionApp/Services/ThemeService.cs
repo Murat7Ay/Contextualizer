@@ -3,7 +3,7 @@ using System.Windows;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
-using WpfInteractionApp.Properties;
+using Contextualizer.Core;
 
 namespace WpfInteractionApp.Services
 {
@@ -31,16 +31,15 @@ namespace WpfInteractionApp.Services
                 { ThemeType.Light, new Uri("/WpfInteractionApp;component/Themes/LightCarbonColors.xaml", UriKind.Relative) }
             };
 
-            // Load saved theme from settings
+            // Load saved theme from AppSettings
             try
             {
-                CurrentTheme = Enum.Parse<ThemeType>(WpfInteractionApp.Properties.Settings.Default.Theme, true);
+                var settingsService = ServiceLocator.Get<SettingsService>();
+                CurrentTheme = Enum.Parse<ThemeType>(settingsService.Settings.UISettings.Theme, true);
             }
             catch
             {
                 CurrentTheme = ThemeType.Dark;
-                WpfInteractionApp.Properties.Settings.Default.Theme = CurrentTheme.ToString();
-                WpfInteractionApp.Properties.Settings.Default.Save();
             }
             Debug.WriteLine($"Initial theme loaded from settings: {CurrentTheme}");
         }
@@ -107,9 +106,17 @@ namespace WpfInteractionApp.Services
 
                 CurrentTheme = theme;
 
-                // Save theme setting
-                WpfInteractionApp.Properties.Settings.Default.Theme = theme.ToString();
-                WpfInteractionApp.Properties.Settings.Default.Save();
+                // Save theme setting to AppSettings
+                try
+                {
+                    var settingsService = ServiceLocator.Get<SettingsService>();
+                    settingsService.Settings.UISettings.Theme = theme.ToString();
+                    settingsService.SaveSettings();
+                }
+                catch (Exception settingsEx)
+                {
+                    Debug.WriteLine($"Error saving theme preference: {settingsEx}");
+                }
                 Debug.WriteLine($"Theme setting saved: {theme}");
 
                 // Notify subscribers

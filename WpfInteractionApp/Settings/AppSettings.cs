@@ -25,6 +25,12 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("clipboard_clear_delay")]
         public int ClipboardClearDelay { get; set; } = 800;
+
+        [JsonPropertyName("window_settings")]
+        public WindowSettings WindowSettings { get; set; } = new WindowSettings();
+
+        [JsonPropertyName("ui_settings")]
+        public UISettings UISettings { get; set; } = new UISettings();
     }
 
     public class KeyboardShortcut
@@ -53,5 +59,38 @@ namespace WpfInteractionApp.Settings
             }
             ModifierKeys = modifiers.ToArray();
         }
+    }
+
+    public class WindowSettings
+    {
+        [JsonPropertyName("width")]
+        public double Width { get; set; } = 1200;
+
+        [JsonPropertyName("height")]
+        public double Height { get; set; } = 800;
+
+        [JsonPropertyName("left")]
+        public double Left { get; set; } = double.NaN;
+
+        [JsonPropertyName("top")]
+        public double Top { get; set; } = double.NaN;
+
+        [JsonPropertyName("window_state")]
+        public string WindowState { get; set; } = "Normal";
+
+        [JsonPropertyName("grid_splitter_position")]
+        public double GridSplitterPosition { get; set; } = 200;
+    }
+
+    public class UISettings
+    {
+        [JsonPropertyName("toast_position_x")]
+        public double ToastPositionX { get; set; } = 0;
+
+        [JsonPropertyName("toast_position_y")]
+        public double ToastPositionY { get; set; } = 0;
+
+        [JsonPropertyName("theme")]
+        public string Theme { get; set; } = "Dark";
     }
 } 

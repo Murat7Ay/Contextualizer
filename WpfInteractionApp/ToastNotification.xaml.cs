@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using WpfInteractionApp.Services;
 
 namespace WpfInteractionApp
 {
@@ -19,9 +20,6 @@ namespace WpfInteractionApp
         private Point _windowStartPoint;
         private Point _mouseStartPoint;
 
-        // Konum ayarları için anahtarlar
-        private const string PositionXKey = "ToastPositionX";
-        private const string PositionYKey = "ToastPositionY";
 
         private int _remainingSeconds;
         private bool _isPaused = false;
@@ -126,9 +124,18 @@ namespace WpfInteractionApp
 
         private void SavePosition()
         {
-            Properties.Settings.Default[PositionXKey] = Left;
-            Properties.Settings.Default[PositionYKey] = Top;
-            Properties.Settings.Default.Save();
+            try
+            {
+                var settingsService = ServiceLocator.Get<SettingsService>();
+                settingsService.Settings.UISettings.ToastPositionX = Left;
+                settingsService.Settings.UISettings.ToastPositionY = Top;
+                settingsService.SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                // If settings service is not available, use default position (no fallback needed)
+                System.Diagnostics.Debug.WriteLine($"Could not save toast position: {ex.Message}");
+            }
         }
 
         public new void Show()
@@ -139,8 +146,28 @@ namespace WpfInteractionApp
             // Position the window after it's shown
             Dispatcher.InvokeAsync(() =>
             {
-                double left = Properties.Settings.Default[PositionXKey] is double lx ? lx : SystemParameters.WorkArea.Width - ActualWidth - 10;
-                double top = Properties.Settings.Default[PositionYKey] is double ly ? ly : SystemParameters.WorkArea.Height - ActualHeight - 10;
+                double left, top;
+                
+                try
+                {
+                    var settingsService = ServiceLocator.Get<SettingsService>();
+                    left = settingsService.Settings.UISettings.ToastPositionX;
+                    top = settingsService.Settings.UISettings.ToastPositionY;
+                    
+                    // Use default position if coordinates are 0 (not set)
+                    if (left == 0 && top == 0)
+                    {
+                        left = SystemParameters.WorkArea.Width - ActualWidth - 10;
+                        top = SystemParameters.WorkArea.Height - ActualHeight - 10;
+                    }
+                }
+                catch
+                {
+                    // Use default position if settings service is not available
+                    left = SystemParameters.WorkArea.Width - ActualWidth - 10;
+                    top = SystemParameters.WorkArea.Height - ActualHeight - 10;
+                }
+                
                 Left = left;
                 Top = top;
             }, DispatcherPriority.Loaded);

@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows.Markup;
 using System.Linq;
 using System.Diagnostics;
+using Contextualizer.Core;
 
 namespace WpfInteractionApp.Services
 {
@@ -24,7 +25,7 @@ namespace WpfInteractionApp.Services
         {
             _themeResources = new Dictionary<string, ResourceDictionary>();
             LoadThemeResources();
-            _currentTheme = Properties.Settings.Default.Theme ?? DefaultTheme;
+            _currentTheme = DefaultTheme;
         }
 
         private void LoadThemeResources()
@@ -113,9 +114,17 @@ namespace WpfInteractionApp.Services
                 
                 _currentTheme = themeName;
                 
-                // Save theme preference
-                Properties.Settings.Default.Theme = themeName;
-                Properties.Settings.Default.Save();
+                // Save theme preference to AppSettings
+                try
+                {
+                    var settingsService = ServiceLocator.Get<SettingsService>();
+                    settingsService.Settings.UISettings.Theme = themeName;
+                    settingsService.SaveSettings();
+                }
+                catch (Exception settingsEx)
+                {
+                    Debug.WriteLine($"Error saving theme preference: {settingsEx}");
+                }
 
                 Debug.WriteLine($"Theme changed to: {themeName}");
                 ThemeChanged(this, themeName);

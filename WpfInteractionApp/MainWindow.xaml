@@ -67,6 +67,7 @@
             </TabControl>
 
             <GridSplitter Grid.Row="1"
+                         Name="GridSplitter"
                          Height="5"
                          HorizontalAlignment="Stretch"
                          VerticalAlignment="Center"

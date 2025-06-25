@@ -23,6 +23,12 @@ namespace WpfInteractionApp
             InitializeComponent();
             ThemeManager.Instance.ThemeChanged += OnThemeChanged;
             LogListBox.ItemsSource = _logs;
+            LoadWindowSettings();
+            
+            // Subscribe to window events for saving settings
+            this.SizeChanged += MainWindow_SizeChanged;
+            this.LocationChanged += MainWindow_LocationChanged;
+            this.StateChanged += MainWindow_StateChanged;
         }
 
         public void InitializeHandlerManager(HandlerManager handlerManager)
@@ -214,10 +220,118 @@ namespace WpfInteractionApp
             exchangeWindow.Show();
         }
 
+        private void LoadWindowSettings()
+        {
+            try
+            {
+                var settingsService = ServiceLocator.Get<SettingsService>();
+                var windowSettings = settingsService.Settings.WindowSettings;
+
+                // Set window size
+                this.Width = windowSettings.Width;
+                this.Height = windowSettings.Height;
+
+                // Set window position if valid
+                if (!double.IsNaN(windowSettings.Left) && !double.IsNaN(windowSettings.Top))
+                {
+                    this.Left = windowSettings.Left;
+                    this.Top = windowSettings.Top;
+                }
+                else
+                {
+                    this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                }
+
+                // Set window state
+                if (Enum.TryParse<WindowState>(windowSettings.WindowState, out var state))
+                {
+                    this.WindowState = state;
+                }
+
+                // Set grid splitter position
+                if (this.FindName("GridSplitter") is GridSplitter splitter)
+                {
+                    var grid = splitter.Parent as Grid;
+                    if (grid != null && grid.RowDefinitions.Count > 2)
+                    {
+                        grid.RowDefinitions[2].Height = new GridLength(windowSettings.GridSplitterPosition);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // If settings loading fails, use defaults
+                AddLog(new LogEntry
+                {
+                    Type = LogType.Warning,
+                    Message = $"Failed to load window settings: {ex.Message}",
+                    Timestamp = DateTime.Now
+                });
+            }
+        }
+
+        private void SaveWindowSettings()
+        {
+            try
+            {
+                var settingsService = ServiceLocator.Get<SettingsService>();
+                var windowSettings = settingsService.Settings.WindowSettings;
+
+                // Save window size and position
+                windowSettings.Width = this.Width;
+                windowSettings.Height = this.Height;
+                windowSettings.Left = this.Left;
+                windowSettings.Top = this.Top;
+                windowSettings.WindowState = this.WindowState.ToString();
+
+                // Save grid splitter position
+                if (this.FindName("GridSplitter") is GridSplitter splitter)
+                {
+                    var grid = splitter.Parent as Grid;
+                    if (grid != null && grid.RowDefinitions.Count > 2)
+                    {
+                        windowSettings.GridSplitterPosition = grid.RowDefinitions[2].Height.Value;
+                    }
+                }
+
+                settingsService.SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                AddLog(new LogEntry
+                {
+                    Type = LogType.Error,
+                    Message = $"Failed to save window settings: {ex.Message}",
+                    Timestamp = DateTime.Now
+                });
+            }
+        }
+
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            SaveWindowSettings();
+        }
+
+        private void MainWindow_LocationChanged(object sender, EventArgs e)
+        {
+            SaveWindowSettings();
+        }
+
+        private void MainWindow_StateChanged(object sender, EventArgs e)
+        {
+            SaveWindowSettings();
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
+            SaveWindowSettings();
             ThemeManager.Instance.ThemeChanged -= OnThemeChanged;
+            
+            // Unsubscribe from events
+            this.SizeChanged -= MainWindow_SizeChanged;
+            this.LocationChanged -= MainWindow_LocationChanged;
+            this.StateChanged -= MainWindow_StateChanged;
         }
     }
 

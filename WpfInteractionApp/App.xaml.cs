@@ -19,8 +19,12 @@ namespace WpfInteractionApp
 
             try
             {
-                // Initialize and apply the saved theme
-                ThemeManager.Instance.ApplyTheme(WpfInteractionApp.Properties.Settings.Default.Theme ?? "Light");
+                // Initialize settings service first
+                _settingsService = new SettingsService();
+                ServiceLocator.Register<SettingsService>(_settingsService);
+
+                // Initialize and apply the saved theme from AppSettings
+                ThemeManager.Instance.ApplyTheme(_settingsService.Settings.UISettings.Theme);
 
                 // Load the base styles
                 Resources.MergedDictionaries.Add(new ResourceDictionary 
@@ -28,9 +32,6 @@ namespace WpfInteractionApp
                     Source = new Uri("/WpfInteractionApp;component/Themes/CarbonStyles.xaml", UriKind.Relative) 
                 });
 
-                // Initialize settings service
-                _settingsService = new SettingsService();
-                ServiceLocator.Register<SettingsService>(_settingsService);
 
                 // Initialize main window
                 _mainWindow = new MainWindow();
