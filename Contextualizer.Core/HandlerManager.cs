@@ -84,6 +84,20 @@ namespace Contextualizer.Core
             if (handler is ISyntheticContent syntheticHandler)
             {
                 var clipboardContent = syntheticHandler.CreateSyntheticContent(handler.HandlerConfig.SyntheticInput);
+
+                if (!clipboardContent.Success)
+                {
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, "Failed to create synthetic content.");
+                    return;
+                }
+
+                if(syntheticHandler.GetActualHandler is not null) {
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Executing synthetic handler: {syntheticHandler.GetActualHandler.HandlerConfig.Name}");
+                    syntheticHandler.GetActualHandler.Execute(clipboardContent);
+                    return;
+                }
+
+
                 var referenceHandler = GetHandlerByName(handler.HandlerConfig.ReferenceHandler);
                 if(referenceHandler != null) {
                     ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Executing reference handler: {referenceHandler.HandlerConfig.Name}");
