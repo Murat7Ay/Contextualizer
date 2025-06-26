@@ -127,15 +127,25 @@ namespace WpfInteractionApp
             try
             {
                 var settingsService = ServiceLocator.Get<SettingsService>();
-                settingsService.Settings.UISettings.ToastPositionX = Left;
-                settingsService.Settings.UISettings.ToastPositionY = Top;
-                settingsService.SaveSettings();
+                
+                // Only save valid positions
+                if (IsValidPosition(Left) && IsValidPosition(Top))
+                {
+                    settingsService.Settings.UISettings.ToastPositionX = Left;
+                    settingsService.Settings.UISettings.ToastPositionY = Top;
+                    settingsService.SaveSettings();
+                }
             }
             catch (Exception ex)
             {
                 // If settings service is not available, use default position (no fallback needed)
                 System.Diagnostics.Debug.WriteLine($"Could not save toast position: {ex.Message}");
             }
+        }
+
+        private static bool IsValidPosition(double value)
+        {
+            return !double.IsNaN(value) && !double.IsInfinity(value) && value >= 0;
         }
 
         public new void Show()
@@ -154,8 +164,9 @@ namespace WpfInteractionApp
                     left = settingsService.Settings.UISettings.ToastPositionX;
                     top = settingsService.Settings.UISettings.ToastPositionY;
                     
-                    // Use default position if coordinates are 0 (not set)
-                    if (left == 0 && top == 0)
+                    // Use default position if coordinates are 0 (not set) or invalid
+                    if (left == 0 && top == 0 || double.IsNaN(left) || double.IsNaN(top) || 
+                        left < 0 || top < 0 || left > SystemParameters.WorkArea.Width || top > SystemParameters.WorkArea.Height)
                     {
                         left = SystemParameters.WorkArea.Width - ActualWidth - 10;
                         top = SystemParameters.WorkArea.Height - ActualHeight - 10;
