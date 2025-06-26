@@ -6,6 +6,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using WpfInteractionApp.Services;
 
@@ -22,6 +24,7 @@ namespace WpfInteractionApp
 
 
         private int _remainingSeconds;
+        private int _totalSeconds;
         private bool _isPaused = false;
 
         private string FormatMessage(string message)
@@ -36,6 +39,7 @@ namespace WpfInteractionApp
             InitializeComponent();
             
             _remainingSeconds = durationInSeconds ?? 3;
+            _totalSeconds = _remainingSeconds;
 
             // Set window properties
             WindowStyle = WindowStyle.None;
@@ -48,6 +52,12 @@ namespace WpfInteractionApp
             TitleBlock.Text = string.IsNullOrEmpty(title) ? notificationType.ToString() : title;
             MessageBlock.Text = FormatMessage(message);
             MessageBlock.CaretIndex = 0;
+
+            // Setup notification type styling
+            SetupNotificationStyle(notificationType);
+
+            // Initialize timer display
+            UpdateTimerDisplay();
 
             // Add action button if needed
             if (onActionClicked != null)
@@ -72,6 +82,8 @@ namespace WpfInteractionApp
                 if (!_isPaused)
                 {
                     _remainingSeconds--;
+                    UpdateTimerDisplay();
+                    
                     if (_remainingSeconds <= 0)
                     {
                         Close();
@@ -182,6 +194,109 @@ namespace WpfInteractionApp
                 Left = left;
                 Top = top;
             }, DispatcherPriority.Loaded);
+        }
+
+        private void SetupNotificationStyle(LogType notificationType)
+        {
+            Color iconColor, backgroundColor;
+            string iconText;
+
+            switch (notificationType)
+            {
+                case LogType.Error:
+                    iconColor = Color.FromRgb(239, 68, 68); // Red
+                    backgroundColor = Color.FromRgb(254, 242, 242); // Light red
+                    iconText = "✕";
+                    break;
+                case LogType.Warning:
+                    iconColor = Color.FromRgb(245, 158, 11); // Yellow
+                    backgroundColor = Color.FromRgb(255, 251, 235); // Light yellow  
+                    iconText = "⚠";
+                    break;
+                case LogType.Success:
+                    iconColor = Color.FromRgb(34, 197, 94); // Green
+                    backgroundColor = Color.FromRgb(240, 253, 244); // Light green
+                    iconText = "✓";
+                    break;
+                default: // Info
+                    iconColor = Color.FromRgb(59, 130, 246); // Blue
+                    backgroundColor = Color.FromRgb(239, 246, 255); // Light blue
+                    iconText = "ℹ";
+                    break;
+            }
+
+            // Set icon
+            IconText.Text = iconText;
+            IconText.Foreground = new SolidColorBrush(iconColor);
+            IconBorder.Background = new SolidColorBrush(backgroundColor);
+        }
+
+        private void UpdateTimerDisplay()
+        {
+            TimerText.Text = $"{_remainingSeconds}s";
+            
+            // Update progress with animation
+            double progress = (_totalSeconds - _remainingSeconds) / (double)_totalSeconds;
+            
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (ActualWidth > 0) // Make sure window is loaded
+                {
+                    // Animate progress bar using ScaleTransform
+                    if (ProgressBar.RenderTransform == null || !(ProgressBar.RenderTransform is ScaleTransform))
+                    {
+                        ProgressBar.RenderTransform = new ScaleTransform();
+                        ProgressBar.RenderTransformOrigin = new Point(0, 0.5);
+                    }
+                    
+                    var scaleTransform = (ScaleTransform)ProgressBar.RenderTransform;
+                    var scaleAnimation = new DoubleAnimation
+                    {
+                        To = progress,
+                        Duration = TimeSpan.FromMilliseconds(300),
+                        EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                    };
+                    
+                    scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnimation);
+                }
+            });
+            
+            // Update circular progress
+            UpdateCircularProgress(progress);
+        }
+
+        private void UpdateCircularProgress(double progress)
+        {
+            if (ProgressArc == null) return;
+
+            double angle = progress * 360;
+            double radius = 10; // Half of 24px diameter minus stroke
+            Point center = new Point(12, 12);
+            
+            Point startPoint = new Point(center.X, center.Y - radius);
+            Point endPoint = new Point(
+                center.X + radius * Math.Sin(angle * Math.PI / 180),
+                center.Y - radius * Math.Cos(angle * Math.PI / 180)
+            );
+
+            bool isLargeArc = angle > 180;
+            
+            var pathGeometry = new PathGeometry();
+            var pathFigure = new PathFigure { StartPoint = startPoint };
+            
+            if (angle > 0)
+            {
+                pathFigure.Segments.Add(new ArcSegment
+                {
+                    Point = endPoint,
+                    Size = new Size(radius, radius),
+                    SweepDirection = SweepDirection.Clockwise,
+                    IsLargeArc = isLargeArc
+                });
+            }
+            
+            pathGeometry.Figures.Add(pathFigure);
+            ProgressArc.Data = pathGeometry;
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
