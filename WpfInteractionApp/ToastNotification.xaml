@@ -107,26 +107,88 @@
         </Border.Effect>
         
         <Grid Margin="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Main Content -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <StackPanel x:Name="MainPanel" Grid.Column="0" Margin="0,0,16,0">
-                <TextBlock x:Name="TitleBlock" 
-                          Style="{DynamicResource Carbon.TextBlock.Subheading}"
-                          Visibility="{Binding Text, ElementName=TitleBlock, Converter={StaticResource StringToVisibilityConverter}}"
-                          Margin="0,0,0,8"/>
-                
-                <TextBox x:Name="MessageBlock" 
-                        Style="{DynamicResource Carbon.TextBox.Message}"
-                        IsManipulationEnabled="True"/>
-            </StackPanel>
+                <!-- Icon -->
+                <Border Grid.Column="0" 
+                        x:Name="IconBorder"
+                        Width="32" Height="32" 
+                        CornerRadius="16"
+                        Margin="0,0,12,0"
+                        VerticalAlignment="Top">
+                    <TextBlock x:Name="IconText" 
+                              FontSize="16" 
+                              HorizontalAlignment="Center" 
+                              VerticalAlignment="Center"
+                              FontWeight="Bold"/>
+                </Border>
 
-            <Button Grid.Column="1"
-                    Style="{DynamicResource CloseButtonStyle}"
-                    Click="CloseButton_Click"
-                    VerticalAlignment="Top"/>
+                <!-- Text Content -->
+                <StackPanel x:Name="MainPanel" Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock x:Name="TitleBlock" 
+                              Style="{DynamicResource Carbon.TextBlock.Subheading}"
+                              Margin="0,0,0,4"/>
+                    
+                    <TextBox x:Name="MessageBlock" 
+                            Style="{DynamicResource Carbon.TextBox.Message}"
+                            IsManipulationEnabled="True"/>
+                </StackPanel>
+
+                <!-- Timer Display -->
+                <StackPanel Grid.Column="2" 
+                           VerticalAlignment="Center" 
+                           Margin="12,0,12,0">
+                    <TextBlock x:Name="TimerText" 
+                              FontSize="12" 
+                              FontWeight="SemiBold"
+                              Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
+                              HorizontalAlignment="Center"
+                              Margin="0,0,0,2"/>
+                    
+                    <!-- Circular Progress -->
+                    <Viewbox Width="24" Height="24">
+                        <Grid>
+                            <Ellipse Stroke="{DynamicResource Carbon.Brush.Background.Tertiary}" 
+                                    StrokeThickness="2" 
+                                    Width="24" Height="24"/>
+                            <Path x:Name="ProgressArc" 
+                                  Stroke="{DynamicResource Carbon.Brush.Interactive.Primary}" 
+                                  StrokeThickness="2"/>
+                        </Grid>
+                    </Viewbox>
+                </StackPanel>
+
+                <!-- Close Button -->
+                <Button Grid.Column="3"
+                        Style="{DynamicResource CloseButtonStyle}"
+                        Click="CloseButton_Click"
+                        VerticalAlignment="Top"/>
+            </Grid>
+            
+            <!-- Progress Bar at Bottom -->
+            <Border Grid.Row="1" 
+                    Height="3" 
+                    Background="{DynamicResource Carbon.Brush.Background.Tertiary}"
+                    CornerRadius="1.5"
+                    Margin="0,12,0,0">
+                <Border x:Name="ProgressBar"
+                        Background="{DynamicResource Carbon.Brush.Interactive.Primary}"
+                        CornerRadius="1.5"
+                        HorizontalAlignment="Left"
+                        Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
+            </Border>
         </Grid>
     </Border>
 </Window>
