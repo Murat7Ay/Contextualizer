@@ -154,7 +154,30 @@ namespace WpfInteractionApp
             {
                 try
                 {
-                    var toast = new ToastNotification(message, durationInSeconds, title, notificationType, onActionClicked);
+                    // Convert legacy single action to new ToastAction array
+                    ToastAction[] actions = null;
+                    if (onActionClicked != null)
+                    {
+                        actions = new[] { new ToastAction { Text = "Action", Action = onActionClicked, Style = ToastActionStyle.Primary } };
+                    }
+                    
+                    var toast = new ToastNotification(message, durationInSeconds, title, notificationType, actions);
+                    toast.Show();
+                }
+                catch (Exception ex)
+                {
+                    Log(LogType.Error, $"Bildirim gösterilemedi: {ex.Message}");
+                }
+            });
+        }
+
+        public void ShowNotificationWithActions(string message, LogType notificationType = LogType.Info, string title = "", int durationInSeconds = 5, params ToastAction[] actions)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    var toast = new ToastNotification(message, durationInSeconds, title, notificationType, actions);
                     toast.Show();
                 }
                 catch (Exception ex)

@@ -26,6 +26,8 @@ namespace WpfInteractionApp
         private int _remainingSeconds;
         private int _totalSeconds;
         private bool _isPaused = false;
+        private ToastAction[] _actions;
+        private ToastAction _defaultAction;
 
         private string FormatMessage(string message)
         {
@@ -34,12 +36,16 @@ namespace WpfInteractionApp
             return Regex.Unescape(message);
         }
 
-        public ToastNotification(string message, int? durationInSeconds, string title = "", LogType notificationType = LogType.Info, Action? onActionClicked = null)
+        public ToastNotification(string message, int? durationInSeconds, string title = "", LogType notificationType = LogType.Info, params ToastAction[] actions)
         {
             InitializeComponent();
             
             _remainingSeconds = durationInSeconds ?? 3;
             _totalSeconds = _remainingSeconds;
+            _actions = actions;
+            
+            // Find default action
+            _defaultAction = actions?.FirstOrDefault(a => a.IsDefaultAction);
 
             // Set window properties
             WindowStyle = WindowStyle.None;
@@ -59,17 +65,10 @@ namespace WpfInteractionApp
             // Initialize timer display
             UpdateTimerDisplay();
 
-            // Add action button if needed
-            if (onActionClicked != null)
+            // Add action buttons if provided
+            if (actions != null && actions.Length > 0)
             {
-                var button = new Button
-                {
-                    Content = "Eylem",
-                    Style = (Style)FindResource("Carbon.Button.Base"),
-                    Margin = new Thickness(0, 12, 0, 0)
-                };
-                button.Click += (s, e) => { onActionClicked.Invoke(); Close(); };
-                MainPanel.Children.Add(button);
+                AddActionButtons(actions);
             }
 
             // Timer setup
@@ -86,8 +85,8 @@ namespace WpfInteractionApp
                     
                     if (_remainingSeconds <= 0)
                     {
-                        Close();
                         _timer.Stop();
+                        ExecuteDefaultActionAndClose();
                     }
                 }
             };
@@ -299,9 +298,74 @@ namespace WpfInteractionApp
             ProgressArc.Data = pathGeometry;
         }
 
+        private void AddActionButtons(ToastAction[] actions)
+        {
+            ActionButtonsPanel.Children.Clear();
+            ActionButtonsPanel.Visibility = Visibility.Visible;
+
+            foreach (var action in actions)
+            {
+                var button = new Button
+                {
+                    Content = action.Text,
+                    Style = GetButtonStyle(action.Style)
+                };
+
+                button.Click += (s, e) =>
+                {
+                    try
+                    {
+                        action.Action?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Toast action error: {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (action.CloseOnClick)
+                        {
+                            Close();
+                        }
+                    }
+                };
+
+                ActionButtonsPanel.Children.Add(button);
+            }
+        }
+
+        private Style GetButtonStyle(ToastActionStyle actionStyle)
+        {
+            string styleKey = actionStyle switch
+            {
+                ToastActionStyle.Primary => "ToastActionButton.Primary",
+                ToastActionStyle.Danger => "ToastActionButton.Danger", 
+                _ => "ToastActionButton.Secondary"
+            };
+
+            return (Style)FindResource(styleKey);
+        }
+
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            ExecuteDefaultActionAndClose();
+        }
+
+        private void ExecuteDefaultActionAndClose()
+        {
+            _timer?.Stop(); // Timer'ı durdur
+            try
+            {
+                _defaultAction?.Action?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Default action execution error: {ex.Message}");
+            }
+            finally
+            {
+                Close();
+            }
         }
     }
 }

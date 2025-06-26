@@ -21,5 +21,6 @@ namespace Contextualizer.PluginContracts
         public Task<bool> ShowConfirmationAsync(string title, string message);
         public string? GetUserInput(UserInputRequest? request);
         public NavigationResult GetUserInputWithNavigation(UserInputRequest request, Dictionary<string, string> context, bool canGoBack, int currentStep, int totalSteps);
+        public void ShowNotificationWithActions(string message, LogType notificationType = LogType.Info, string title = "", int durationInSeconds = 5, params ToastAction[] actions);
     }
 }

@@ -27,6 +27,13 @@ namespace Contextualizer.Plugins
                 pluginServiceProvider.GetService<IUserInteractionService>().ShowNotification($"Key: {key}", LogType.Info, "Key-Value Pair", 5, null);
             }));
 
+
+            var toastTrigger = new KeyValuePair<string, Action<Dictionary<string, string>>>("Toast Trigger", (context) =>
+             {
+                 pluginServiceProvider.GetService<IUserInteractionService>().ShowNotificationWithActions($"Trigger", LogType.Info, "Toast Actions", 5, ToastActions.Yes(() => pluginServiceProvider.GetService<IUserInteractionService>().ShowNotification($"YES", LogType.Info, "YES", 5, null)), ToastActions.DefaultNo(() => pluginServiceProvider.GetService<IUserInteractionService>().ShowNotification($"NO", LogType.Info, "NO", 5, null)));
+             });
+            actions.Add(toastTrigger);
+
             context[ContextKey._body] = context[action.Key];
 
             pluginServiceProvider.GetService<IUserInteractionService>().ShowWindow(context._handlerConfig.ScreenId, context._handlerConfig.Title, context, actions);
