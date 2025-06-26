@@ -40,6 +40,75 @@ namespace Contextualizer.Core
             }
         }
 
+        public bool PromptUserInputsWithNavigation(List<UserInputRequest> userInputs, Dictionary<string, string> context)
+        {
+            if (userInputs == null || userInputs.Count == 0)
+                return true;
+
+            var userInteractionService = ServiceLocator.Get<IUserInteractionService>();
+            int currentIndex = 0;
+
+            while (currentIndex < userInputs.Count)
+            {
+                var input = userInputs[currentIndex];
+                
+                if (string.IsNullOrWhiteSpace(input?.Key))
+                {
+                    currentIndex++;
+                    continue;
+                }
+
+                // Handle dependent selection items
+                if (!string.IsNullOrEmpty(input.DependentKey) &&
+                    context.TryGetValue(input.DependentKey, out var dependentValue) &&
+                    input.DependentSelectionItemMap?.TryGetValue(dependentValue, out var dependentSelection) == true)
+                {
+                    input.SelectionItems = dependentSelection.SelectionItems;
+                    input.DefaultValue = dependentSelection.DefaultValue;
+                }
+
+                var result = ShowNavigationDialog(input, context, currentIndex > 0, currentIndex, userInputs.Count);
+
+                switch (result.Action)
+                {
+                    case NavigationAction.Next:
+                        if (!string.IsNullOrWhiteSpace(result.Value))
+                        {
+                            context[input.Key] = result.Value;
+                        }
+                        currentIndex++;
+                        break;
+
+                    case NavigationAction.Back:
+                        if (currentIndex > 0)
+                        {
+                            currentIndex--;
+                            // Remove current input from context when going back
+                            context.Remove(input.Key);
+                        }
+                        break;
+
+                    case NavigationAction.Cancel:
+                        return false; // User cancelled entire process
+                }
+            }
+
+            return true; // All inputs completed successfully
+        }
+
+        private NavigationResult ShowNavigationDialog(
+            UserInputRequest request, 
+            Dictionary<string, string> context, 
+            bool canGoBack, 
+            int currentStep, 
+            int totalSteps)
+        {
+            var userInteractionService = ServiceLocator.Get<IUserInteractionService>();
+            
+            // Call the navigation method directly from interface
+            return userInteractionService.GetUserInputWithNavigation(request, context, canGoBack, currentStep, totalSteps);
+        }
+
         public void ContextSeederSeed(Dictionary<string, string> seeder, Dictionary<string, string> context)
         {
             if (seeder is null)

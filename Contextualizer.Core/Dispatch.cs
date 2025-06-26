@@ -38,7 +38,14 @@ namespace Contextualizer.Core
                 ContextWrapper contextWrapper = new ContextWrapper(context.AsReadOnly(), HandlerConfig);
                 FindSelectorKey(clipboardContent, contextWrapper);
                 HandlerContextProcessor handlerContextProcessor = new HandlerContextProcessor();
-                handlerContextProcessor.PromptUserInputsAsync(HandlerConfig.UserInputs, contextWrapper);
+                bool isUserCompleted = handlerContextProcessor.PromptUserInputsWithNavigation(HandlerConfig.UserInputs, contextWrapper);
+
+                if(!isUserCompleted)
+                {
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Handler {HandlerConfig.Name} cancelled by user input.");
+                    return;
+                }
+
                 handlerContextProcessor.ContextSeederSeed(HandlerConfig.Seeder, contextWrapper);
                 ContextDefaultSeed(contextWrapper);
                 DispatchAction(GetActions(), contextWrapper);

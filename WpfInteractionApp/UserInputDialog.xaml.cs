@@ -14,19 +14,44 @@ namespace WpfInteractionApp
         private readonly UserInputRequest _request;
         public string UserInput { get; private set; }
         public List<string> SelectedValues { get; private set; }
+        public NavigationResult NavigationResult { get; private set; }
+        
+        // Navigation properties
+        public bool CanGoBack { get; set; } = false;
+        public int CurrentStep { get; set; } = 0;
+        public int TotalSteps { get; set; } = 0;
 
-        public UserInputDialog(UserInputRequest request)
+        public UserInputDialog(UserInputRequest request) : this(request, null, false, 0, 0)
+        {
+        }
+
+        public UserInputDialog(UserInputRequest request, Dictionary<string, string> context, bool canGoBack = false, int currentStep = 0, int totalSteps = 0)
         {
             InitializeComponent();
             _request = request ?? throw new ArgumentNullException(nameof(request));
             SelectedValues = new List<string>();
             
+            // Set navigation properties
+            CanGoBack = canGoBack;
+            CurrentStep = currentStep;
+            TotalSteps = totalSteps;
+            
             // Set window title and message
             Title = request.Title;
             MessageText.Text = request.Message;
+            
+            // Show progress indicator if in navigation mode
+            if (totalSteps > 1)
+            {
+                ProgressText.Text = $"({currentStep + 1}/{totalSteps})";
+                ProgressText.Visibility = Visibility.Visible;
+            }
+            
+            // Show back button if navigation is possible
+            BackButton.Visibility = canGoBack ? Visibility.Visible : Visibility.Collapsed;
 
-            // Configure input controls based on request type
-            ConfigureInputControls();
+            // Configure input controls with context-based defaults
+            ConfigureInputControls(context);
 
             // Set owner window
             if (Application.Current.MainWindow != null)
@@ -43,7 +68,7 @@ namespace WpfInteractionApp
             Loaded += (s, e) => SetInitialFocus();
         }
 
-        private void ConfigureInputControls()
+        private void ConfigureInputControls(Dictionary<string, string> context = null)
         {
             // Show required field indicator if needed
             RequiredIndicator.Visibility = _request.IsRequired ? Visibility.Visible : Visibility.Collapsed;
@@ -55,6 +80,13 @@ namespace WpfInteractionApp
                 ValidationPatternText.Visibility = Visibility.Visible;
             }
 
+            // Get default value - prioritize context over request default
+            string defaultValue = _request.DefaultValue;
+            if (context?.TryGetValue(_request.Key, out var contextValue) == true)
+            {
+                defaultValue = contextValue;
+            }
+
             // Configure input control based on request type
             if (_request.IsFilePicker)
             {
@@ -64,9 +96,9 @@ namespace WpfInteractionApp
                 SelectionComboBox.Visibility = Visibility.Collapsed;
                 MultiSelectListBox.Visibility = Visibility.Collapsed;
 
-                if (!string.IsNullOrEmpty(_request.DefaultValue))
+                if (!string.IsNullOrEmpty(defaultValue))
                 {
-                    FilePathTextBox.Text = _request.DefaultValue;
+                    FilePathTextBox.Text = defaultValue;
                 }
             }
             else if (_request.IsSelectionList && _request.SelectionItems != null)
@@ -89,13 +121,13 @@ namespace WpfInteractionApp
                     }
 
                     // Set default values if provided
-                    if (!string.IsNullOrEmpty(_request.DefaultValue))
+                    if (!string.IsNullOrEmpty(defaultValue))
                     {
-                        var defaultValues = _request.DefaultValue.Split(',');
-                        foreach (var defaultValue in defaultValues)
+                        var defaultValues = defaultValue.Split(',');
+                        foreach (var value in defaultValues)
                         {
                             var item = MultiSelectListBox.Items.Cast<ListBoxItem>()
-                                .FirstOrDefault(i => i.Tag.ToString() == defaultValue.Trim());
+                                .FirstOrDefault(i => i.Tag.ToString() == value.Trim());
                             if (item != null)
                             {
                                 item.IsSelected = true;
@@ -120,9 +152,9 @@ namespace WpfInteractionApp
                         });
                     }
 
-                    if (!string.IsNullOrEmpty(_request.DefaultValue))
+                    if (!string.IsNullOrEmpty(defaultValue))
                     {
-                        var defaultItem = _request.SelectionItems.Find(i => i.Value == _request.DefaultValue);
+                        var defaultItem = _request.SelectionItems.Find(i => i.Value == defaultValue);
                         if (defaultItem != null)
                         {
                             SelectionComboBox.SelectedIndex = _request.SelectionItems.IndexOf(defaultItem);
@@ -146,9 +178,9 @@ namespace WpfInteractionApp
                 MultiSelectListBox.Visibility = Visibility.Collapsed;
                 FilePickerGrid.Visibility = Visibility.Collapsed;
 
-                if (!string.IsNullOrEmpty(_request.DefaultValue))
+                if (!string.IsNullOrEmpty(defaultValue))
                 {
-                    InputTextBox.Text = _request.DefaultValue;
+                    InputTextBox.Text = defaultValue;
                 }
 
                 // Configure multiline settings
@@ -252,14 +284,40 @@ namespace WpfInteractionApp
             }
 
             UserInput = input;
+            NavigationResult = new NavigationResult
+            {
+                Action = NavigationAction.Next,
+                Value = input,
+                SelectedValues = SelectedValues
+            };
             DialogResult = true;
+            Close();
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationResult = new NavigationResult
+            {
+                Action = NavigationAction.Back
+            };
+            DialogResult = false;
             Close();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
+            NavigationResult = new NavigationResult
+            {
+                Action = NavigationAction.Cancel
+            };
             DialogResult = false;
             Close();
+        }
+
+        public NavigationResult ShowNavigationDialog()
+        {
+            ShowDialog();
+            return NavigationResult ?? new NavigationResult { Action = NavigationAction.Cancel };
         }
     }
 }

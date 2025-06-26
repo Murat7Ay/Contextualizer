@@ -56,4 +56,18 @@ namespace Contextualizer.PluginContracts
         [JsonPropertyName("display")]
         public string Display { get; set; } = string.Empty;
     }
+
+    public enum NavigationAction
+    {
+        Next,     // OK pressed
+        Back,     // Back pressed  
+        Cancel    // Cancel pressed
+    }
+
+    public class NavigationResult
+    {
+        public NavigationAction Action { get; set; }
+        public string? Value { get; set; }
+        public List<string>? SelectedValues { get; set; }
+    }
 }

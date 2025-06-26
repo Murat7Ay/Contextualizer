@@ -117,11 +117,25 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" 
-                  x:Name="MessageText"
-                  Style="{DynamicResource Carbon.TextBlock.Body}"
-                  TextWrapping="Wrap"
-                  Margin="0,0,0,8"/>
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0" 
+                      x:Name="MessageText"
+                      Style="{DynamicResource Carbon.TextBlock.Body}"
+                      TextWrapping="Wrap"/>
+                      
+            <TextBlock Grid.Column="1" 
+                      x:Name="ProgressText" 
+                      Style="{DynamicResource Carbon.TextBlock.Caption}"
+                      Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
+                      VerticalAlignment="Top"
+                      Margin="8,0,0,0"
+                      Visibility="Collapsed"/>
+        </Grid>
 
         <!-- Required Field Indicator -->
         <TextBlock Grid.Row="1"
@@ -194,6 +208,14 @@
         <StackPanel Grid.Row="4" 
                     Orientation="Horizontal" 
                     HorizontalAlignment="Right">
+            <Button x:Name="BackButton"
+                    Content="Back"
+                    Style="{DynamicResource Carbon.Button.Secondary}"
+                    Click="BackButton_Click"
+                    MinWidth="100"
+                    Margin="0,0,12,0"
+                    Visibility="Collapsed"/>
+                    
             <Button Content="Cancel"
                     Style="{DynamicResource Carbon.Button.Secondary}"
                     Click="CancelButton_Click"

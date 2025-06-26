@@ -20,5 +20,6 @@ namespace Contextualizer.PluginContracts
 
         public Task<bool> ShowConfirmationAsync(string title, string message);
         public string? GetUserInput(UserInputRequest? request);
+        public NavigationResult GetUserInputWithNavigation(UserInputRequest request, Dictionary<string, string> context, bool canGoBack, int currentStep, int totalSteps);
     }
 }
