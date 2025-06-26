@@ -93,13 +93,27 @@
     </Style>
 
     <Style x:Key="Carbon.Button.Secondary" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
-        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Secondary}" />
-        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+
         <Style.Triggers>
+            <!-- Mouse üzerine gelindiğinde -->
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}" />
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
+                <Setter Property="Foreground" Value="#FFFFFF" />
+            </Trigger>
+
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Active}" />
+                <Setter Property="Foreground" Value="#FFFFFF" />
+            </Trigger>
+
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Disabled}" />
+                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Disabled}" />
             </Trigger>
         </Style.Triggers>
     </Style>
