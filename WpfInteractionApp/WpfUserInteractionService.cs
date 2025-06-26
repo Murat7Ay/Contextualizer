@@ -200,6 +200,28 @@ namespace WpfInteractionApp
             });
         }
 
+        public NavigationResult GetUserInputWithNavigation(
+            UserInputRequest request, 
+            Dictionary<string, string> context, 
+            bool canGoBack, 
+            int currentStep, 
+            int totalSteps)
+        {
+            return Application.Current.Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    var dialog = new UserInputDialog(request, context, canGoBack, currentStep, totalSteps);
+                    return dialog.ShowNavigationDialog();
+                }
+                catch (Exception ex)
+                {
+                    Log(LogType.Error, $"Navigation kullanıcı girişi alınamadı: {ex.Message}");
+                    return new NavigationResult { Action = NavigationAction.Cancel };
+                }
+            });
+        }
+
         public void ShowToastMessage(string message, int duration = 3)
         {
             throw new NotImplementedException();
