@@ -17,7 +17,6 @@ namespace WpfInteractionApp
     public partial class HandlerExchangeWindow : Window
     {
         private readonly IHandlerExchange _handlerExchange;
-        private readonly ISettingsService _settingsService;
         private ObservableCollection<HandlerPackage> _handlers;
         private ObservableCollection<string> _tags;
         private HandlerPackage _selectedHandler;
@@ -34,6 +33,10 @@ namespace WpfInteractionApp
             TagFilter.ItemsSource = _tags;
             
             Loaded += HandlerExchangeWindow_Loaded;
+            
+            // Restore window position and setup closing event
+            RestoreWindowPosition();
+            Closing += HandlerExchangeWindow_Closing;
         }
 
         private async void HandlerExchangeWindow_Loaded(object sender, RoutedEventArgs e)
@@ -204,6 +207,75 @@ namespace WpfInteractionApp
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void RestoreWindowPosition()
+        {
+            try
+            {
+                var settingsService = ServiceLocator.Get<SettingsService>();
+                var windowPos = settingsService.Settings.WindowSettings.ExchangeWindow;
+                
+                if (!double.IsNaN(windowPos.Left) && !double.IsNaN(windowPos.Top))
+                {
+                    Left = windowPos.Left;
+                    Top = windowPos.Top;
+                }
+                
+                if (!double.IsNaN(windowPos.Width) && windowPos.Width > 0)
+                {
+                    Width = windowPos.Width;
+                }
+                
+                if (!double.IsNaN(windowPos.Height) && windowPos.Height > 0)
+                {
+                    Height = windowPos.Height;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // ServiceLocator not initialized or SettingsService not registered
+            }
+        }
+
+        private void HandlerExchangeWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SaveWindowPosition();
+        }
+
+        private void SaveWindowPosition()
+        {
+            try
+            {
+                var settingsService = ServiceLocator.Get<SettingsService>();
+                var windowPos = settingsService.Settings.WindowSettings.ExchangeWindow;
+                
+                // Only update in memory, don't save to disk yet
+                if (IsValidPosition(Left))
+                    windowPos.Left = Left;
+                if (IsValidPosition(Top))
+                    windowPos.Top = Top;
+                if (IsValidSize(Width))
+                    windowPos.Width = Width;
+                if (IsValidSize(Height))
+                    windowPos.Height = Height;
+                
+                // Settings will be saved when application exits
+            }
+            catch (InvalidOperationException)
+            {
+                // ServiceLocator not initialized or SettingsService not registered
+            }
+        }
+
+        private static bool IsValidPosition(double value)
+        {
+            return !double.IsNaN(value) && !double.IsInfinity(value);
+        }
+
+        private static bool IsValidSize(double value)
+        {
+            return !double.IsNaN(value) && !double.IsInfinity(value) && value > 0;
         }
     }
 } 
