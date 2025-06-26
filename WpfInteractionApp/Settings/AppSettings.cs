@@ -80,6 +80,27 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("grid_splitter_position")]
         public double GridSplitterPosition { get; set; } = 200;
+
+        [JsonPropertyName("settings_window")]
+        public WindowPosition SettingsWindow { get; set; } = new WindowPosition();
+
+        [JsonPropertyName("exchange_window")]
+        public WindowPosition ExchangeWindow { get; set; } = new WindowPosition();
+    }
+
+    public class WindowPosition
+    {
+        [JsonPropertyName("left")]
+        public double Left { get; set; } = 0;
+
+        [JsonPropertyName("top")]
+        public double Top { get; set; } = 0;
+
+        [JsonPropertyName("width")]
+        public double Width { get; set; } = 0;
+
+        [JsonPropertyName("height")]
+        public double Height { get; set; } = 0;
     }
 
     public class UISettings

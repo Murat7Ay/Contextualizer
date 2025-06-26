@@ -65,6 +65,17 @@ namespace WpfInteractionApp
 
         protected override void OnExit(ExitEventArgs e)
         {
+            // Save settings before exit
+            try
+            {
+                _settingsService?.SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't prevent shutdown
+                System.Diagnostics.Debug.WriteLine($"Error saving settings on exit: {ex.Message}");
+            }
+
             _handlerManager?.Dispose();
             base.OnExit(e);
         }

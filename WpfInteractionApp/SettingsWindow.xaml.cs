@@ -9,6 +9,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using WpfInteractionApp.Settings;
+using WpfInteractionApp.Services;
+using Contextualizer.Core;
 
 namespace WpfInteractionApp
 {
@@ -169,6 +171,12 @@ namespace WpfInteractionApp
 
             // KeyTextBox'a PreviewKeyDown event handler'ı ekle
             KeyTextBox.PreviewKeyDown += KeyTextBox_PreviewKeyDown;
+
+            // Restore window position
+            RestoreWindowPosition();
+
+            // Save window position when closing
+            Closing += SettingsWindow_Closing;
         }
 
         private void KeyTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -232,6 +240,75 @@ namespace WpfInteractionApp
         {
             DialogResult = false;
             Close();
+        }
+
+        private void RestoreWindowPosition()
+        {
+            try
+            {
+                var settingsService = ServiceLocator.Get<SettingsService>();
+                var windowPos = settingsService.Settings.WindowSettings.SettingsWindow;
+                
+                if (!double.IsNaN(windowPos.Left) && !double.IsNaN(windowPos.Top))
+                {
+                    Left = windowPos.Left;
+                    Top = windowPos.Top;
+                }
+                
+                if (!double.IsNaN(windowPos.Width) && windowPos.Width > 0)
+                {
+                    Width = windowPos.Width;
+                }
+                
+                if (!double.IsNaN(windowPos.Height) && windowPos.Height > 0)
+                {
+                    Height = windowPos.Height;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // ServiceLocator not initialized or SettingsService not registered
+            }
+        }
+
+        private void SettingsWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SaveWindowPosition();
+        }
+
+        private void SaveWindowPosition()
+        {
+            try
+            {
+                var settingsService = ServiceLocator.Get<SettingsService>();
+                var windowPos = settingsService.Settings.WindowSettings.SettingsWindow;
+                
+                // Only update in memory, don't save to disk yet
+                if (IsValidPosition(Left))
+                    windowPos.Left = Left;
+                if (IsValidPosition(Top))
+                    windowPos.Top = Top;
+                if (IsValidSize(Width))
+                    windowPos.Width = Width;
+                if (IsValidSize(Height))
+                    windowPos.Height = Height;
+                
+                // Settings will be saved when application exits
+            }
+            catch (InvalidOperationException)
+            {
+                // ServiceLocator not initialized or SettingsService not registered
+            }
+        }
+
+        private static bool IsValidPosition(double value)
+        {
+            return !double.IsNaN(value) && !double.IsInfinity(value);
+        }
+
+        private static bool IsValidSize(double value)
+        {
+            return !double.IsNaN(value) && !double.IsInfinity(value) && value > 0;
         }
 
         protected virtual void OnPropertyChanged(string propertyName)
