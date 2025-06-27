@@ -49,7 +49,7 @@ namespace WpfInteractionApp
                 var menuItem = new MenuItem
                 {
                     Header = handler,
-                    Style = (Style)FindResource("Carbon.MenuItem")
+                    Style = (Style)FindResource("Carbon.MenuItem.Light")
                 };
                 menuItem.Click += async (s, e) =>
                 {
