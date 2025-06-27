@@ -143,6 +143,14 @@ namespace Contextualizer.Core
 
             try
             {
+                // Handle $file: prefix - read file content and then process placeholders
+                if (input.StartsWith("$file:"))
+                {
+                    var filePath = input.Substring(6); // Remove "$file:"
+                    var fileContent = File.ReadAllText(filePath);
+                    input = fileContent;
+                }
+
                 return PlaceholderRegex.Replace(input, match =>
                 {
                     var key = match.Groups[1].Value;
