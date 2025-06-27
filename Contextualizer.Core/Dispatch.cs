@@ -113,19 +113,7 @@ namespace Contextualizer.Core
                 return;
             }
 
-            string formattedOutput;
-
-            if (this.OutputFormat.StartsWith("$file:"))
-            {
-                var filePath = this.OutputFormat.Substring(6); // Remove "$file:"
-                var fileContent = File.ReadAllText(filePath);
-                formattedOutput = HandlerContextProcessor.ReplaceDynamicValues(fileContent, context);
-            }
-            else
-            {
-                formattedOutput = HandlerContextProcessor.ReplaceDynamicValues(this.OutputFormat, context);
-            }
-
+            var formattedOutput = HandlerContextProcessor.ReplaceDynamicValues(this.OutputFormat, context);
             context[ContextKey._formatted_output] = formattedOutput;
         }
 
