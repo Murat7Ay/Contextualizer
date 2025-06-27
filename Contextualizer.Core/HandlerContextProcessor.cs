@@ -138,7 +138,7 @@ namespace Contextualizer.Core
 
         public static string ReplaceDynamicValues(string input, Dictionary<string, string> context)
         {
-            if (string.IsNullOrEmpty(input) || context == null)
+            if (string.IsNullOrEmpty(input))
                 return input;
 
             try
@@ -151,14 +151,23 @@ namespace Contextualizer.Core
                     input = fileContent;
                 }
 
-                return PlaceholderRegex.Replace(input, match =>
-                {
-                    var key = match.Groups[1].Value;
-                    if (string.IsNullOrEmpty(key))
-                        return match.Value;
+                // Process functions first ($func: calls)
+                input = FunctionProcessor.ProcessFunctions(input);
 
-                    return context.TryGetValue(key, out var value) ? value : match.Value;
-                });
+                // Then process context placeholders
+                if (context != null)
+                {
+                    input = PlaceholderRegex.Replace(input, match =>
+                    {
+                        var key = match.Groups[1].Value;
+                        if (string.IsNullOrEmpty(key))
+                            return match.Value;
+
+                        return context.TryGetValue(key, out var value) ? value : match.Value;
+                    });
+                }
+
+                return input;
             }
             catch (Exception ex)
             {
