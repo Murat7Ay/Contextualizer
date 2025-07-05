@@ -51,7 +51,7 @@ namespace Contextualizer.Core
             while (currentIndex < userInputs.Count)
             {
                 var input = userInputs[currentIndex];
-                
+
                 if (string.IsNullOrWhiteSpace(input?.Key))
                 {
                     currentIndex++;
@@ -97,61 +97,55 @@ namespace Contextualizer.Core
         }
 
         private NavigationResult ShowNavigationDialog(
-            UserInputRequest request, 
-            Dictionary<string, string> context, 
-            bool canGoBack, 
-            int currentStep, 
+            UserInputRequest request,
+            Dictionary<string, string> context,
+            bool canGoBack,
+            int currentStep,
             int totalSteps)
         {
             var userInteractionService = ServiceLocator.Get<IUserInteractionService>();
-            
+
             // Call the navigation method directly from interface
             return userInteractionService.GetUserInputWithNavigation(request, context, canGoBack, currentStep, totalSteps);
         }
 
-        public void ContextConstantSeederSeed(Dictionary<string,string> constantSeeder, Dictionary<string, string> context)
+        public void MergeIntoContext(Dictionary<string, string>? source, Dictionary<string, string> context)
         {
-            if(constantSeeder is null)
-            {
-                return;
-            }
+            if (source == null) return;
 
-            foreach (var kvp in constantSeeder)
+            foreach (var (key, value) in source)
             {
-                if (string.IsNullOrEmpty(kvp.Key))
+                if (string.IsNullOrEmpty(key))
                     continue;
 
-                var replacedValue = ReplaceDynamicValues(kvp.Value, context);
-                if (replacedValue != null)
-                {
-                    context[kvp.Key] = replacedValue;
-                }
+                context[key] = value;
             }
         }
 
-        public void ContextSeederSeed(Dictionary<string, string> seeder, Dictionary<string, string> context)
+        public void ContextResolve(Dictionary<string, string>? constantSeeder, Dictionary<string, string>? seeder, Dictionary<string, string> context)
         {
-            if (seeder is null)
-                return;
-            var resolvedSeeder = ResolveSeeder(seeder);
-            foreach (var kvp in resolvedSeeder)
+            if (constantSeeder is not null)
             {
-                if (string.IsNullOrEmpty(kvp.Key))
-                    continue;
+                MergeIntoContext(constantSeeder, context);
+            }
 
-                var replacedValue = ReplaceDynamicValues(kvp.Value, context);
-                if (replacedValue != null)
-                {
-                    context[kvp.Key] = replacedValue;
-                }
+            if (seeder is not null)
+            {
+                var resolvedSeeder = Resolve(seeder, context);
+                MergeIntoContext(resolvedSeeder, context);
+            }
+            
+            foreach (var key in context.Keys)
+            {
+                context[key] = ReplaceDynamicValues(context[key], context);
             }
         }
-        private Dictionary<string, string> ResolveSeeder(Dictionary<string, string> seeder)
+        private Dictionary<string, string> Resolve(Dictionary<string, string> seeder, Dictionary<string, string> context)
         {
             var resolved = new Dictionary<string, string>(seeder);
             foreach (var key in seeder.Keys)
             {
-                resolved[key] = ReplaceDynamicValues(seeder[key], resolved);
+                resolved[key] = ReplaceDynamicValues(seeder[key], context);
             }
             return resolved;
         }
