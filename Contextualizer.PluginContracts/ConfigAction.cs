@@ -16,6 +16,8 @@ namespace Contextualizer.PluginContracts
         public List<UserInputRequest> UserInputs { get; set; }
         [JsonPropertyName("seeder")]
         public Dictionary<string, string> Seeder { get; set; }
+        [JsonPropertyName("constant_seeder")]
+        public Dictionary<string, string> ConstantSeeder { get; set; }
         [JsonPropertyName("inner_actions")]
         public List<ConfigAction>? InnerActions { get; set; }
     }

@@ -55,6 +55,8 @@ namespace Contextualizer.PluginContracts
         public string OutputFormat { get; set; }
         [JsonPropertyName("seeder")]
         public Dictionary<string, string> Seeder { get; set; }
+        [JsonPropertyName("constant_seeder")]
+        public Dictionary<string, string> ConstantSeeder { get; set; }
         [JsonPropertyName("user_inputs")]
         public List<UserInputRequest> UserInputs { get; set; }
         [JsonPropertyName("file_extensions")]

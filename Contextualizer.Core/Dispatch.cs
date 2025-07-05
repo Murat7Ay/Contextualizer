@@ -46,6 +46,7 @@ namespace Contextualizer.Core
                     return;
                 }
 
+                handlerContextProcessor.ContextConstantSeederSeed(HandlerConfig.ConstantSeeder, contextWrapper);
                 handlerContextProcessor.ContextSeederSeed(HandlerConfig.Seeder, contextWrapper);
                 ContextDefaultSeed(contextWrapper);
                 DispatchAction(GetActions(), contextWrapper);
