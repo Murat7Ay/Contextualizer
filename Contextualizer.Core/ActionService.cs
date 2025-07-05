@@ -88,6 +88,7 @@ namespace Contextualizer.Core
             ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{configAction.Name}' started.");
             HandlerContextProcessor handlerContextProcessor = new HandlerContextProcessor();
             handlerContextProcessor.PromptUserInputsAsync(configAction.UserInputs, contextWrapper);
+            handlerContextProcessor.ContextConstantSeederSeed(configAction.ConstantSeeder, contextWrapper);
             handlerContextProcessor.ContextSeederSeed(configAction.Seeder, contextWrapper);
             bool isConditionSuccessed = ConditionEvaluator.EvaluateCondition(configAction.Conditions, contextWrapper);
             if (!isConditionSuccessed)

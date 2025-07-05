@@ -109,6 +109,26 @@ namespace Contextualizer.Core
             return userInteractionService.GetUserInputWithNavigation(request, context, canGoBack, currentStep, totalSteps);
         }
 
+        public void ContextConstantSeederSeed(Dictionary<string,string> constantSeeder, Dictionary<string, string> context)
+        {
+            if(constantSeeder is null)
+            {
+                return;
+            }
+
+            foreach (var kvp in constantSeeder)
+            {
+                if (string.IsNullOrEmpty(kvp.Key))
+                    continue;
+
+                var replacedValue = ReplaceDynamicValues(kvp.Value, context);
+                if (replacedValue != null)
+                {
+                    context[kvp.Key] = replacedValue;
+                }
+            }
+        }
+
         public void ContextSeederSeed(Dictionary<string, string> seeder, Dictionary<string, string> context)
         {
             if (seeder is null)
@@ -131,7 +151,7 @@ namespace Contextualizer.Core
             var resolved = new Dictionary<string, string>(seeder);
             foreach (var key in seeder.Keys)
             {
-                resolved[key] = HandlerContextProcessor.ReplaceDynamicValues(seeder[key], resolved);
+                resolved[key] = ReplaceDynamicValues(seeder[key], resolved);
             }
             return resolved;
         }
