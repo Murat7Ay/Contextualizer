@@ -39,11 +39,13 @@ namespace Contextualizer.Core
             var context = new Dictionary<string, string>();
             context[ContextKey._input] = input;
 
-            if (match.Success)
+            if (match.Success && HandlerConfig.Groups != null)
             {
-                for (int i = 1; i <= base.HandlerConfig.Groups.Count; i++)
+                for (int i = 0; i < HandlerConfig.Groups.Count; i++)
                 {
-                    context[base.HandlerConfig.Groups[i - 1]] = match.Groups[i].Value;
+                    // Groups[0] is always the full match, actual capturing groups start from index 1
+                    var groupValue = match.Groups.Count > i + 1 ? match.Groups[i + 1].Value : match.Groups[0].Value;
+                    context[HandlerConfig.Groups[i]] = groupValue;
                 }
             }
 
