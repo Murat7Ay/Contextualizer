@@ -131,8 +131,7 @@ namespace Contextualizer.Core
 
             if (seeder is not null)
             {
-                var resolvedSeeder = Resolve(seeder, context);
-                MergeIntoContext(resolvedSeeder, context);
+                Resolve(seeder, context);
             }
             
             foreach (var key in context.Keys)
@@ -140,14 +139,12 @@ namespace Contextualizer.Core
                 context[key] = ReplaceDynamicValues(context[key], context);
             }
         }
-        private Dictionary<string, string> Resolve(Dictionary<string, string> seeder, Dictionary<string, string> context)
+        private void Resolve(Dictionary<string, string> seeder, Dictionary<string, string> context)
         {
-            var resolved = new Dictionary<string, string>(seeder);
             foreach (var key in seeder.Keys)
             {
-                resolved[key] = ReplaceDynamicValues(seeder[key], context);
+                context[key] = ReplaceDynamicValues(seeder[key], context);
             }
-            return resolved;
         }
 
         public static string ReplaceDynamicValues(string input, Dictionary<string, string> context)

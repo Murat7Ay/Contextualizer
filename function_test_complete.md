@@ -167,6 +167,12 @@ Bu dosya tüm fonksiyonları ve chaining özelliklerini test etmek için hazırl
 - Division by Zero: $func:math.divide(10, 0)
 - Array Out of Bounds: $func:array.get(["a","b"], 5)
 
+## Custom
+
+### Custom cases
+- Link: $func:base64encode(Murat Ay)
+- Url: $(real_url)
+
 ---
 
 **Test Instructions:**
