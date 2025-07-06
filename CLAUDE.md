@@ -102,6 +102,7 @@ To create custom plugins:
 
 **FunctionProcessor.cs** - Comprehensive function processing engine:
 - **Function Syntax**: `$func:functionName(parameters)` with support for method chaining
+- **Pipeline Syntax**: `$func:{{ input | function1 | function2 | function3 }}` for Unix-style pipelines
 - **Method Chaining**: Supports fluent syntax like `$func:today.add(days,5).format(yyyy-MM-dd)`
 - **Built-in Functions**:
   - **Date/Time**: `today`, `now`, `yesterday`, `tomorrow` with chaining methods (`add`, `subtract`, `format`)
@@ -111,11 +112,31 @@ To create custom plugins:
   - **Web**: `web.get`, `web.post`, `web.put`, `web.delete`
   - **IP**: `ip.local`, `ip.public`, `ip.isprivate`, `ip.ispublic`
   - **JSON**: `json.get`, `json.length`, `json.first`, `json.last`, `json.create`
-  - **String**: `string.upper`, `string.lower`, `string.trim`, `string.replace`, `string.substring`, `string.contains`, `string.startswith`, `string.endswith`, `string.split`
+  - **String**: `string.upper`, `string.lower`, `string.trim`, `string.replace`, `string.substring`, `string.contains`, `string.startswith`, `string.endswith`, `string.split`, `string.length`
   - **Math**: `math.add`, `math.subtract`, `math.multiply`, `math.divide`, `math.round`, `math.floor`, `math.ceil`, `math.min`, `math.max`, `math.abs`
-  - **Array**: `array.get`, `array.length`, `array.join`
+  - **Array**: `array.get`, `array.length`, `array.join` (supports negative indexing)
 - **Error Handling**: Comprehensive error handling with logging integration
 - **Complex Parsing**: Handles nested parentheses, quotes, and complex parameter structures
+- **Smart Parser**: Bracket-aware parsing handles nested JSON objects and complex syntax
+- **Quote Handling**: Automatic quote stripping for parameters and literal values
+
+### Function Testing
+
+**Comprehensive Test Files Available**:
+- **`function_test_complete.md`**: Complete test suite for all function types and chaining
+- **`pipeline_test_final.md`**: Unix-style pipeline comprehensive validation (39 test cases)
+- **`pipeline_test_simple.md`**: Basic pipeline functionality tests
+- **`pipeline_test_arrays.md`**: Array processing specific tests
+- **`pipeline_test_json_fix.md`**: JSON pipeline functionality tests
+
+These test files cover all supported functions and provide examples for:
+- Basic function usage and parameter handling
+- Method chaining and pipeline syntax
+- Error handling and edge cases
+- Real-world usage patterns and complex transformations
+- Integration between different function types
+
+**Usage**: Use any test file as OutputFormat (`$file:path/to/test.md`) to validate function processor capabilities and see live examples of all supported functionality.
 
 ### Database Support
 

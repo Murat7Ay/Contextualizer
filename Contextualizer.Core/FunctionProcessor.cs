@@ -26,24 +26,12 @@ namespace Contextualizer.Core
             try
             {
                 var result = input;
-                var startIndex = 0;
-
-                while (true)
-                {
-                    var funcStart = result.IndexOf("$func:", startIndex);
-                    if (funcStart == -1) break;
-
-                    var funcCallStart = funcStart + 6; // Skip "$func:"
-                    var funcCallEnd = FindFunctionEnd(result, funcCallStart);
-                    
-                    if (funcCallEnd == -1) break;
-
-                    var functionCall = result.Substring(funcCallStart, funcCallEnd - funcCallStart);
-                    var replacement = ProcessSingleFunction(functionCall);
-                    
-                    result = result.Substring(0, funcStart) + replacement + result.Substring(funcCallEnd);
-                    startIndex = funcStart + replacement.Length;
-                }
+                
+                // First, process pipeline functions $func:{{ }}
+                result = ProcessPipelineFunctions(result);
+                
+                // Then, process regular functions $func:
+                result = ProcessRegularFunctions(result);
 
                 return result;
             }
@@ -52,6 +40,114 @@ namespace Contextualizer.Core
                 ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error processing functions: {ex.Message}");
                 return input;
             }
+        }
+
+        private static string ProcessPipelineFunctions(string input)
+        {
+            var result = input;
+            var startIndex = 0;
+
+            while (true)
+            {
+                var pipelineStart = result.IndexOf("$func:{{", startIndex);
+                if (pipelineStart == -1) break;
+
+                var contentStart = pipelineStart + 8; // Skip "$func:{{"
+                var contentEnd = FindPipelineEnd(result, contentStart);
+                
+                if (contentEnd == -1) break;
+
+                var pipelineContent = result.Substring(contentStart, contentEnd - contentStart);
+                try
+                {
+                    var replacement = ProcessPipelineFunction(pipelineContent);
+                    result = result.Substring(0, pipelineStart) + replacement + result.Substring(contentEnd + 2); // +2 for "}}"
+                    startIndex = pipelineStart + replacement.Length;
+                }
+                catch (Exception ex)
+                {
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error processing pipeline function: {ex.Message}");
+                    startIndex = contentEnd + 2;
+                }
+            }
+
+            return result;
+        }
+
+        private static int FindPipelineEnd(string text, int startPos)
+        {
+            var braceDepth = 0;
+            var inQuotes = false;
+            var quoteChar = '\0';
+
+            for (int i = startPos; i < text.Length - 1; i++)
+            {
+                var c = text[i];
+                var nextChar = text[i + 1];
+
+                if (!inQuotes && (c == '"' || c == '\''))
+                {
+                    inQuotes = true;
+                    quoteChar = c;
+                }
+                else if (inQuotes && c == quoteChar)
+                {
+                    inQuotes = false;
+                }
+                else if (!inQuotes)
+                {
+                    if (c == '{')
+                    {
+                        braceDepth++;
+                    }
+                    else if (c == '}')
+                    {
+                        if (braceDepth > 0)
+                        {
+                            braceDepth--;
+                        }
+                        else if (nextChar == '}')
+                        {
+                            // Found the closing "}}"
+                            return i;
+                        }
+                    }
+                }
+            }
+
+            return -1; // No matching close found
+        }
+
+        private static string ProcessRegularFunctions(string input)
+        {
+            var result = input;
+            var startIndex = 0;
+
+            while (true)
+            {
+                var funcStart = result.IndexOf("$func:", startIndex);
+                if (funcStart == -1) break;
+
+                // Skip pipeline functions that start with $func:{{
+                if (funcStart + 6 < result.Length && result.Substring(funcStart + 6, 2) == "{{")
+                {
+                    startIndex = funcStart + 8;
+                    continue;
+                }
+
+                var funcCallStart = funcStart + 6; // Skip "$func:"
+                var funcCallEnd = FindFunctionEnd(result, funcCallStart);
+                
+                if (funcCallEnd == -1) break;
+
+                var functionCall = result.Substring(funcCallStart, funcCallEnd - funcCallStart);
+                var replacement = ProcessSingleFunction(functionCall);
+                
+                result = result.Substring(0, funcStart) + replacement + result.Substring(funcCallEnd);
+                startIndex = funcStart + replacement.Length;
+            }
+
+            return result;
         }
 
         private static int FindFunctionEnd(string text, int startPos)
@@ -254,7 +350,14 @@ namespace Contextualizer.Core
                         case ',':
                             if (bracketDepth == 0 && parenDepth == 0)
                             {
-                                parameters.Add(current.ToString().Trim());
+                                var param = current.ToString().Trim();
+                                // Strip quotes from parameters
+                                if ((param.StartsWith("\"") && param.EndsWith("\"")) ||
+                                    (param.StartsWith("'") && param.EndsWith("'")))
+                                {
+                                    param = param.Substring(1, param.Length - 2);
+                                }
+                                parameters.Add(param);
                                 current.Clear();
                             }
                             else
@@ -275,7 +378,14 @@ namespace Contextualizer.Core
 
             if (current.Length > 0)
             {
-                parameters.Add(current.ToString().Trim());
+                var param = current.ToString().Trim();
+                // Strip quotes from parameters
+                if ((param.StartsWith("\"") && param.EndsWith("\"")) ||
+                    (param.StartsWith("'") && param.EndsWith("'")))
+                {
+                    param = param.Substring(1, param.Length - 2);
+                }
+                parameters.Add(param);
             }
 
             return parameters.ToArray();
@@ -363,6 +473,203 @@ namespace Contextualizer.Core
             return parts;
         }
 
+        private static string ProcessPipelineFunction(string functionCall)
+        {
+            try
+            {
+                var pipelineSteps = ParsePipelineSteps(functionCall);
+                if (pipelineSteps.Count == 0)
+                    return string.Empty;
+
+                object result = null;
+
+                for (int i = 0; i < pipelineSteps.Count; i++)
+                {
+                    var step = pipelineSteps[i];
+
+                    if (i == 0)
+                    {
+                        // First step - could be a base function or a literal value
+                        if (step.IsLiteral)
+                        {
+                            result = step.Value;
+                        }
+                        else
+                        {
+                            result = ProcessBaseFunction(step.Name, step.Parameters);
+                        }
+                    }
+                    else
+                    {
+                        // Subsequent steps - apply as chained methods
+                        result = ProcessChainedMethod(result, step.Name, step.Parameters);
+                    }
+                }
+
+                return result?.ToString() ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error processing pipeline '{functionCall}': {ex.Message}");
+                return string.Empty;
+            }
+        }
+
+        private static List<PipelineStep> ParsePipelineSteps(string functionCall)
+        {
+            var steps = new List<PipelineStep>();
+            var parts = SplitPipelineSteps(functionCall);
+
+            for (int i = 0; i < parts.Count; i++)
+            {
+                var part = parts[i].Trim();
+                if (string.IsNullOrEmpty(part)) continue;
+
+                if (i == 0)
+                {
+                    // First part - check if it's a function call or literal value
+                    if (part.Contains('(') || IsKnownBaseFunction(part))
+                    {
+                        // It's a function call
+                        var (name, parameters) = ParseFunctionPart(part);
+                        steps.Add(new PipelineStep { Name = name, Parameters = parameters, IsLiteral = false });
+                    }
+                    else
+                    {
+                        // It's a literal value (like a context variable that was already resolved)
+                        var literalValue = part;
+                        // Strip quotes from literal strings
+                        if ((literalValue.StartsWith("\"") && literalValue.EndsWith("\"")) ||
+                            (literalValue.StartsWith("'") && literalValue.EndsWith("'")))
+                        {
+                            literalValue = literalValue.Substring(1, literalValue.Length - 2);
+                        }
+                        steps.Add(new PipelineStep { Value = literalValue, IsLiteral = true });
+                    }
+                }
+                else
+                {
+                    // Subsequent parts - must be function calls
+                    var (name, parameters) = ParseFunctionPart(part);
+                    steps.Add(new PipelineStep { Name = name, Parameters = parameters, IsLiteral = false });
+                }
+            }
+
+            return steps;
+        }
+
+        private static List<string> SplitPipelineSteps(string functionCall)
+        {
+            var parts = new List<string>();
+            var current = new StringBuilder();
+            var parenDepth = 0;
+            var inQuotes = false;
+            var quoteChar = '\0';
+
+            for (int i = 0; i < functionCall.Length; i++)
+            {
+                var c = functionCall[i];
+
+                if (!inQuotes && (c == '"' || c == '\''))
+                {
+                    inQuotes = true;
+                    quoteChar = c;
+                    current.Append(c);
+                }
+                else if (inQuotes && c == quoteChar)
+                {
+                    inQuotes = false;
+                    current.Append(c);
+                }
+                else if (!inQuotes)
+                {
+                    switch (c)
+                    {
+                        case '(':
+                            parenDepth++;
+                            current.Append(c);
+                            break;
+                        case ')':
+                            parenDepth--;
+                            current.Append(c);
+                            break;
+                        case '|':
+                            if (parenDepth == 0)
+                            {
+                                parts.Add(current.ToString().Trim());
+                                current.Clear();
+                            }
+                            else
+                            {
+                                current.Append(c);
+                            }
+                            break;
+                        default:
+                            current.Append(c);
+                            break;
+                    }
+                }
+                else
+                {
+                    current.Append(c);
+                }
+            }
+
+            if (current.Length > 0)
+            {
+                parts.Add(current.ToString().Trim());
+            }
+
+            return parts;
+        }
+
+        private static (string Name, string[] Parameters) ParseFunctionPart(string part)
+        {
+            var parenPos = part.IndexOf('(');
+            if (parenPos != -1)
+            {
+                var functionName = part.Substring(0, parenPos).Trim();
+                var closeParenPos = FindMatchingParen(part, parenPos);
+                var paramString = part.Substring(parenPos + 1, closeParenPos - parenPos - 1);
+                var parameters = string.IsNullOrEmpty(paramString) 
+                    ? new string[0] 
+                    : ParseParameters(paramString);
+                
+                return (functionName, parameters);
+            }
+            else
+            {
+                return (part.Trim(), new string[0]);
+            }
+        }
+
+        private static bool IsKnownBaseFunction(string functionName)
+        {
+            var knownFunctions = new[] {
+                "today", "now", "yesterday", "tomorrow", "guid", "random",
+                "base64encode", "base64decode", "env", "username", "computername"
+            };
+
+            var lowerName = functionName.ToLower();
+            return knownFunctions.Contains(lowerName) ||
+                   lowerName.StartsWith("hash.") ||
+                   lowerName.StartsWith("url.") ||
+                   lowerName.StartsWith("web.") ||
+                   lowerName.StartsWith("ip.") ||
+                   lowerName.StartsWith("json.") ||
+                   lowerName.StartsWith("string.") ||
+                   lowerName.StartsWith("math.") ||
+                   lowerName.StartsWith("array.");
+        }
+
+        private class PipelineStep
+        {
+            public string Name { get; set; } = string.Empty;
+            public string[] Parameters { get; set; } = new string[0];
+            public string Value { get; set; } = string.Empty;
+            public bool IsLiteral { get; set; } = false;
+        }
+
         private static object ProcessBaseFunction(string functionName, string[] parameters)
         {
             return functionName.ToLower() switch
@@ -392,11 +699,72 @@ namespace Contextualizer.Core
 
         private static object ProcessChainedMethod(object input, string methodName, string[] parameters)
         {
+            // Handle prefixed method names (e.g., string.upper, array.get, math.add)
+            string actualMethodName = methodName;
+            
+            if (methodName.StartsWith("string."))
+            {
+                actualMethodName = methodName.Substring(7); // Remove "string." prefix
+                return ProcessStringMethod(input.ToString(), actualMethodName, parameters);
+            }
+            else if (methodName.StartsWith("array."))
+            {
+                actualMethodName = methodName.Substring(6); // Remove "array." prefix
+                return ProcessArrayMethod(input.ToString(), actualMethodName, parameters);
+            }
+            else if (methodName.StartsWith("math."))
+            {
+                actualMethodName = methodName.Substring(5); // Remove "math." prefix
+                // Convert input to number and process math operation
+                if (double.TryParse(input.ToString(), out var number))
+                {
+                    // For math operations, we need to call the base math function with the input as first parameter
+                    var newParams = new string[parameters.Length + 1];
+                    newParams[0] = input.ToString();
+                    Array.Copy(parameters, 0, newParams, 1, parameters.Length);
+                    return ProcessMathFunction($"math.{actualMethodName}", newParams);
+                }
+                return input.ToString();
+            }
+            else if (methodName.StartsWith("url."))
+            {
+                actualMethodName = methodName.Substring(4); // Remove "url." prefix
+                var newParams = new string[parameters.Length + 1];
+                newParams[0] = input.ToString();
+                Array.Copy(parameters, 0, newParams, 1, parameters.Length);
+                return ProcessUrlFunction($"url.{actualMethodName}", newParams);
+            }
+            else if (methodName.StartsWith("hash."))
+            {
+                actualMethodName = methodName.Substring(5); // Remove "hash." prefix
+                var newParams = new string[parameters.Length + 1];
+                newParams[0] = input.ToString();
+                Array.Copy(parameters, 0, newParams, 1, parameters.Length);
+                return ProcessHashFunction($"hash.{actualMethodName}", newParams);
+            }
+            else if (methodName.StartsWith("json."))
+            {
+                actualMethodName = methodName.Substring(5); // Remove "json." prefix
+                var newParams = new string[parameters.Length + 1];
+                newParams[0] = input.ToString();
+                Array.Copy(parameters, 0, newParams, 1, parameters.Length);
+                return ProcessJsonFunction($"json.{actualMethodName}", newParams);
+            }
+            else if (methodName == "base64encode")
+            {
+                return ProcessBase64Encode(new[] { input.ToString() });
+            }
+            else if (methodName == "base64decode")
+            {
+                return ProcessBase64Decode(new[] { input.ToString() });
+            }
+            
+            // Handle non-prefixed method names based on input type
             return input switch
             {
-                DateTime dateTime => ProcessDateTimeMethod(dateTime, methodName, parameters),
-                string str when str.StartsWith("[") && str.EndsWith("]") => ProcessArrayMethod(str, methodName, parameters),
-                string str => ProcessStringMethod(str, methodName, parameters),
+                DateTime dateTime => ProcessDateTimeMethod(dateTime, actualMethodName, parameters),
+                string str when str.StartsWith("[") && str.EndsWith("]") => ProcessArrayMethod(str, actualMethodName, parameters),
+                string str => ProcessStringMethod(str, actualMethodName, parameters),
                 _ => throw new NotSupportedException($"Method '{methodName}' is not supported for type '{input?.GetType().Name}'")
             };
         }
@@ -984,6 +1352,7 @@ namespace Contextualizer.Core
                 "startswith" => ProcessStringStartsWith(parameters),
                 "endswith" => ProcessStringEndsWith(parameters),
                 "split" => ProcessStringSplit(parameters),
+                "length" => ProcessStringLength(parameters),
                 _ => throw new NotSupportedException($"String function '{stringFunction}' is not supported")
             };
         }
@@ -1001,6 +1370,7 @@ namespace Contextualizer.Core
                 "startswith" => parameters.Length == 1 ? input.StartsWith(parameters[0]).ToString().ToLower() : "false",
                 "endswith" => parameters.Length == 1 ? input.EndsWith(parameters[0]).ToString().ToLower() : "false",
                 "split" => parameters.Length == 1 ? JsonSerializer.Serialize(input.Split(parameters[0], StringSplitOptions.RemoveEmptyEntries)) : input,
+                "length" => input.Length.ToString(),
                 _ => throw new NotSupportedException($"String method '{methodName}' is not supported")
             };
         }
@@ -1119,6 +1489,14 @@ namespace Contextualizer.Core
             
             var parts = parameters[0].Split(parameters[1], StringSplitOptions.RemoveEmptyEntries);
             return JsonSerializer.Serialize(parts);
+        }
+
+        private static string ProcessStringLength(string[] parameters)
+        {
+            if (parameters.Length != 1)
+                throw new ArgumentException("String length requires 1 parameter: text");
+            
+            return parameters[0].Length.ToString();
         }
 
         // Math Functions
@@ -1296,8 +1674,15 @@ namespace Contextualizer.Core
             try
             {
                 var array = JsonSerializer.Deserialize<string[]>(parameters[0]);
-                if (int.TryParse(parameters[1], out var index) && index >= 0 && index < array.Length)
-                    return array[index];
+                if (int.TryParse(parameters[1], out var index))
+                {
+                    // Support negative indexing (e.g., -1 for last element)
+                    if (index < 0)
+                        index = array.Length + index;
+                    
+                    if (index >= 0 && index < array.Length)
+                        return array[index];
+                }
                 
                 return string.Empty;
             }
@@ -1315,8 +1700,15 @@ namespace Contextualizer.Core
             try
             {
                 var array = JsonSerializer.Deserialize<string[]>(arrayJson);
-                if (int.TryParse(parameters[0], out var index) && index >= 0 && index < array.Length)
-                    return array[index];
+                if (int.TryParse(parameters[0], out var index))
+                {
+                    // Support negative indexing (e.g., -1 for last element)
+                    if (index < 0)
+                        index = array.Length + index;
+                    
+                    if (index >= 0 && index < array.Length)
+                        return array[index];
+                }
                 
                 return string.Empty;
             }
