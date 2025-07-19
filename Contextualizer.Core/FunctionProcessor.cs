@@ -16,9 +16,10 @@ namespace Contextualizer.Core
     public static class FunctionProcessor
     {
         private static readonly Regex FunctionRegex = new(@"\$func:([^$\s]*(?:\([^)]*\))?(?:\.[^$\s]*(?:\([^)]*\))?)*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex PlaceholderRegex = new(@"\$\(([^)]+)\)", RegexOptions.Compiled);
         private static readonly Random Random = new();
 
-        public static string ProcessFunctions(string input)
+        public static string ProcessFunctions(string input, Dictionary<string, string> context = null)
         {
             if (string.IsNullOrEmpty(input))
                 return input;
@@ -28,10 +29,10 @@ namespace Contextualizer.Core
                 var result = input;
                 
                 // First, process pipeline functions $func:{{ }}
-                result = ProcessPipelineFunctions(result);
+                result = ProcessPipelineFunctions(result, context);
                 
                 // Then, process regular functions $func:
-                result = ProcessRegularFunctions(result);
+                result = ProcessRegularFunctions(result, context);
 
                 return result;
             }
@@ -42,7 +43,7 @@ namespace Contextualizer.Core
             }
         }
 
-        private static string ProcessPipelineFunctions(string input)
+        private static string ProcessPipelineFunctions(string input, Dictionary<string, string> context = null)
         {
             var result = input;
             var startIndex = 0;
@@ -60,7 +61,7 @@ namespace Contextualizer.Core
                 var pipelineContent = result.Substring(contentStart, contentEnd - contentStart);
                 try
                 {
-                    var replacement = ProcessPipelineFunction(pipelineContent);
+                    var replacement = ProcessPipelineFunction(pipelineContent, context);
                     result = result.Substring(0, pipelineStart) + replacement + result.Substring(contentEnd + 2); // +2 for "}}"
                     startIndex = pipelineStart + replacement.Length;
                 }
@@ -118,7 +119,7 @@ namespace Contextualizer.Core
             return -1; // No matching close found
         }
 
-        private static string ProcessRegularFunctions(string input)
+        private static string ProcessRegularFunctions(string input, Dictionary<string, string> context = null)
         {
             var result = input;
             var startIndex = 0;
@@ -141,7 +142,7 @@ namespace Contextualizer.Core
                 if (funcCallEnd == -1) break;
 
                 var functionCall = result.Substring(funcCallStart, funcCallEnd - funcCallStart);
-                var replacement = ProcessSingleFunction(functionCall);
+                var replacement = ProcessSingleFunction(functionCall, context);
                 
                 result = result.Substring(0, funcStart) + replacement + result.Substring(funcCallEnd);
                 startIndex = funcStart + replacement.Length;
@@ -178,7 +179,7 @@ namespace Contextualizer.Core
             return text.Length;
         }
 
-        private static string ProcessSingleFunction(string functionCall)
+        private static string ProcessSingleFunction(string functionCall, Dictionary<string, string> context = null)
         {
             try
             {
@@ -197,7 +198,7 @@ namespace Contextualizer.Core
                         if (hasChaining) // Has chaining
                         {
                             // Parse prefixed function chaining specially
-                            var parts = ParsePrefixedChainedCall(functionCall);
+                            var parts = ParsePrefixedChainedCall(functionCall, context);
                             object result = null;
 
                             for (int i = 0; i < parts.Count; i++)
@@ -227,7 +228,7 @@ namespace Contextualizer.Core
                                 var paramString = functionCall.Substring(parenIndex + 1, closeParenPos - parenIndex - 1);
                                 var parameters = string.IsNullOrEmpty(paramString) 
                                     ? new string[0] 
-                                    : ParseParameters(paramString);
+                                    : ParseParameters(paramString, context);
                                 
                                 return ProcessBaseFunction(functionName, parameters).ToString();
                             }
@@ -240,7 +241,7 @@ namespace Contextualizer.Core
                     else
                     {
                         // Parse chained function calls using better parsing
-                        var parts = ParseChainedCall(functionCall);
+                        var parts = ParseChainedCall(functionCall, context);
                         object result = null;
 
                         for (int i = 0; i < parts.Count; i++)
@@ -271,7 +272,7 @@ namespace Contextualizer.Core
                         var paramString = functionCall.Substring(parenPos + 1, closeParenPos - parenPos - 1);
                         var parameters = string.IsNullOrEmpty(paramString) 
                             ? new string[0] 
-                            : ParseParameters(paramString);
+                            : ParseParameters(paramString, context);
                         
                         return ProcessBaseFunction(functionName, parameters).ToString();
                     }
@@ -301,7 +302,7 @@ namespace Contextualizer.Core
             return text.Length - 1;
         }
 
-        private static string[] ParseParameters(string paramString)
+        private static string[] ParseParameters(string paramString, Dictionary<string, string> context = null)
         {
             var parameters = new List<string>();
             var current = new StringBuilder();
@@ -357,6 +358,8 @@ namespace Contextualizer.Core
                                 {
                                     param = param.Substring(1, param.Length - 2);
                                 }
+                                // Resolve placeholders in parameter
+                                param = ResolvePlaceholders(param, context);
                                 parameters.Add(param);
                                 current.Clear();
                             }
@@ -385,13 +388,15 @@ namespace Contextualizer.Core
                 {
                     param = param.Substring(1, param.Length - 2);
                 }
+                // Resolve placeholders in parameter
+                param = ResolvePlaceholders(param, context);
                 parameters.Add(param);
             }
 
             return parameters.ToArray();
         }
 
-        private static List<(string Name, string[] Parameters)> ParsePrefixedChainedCall(string functionCall)
+        private static List<(string Name, string[] Parameters)> ParsePrefixedChainedCall(string functionCall, Dictionary<string, string> context = null)
         {
             var parts = new List<(string Name, string[] Parameters)>();
             
@@ -408,7 +413,7 @@ namespace Contextualizer.Core
                 var baseParenPos = baseFunctionCall.IndexOf('(');
                 var baseFunctionName = baseFunctionCall.Substring(0, baseParenPos);
                 var baseParamString = baseFunctionCall.Substring(baseParenPos + 1, baseParenPos == firstCloseParenPos ? 0 : firstCloseParenPos - baseParenPos - 1);
-                var baseParameters = string.IsNullOrEmpty(baseParamString) ? new string[0] : ParseParameters(baseParamString);
+                var baseParameters = string.IsNullOrEmpty(baseParamString) ? new string[0] : ParseParameters(baseParamString, context);
                 
                 parts.Add((baseFunctionName, baseParameters));
                 
@@ -417,7 +422,7 @@ namespace Contextualizer.Core
                 if (remainingCall.StartsWith("."))
                 {
                     remainingCall = remainingCall.Substring(1);
-                    var chainedParts = ParseChainedCall(remainingCall);
+                    var chainedParts = ParseChainedCall(remainingCall, context);
                     parts.AddRange(chainedParts);
                 }
             }
@@ -425,7 +430,7 @@ namespace Contextualizer.Core
             return parts;
         }
 
-        private static List<(string Name, string[] Parameters)> ParseChainedCall(string functionCall)
+        private static List<(string Name, string[] Parameters)> ParseChainedCall(string functionCall, Dictionary<string, string> context = null)
         {
             var parts = new List<(string Name, string[] Parameters)>();
             var currentPos = 0;
@@ -447,7 +452,7 @@ namespace Contextualizer.Core
                     
                     if (!string.IsNullOrEmpty(paramString))
                     {
-                        parameters = ParseParameters(paramString);
+                        parameters = ParseParameters(paramString, context);
                     }
                     
                     currentPos = closeParenPos + 1;
@@ -473,11 +478,11 @@ namespace Contextualizer.Core
             return parts;
         }
 
-        private static string ProcessPipelineFunction(string functionCall)
+        private static string ProcessPipelineFunction(string functionCall, Dictionary<string, string> context = null)
         {
             try
             {
-                var pipelineSteps = ParsePipelineSteps(functionCall);
+                var pipelineSteps = ParsePipelineSteps(functionCall, context);
                 if (pipelineSteps.Count == 0)
                     return string.Empty;
 
@@ -492,7 +497,8 @@ namespace Contextualizer.Core
                         // First step - could be a base function or a literal value
                         if (step.IsLiteral)
                         {
-                            result = step.Value;
+                            // If the literal value contains placeholders, resolve them from context
+                            result = ResolvePlaceholders(step.Value, context);
                         }
                         else
                         {
@@ -515,7 +521,7 @@ namespace Contextualizer.Core
             }
         }
 
-        private static List<PipelineStep> ParsePipelineSteps(string functionCall)
+        private static List<PipelineStep> ParsePipelineSteps(string functionCall, Dictionary<string, string> context = null)
         {
             var steps = new List<PipelineStep>();
             var parts = SplitPipelineSteps(functionCall);
@@ -527,20 +533,21 @@ namespace Contextualizer.Core
 
                 if (i == 0)
                 {
-                    // First part - check if it's a function call or literal value
-                    if (part.Contains('(') || IsKnownBaseFunction(part))
+                    // First part - check if it's a function call, placeholder, or literal value
+                    if (!IsPlaceholderPattern(part) && (part.Contains('(') || IsKnownBaseFunction(part)))
                     {
                         // It's a function call
-                        var (name, parameters) = ParseFunctionPart(part);
+                        var (name, parameters) = ParseFunctionPart(part, context);
                         steps.Add(new PipelineStep { Name = name, Parameters = parameters, IsLiteral = false });
                     }
                     else
                     {
-                        // It's a literal value (like a context variable that was already resolved)
+                        // It's a literal value or placeholder
                         var literalValue = part;
-                        // Strip quotes from literal strings
-                        if ((literalValue.StartsWith("\"") && literalValue.EndsWith("\"")) ||
-                            (literalValue.StartsWith("'") && literalValue.EndsWith("'")))
+                        // Strip quotes from literal strings (but not from placeholders)
+                        if (!IsPlaceholderPattern(part) && 
+                            ((literalValue.StartsWith("\"") && literalValue.EndsWith("\"")) ||
+                            (literalValue.StartsWith("'") && literalValue.EndsWith("'"))))
                         {
                             literalValue = literalValue.Substring(1, literalValue.Length - 2);
                         }
@@ -550,7 +557,7 @@ namespace Contextualizer.Core
                 else
                 {
                     // Subsequent parts - must be function calls
-                    var (name, parameters) = ParseFunctionPart(part);
+                    var (name, parameters) = ParseFunctionPart(part, context);
                     steps.Add(new PipelineStep { Name = name, Parameters = parameters, IsLiteral = false });
                 }
             }
@@ -623,7 +630,7 @@ namespace Contextualizer.Core
             return parts;
         }
 
-        private static (string Name, string[] Parameters) ParseFunctionPart(string part)
+        private static (string Name, string[] Parameters) ParseFunctionPart(string part, Dictionary<string, string> context = null)
         {
             var parenPos = part.IndexOf('(');
             if (parenPos != -1)
@@ -633,7 +640,7 @@ namespace Contextualizer.Core
                 var paramString = part.Substring(parenPos + 1, closeParenPos - parenPos - 1);
                 var parameters = string.IsNullOrEmpty(paramString) 
                     ? new string[0] 
-                    : ParseParameters(paramString);
+                    : ParseParameters(paramString, context);
                 
                 return (functionName, parameters);
             }
@@ -660,6 +667,11 @@ namespace Contextualizer.Core
                    lowerName.StartsWith("string.") ||
                    lowerName.StartsWith("math.") ||
                    lowerName.StartsWith("array.");
+        }
+
+        private static bool IsPlaceholderPattern(string text)
+        {
+            return PlaceholderRegex.IsMatch(text);
         }
 
         private class PipelineStep
@@ -1777,6 +1789,21 @@ namespace Contextualizer.Core
             {
                 return string.Empty;
             }
+        }
+
+        private static string ResolvePlaceholders(string input, Dictionary<string, string> context)
+        {
+            if (string.IsNullOrEmpty(input) || context == null)
+                return input;
+
+            return PlaceholderRegex.Replace(input, match =>
+            {
+                var key = match.Groups[1].Value;
+                if (string.IsNullOrEmpty(key))
+                    return match.Value;
+
+                return context.TryGetValue(key, out var value) ? value : match.Value;
+            });
         }
     }
 }

@@ -162,7 +162,10 @@ namespace Contextualizer.Core
                     input = fileContent;
                 }
 
-                // First process context placeholders
+                // First process functions ($func: calls) with placeholders intact
+                input = FunctionProcessor.ProcessFunctions(input, context);
+
+                // Then process any remaining context placeholders that weren't handled by functions
                 if (context != null)
                 {
                     input = PlaceholderRegex.Replace(input, match =>
@@ -174,9 +177,6 @@ namespace Contextualizer.Core
                         return context.TryGetValue(key, out var value) ? value : match.Value;
                     });
                 }
-
-                // Then process functions ($func: calls) after placeholders are resolved
-                input = FunctionProcessor.ProcessFunctions(input);
 
                 return input;
             }
