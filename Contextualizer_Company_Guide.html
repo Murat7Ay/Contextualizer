@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contextualizer - Complete Implementation Guide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        
+        .highlight {
+            background: #e8f4f8;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #e9ecef;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        table th, table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .toc {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            margin: 8px 0;
+        }
+        
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .feature-card h4 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .json-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .json-example .key {
+            color: #4fd1c7;
+        }
+        
+        .json-example .string {
+            color: #9ae6b4;
+        }
+        
+        .json-example .number {
+            color: #f6ad55;
+        }
+        
+        .json-example .boolean {
+            color: #fc8181;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .architecture-diagram {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .flow-step {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            position: relative;
+        }
+        
+        .flow-step::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .flow-step:last-child::after {
+            content: '';
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Contextualizer - Complete Implementation Guide</h1>
+        
+        <div class="highlight">
+            <strong>Document Overview:</strong> This comprehensive guide provides everything your development team needs to understand, implement, and extend the Contextualizer application - a sophisticated clipboard-aware automation platform built on .NET 9.0.
+        </div>
+
+        <div class="toc">
+            <h3>📋 Table of Contents</h3>
+            <ul>
+                <li><a href="#overview">1. Application Overview</a></li>
+                <li><a href="#architecture">2. System Architecture</a></li>
+                <li><a href="#getting-started">3. Getting Started</a></li>
+                <li><a href="#handler-system">4. Handler System</a></li>
+                <li><a href="#plugin-development">5. Plugin Development</a></li>
+                <li><a href="#configuration">6. Configuration System</a></li>
+                <li><a href="#function-processing">7. Function Processing</a></li>
+                <li><a href="#cron-scheduling">8. Cron Scheduling</a></li>
+                <li><a href="#user-interfaces">9. User Interfaces</a></li>
+                <li><a href="#examples">10. Real-World Examples</a></li>
+                <li><a href="#best-practices">11. Best Practices</a></li>
+                <li><a href="#troubleshooting">12. Troubleshooting</a></li>
+            </ul>
+        </div>
+
+        <h2 id="overview">1. 🎯 Application Overview</h2>
+        
+        <p><strong>Contextualizer</strong> is an enterprise-grade Windows application that transforms clipboard management into an intelligent automation platform. It monitors clipboard activity and executes context-aware actions based on clipboard content patterns.</p>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>🔍 Context-Aware Processing</h4>
+                <p>Automatically detects and processes different types of clipboard content (JSON, XML, API data, file paths, database queries) and triggers appropriate actions.</p>
+            </div>
+            <div class="feature-card">
+                <h4>🔌 Plugin Architecture</h4>
+                <p>Extensible system allowing custom handlers, actions, validators, and context providers through a robust plugin interface.</p>
+            </div>
+            <div class="feature-card">
+                <h4>⏰ Enterprise Scheduling</h4>
+                <p>Quartz.NET integration for sophisticated cron-based job scheduling with timezone support and monitoring capabilities.</p>
+            </div>
+            <div class="feature-card">
+                <h4>🎨 Modern UI</h4>
+                <p>Professional WPF interface with Carbon design system, dark/light themes, and dynamic screens for specialized content editing.</p>
+            </div>
+        </div>
+
+        <h2 id="architecture">2. 🏗️ System Architecture</h2>
+
+        <div class="architecture-diagram">
+            <h3>Core Processing Flow</h3>
+            <div>
+                <span class="flow-step">Clipboard Content</span>
+                <span class="flow-step">Handler.CanHandle()</span>
+                <span class="flow-step">Handler.CreateContext()</span>
+                <span class="flow-step">Dispatcher.DispatchAction()</span>
+                <span class="flow-step">ActionService.Action()</span>
+            </div>
+        </div>
+
+        <h3>Project Structure</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Purpose</th>
+                    <th>Key Components</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Contextualizer.Core</strong></td>
+                    <td>Main business logic and handler system</td>
+                    <td>Handler Architecture, Service Locator, Dynamic Loading, Cron Scheduling</td>
+                </tr>
+                <tr>
+                    <td><strong>Contextualizer.PluginContracts</strong></td>
+                    <td>Interface definitions for extensibility</td>
+                    <td>IHandler, IAction, IContentValidator, IContextProvider</td>
+                </tr>
+                <tr>
+                    <td><strong>Contextualizer.Plugins</strong></td>
+                    <td>Built-in plugin implementations</td>
+                    <td>Actions, Validators, Context Providers</td>
+                </tr>
+                <tr>
+                    <td><strong>WpfInteractionApp</strong></td>
+                    <td>Modern WPF user interface</td>
+                    <td>Theme System, Dynamic Screens, Cron Management UI</td>
+                </tr>
+                <tr>
+                    <td><strong>Contextualizer.ConsoleApp</strong></td>
+                    <td>Alternative console interface</td>
+                    <td>Server deployment interface</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Design Patterns</h3>
+        <ul>
+            <li><strong>Template Method:</strong> <code>Dispatch</code> base class defines execution template</li>
+            <li><strong>Factory Pattern:</strong> <code>HandlerFactory</code> creates handlers from configuration</li>
+            <li><strong>Plugin Architecture:</strong> Dynamic assembly loading with interface contracts</li>
+            <li><strong>Service Locator:</strong> Central service registry for dependency resolution</li>
+            <li><strong>Observer Pattern:</strong> Event-driven clipboard monitoring via <code>KeyboardHook</code></li>
+        </ul>
+
+        <h2 id="getting-started">3. 🚀 Getting Started</h2>
+
+        <h3>System Requirements</h3>
+        <ul>
+            <li><strong>Platform:</strong> Windows 10+ (64-bit)</li>
+            <li><strong>Framework:</strong> .NET 9.0 Runtime</li>
+            <li><strong>Dependencies:</strong> Visual C++ Redistributable 2022</li>
+            <li><strong>Database:</strong> SQL Server (optional, for database handlers)</li>
+        </ul>
+
+        <div class="success">
+            <h4>🛠️ Build Commands</h4>
+            <pre><code># Build the entire solution
+dotnet build Contextualizer.sln
+
+# Run WPF Application (primary UI)
+dotnet run --project WpfInteractionApp
+
+# Run Console Application
+dotnet run --project Contextualizer.ConsoleApp
+
+# Restore NuGet packages
+dotnet restore
+
+# Clean and rebuild
+dotnet clean && dotnet build</code></pre>
+        </div>
+
+        <h3>First Run Setup</h3>
+        <ol>
+            <li>Clone the repository and build the solution</li>
+            <li>Configure <code>handlers.json</code> with your specific handlers</li>
+            <li>Create required directories for file-based handlers</li>
+            <li>Configure database connections if using database handlers</li>
+            <li>Run the WPF application and test clipboard monitoring</li>
+        </ol>
+
+        <h2 id="handler-system">4. 🎯 Handler System</h2>
+
+        <p>Handlers are the core components that process clipboard content. Each handler can examine clipboard content and decide whether to process it based on patterns, file types, or content validation.</p>
+
+        <h3>Handler Types</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Purpose</th>
+                    <th>Configuration</th>
+                    <th>Example Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>RegexHandler</strong></td>
+                    <td>Pattern-based content matching</td>
+                    <td>regex, groups</td>
+                    <td>Stack trace analysis, log parsing</td>
+                </tr>
+                <tr>
+                    <td><strong>FileHandler</strong></td>
+                    <td>File path detection and operations</td>
+                    <td>file_extensions</td>
+                    <td>Open HTML/CSS files, file operations</td>
+                </tr>
+                <tr>
+                    <td><strong>DatabaseHandler</strong></td>
+                    <td>Database query execution</td>
+                    <td>connectionString, query, connector</td>
+                    <td>Customer lookup, strategy queries</td>
+                </tr>
+                <tr>
+                    <td><strong>ApiHandler</strong></td>
+                    <td>HTTP API integration</td>
+                    <td>url, method, headers</td>
+                    <td>GitHub user info, external APIs</td>
+                </tr>
+                <tr>
+                    <td><strong>CustomHandler</strong></td>
+                    <td>Plugin-based processing</td>
+                    <td>validator, context_provider</td>
+                    <td>JSON/XML formatting</td>
+                </tr>
+                <tr>
+                    <td><strong>ManualHandler</strong></td>
+                    <td>User-triggered actions</td>
+                    <td>screen_id, user_inputs</td>
+                    <td>PL/SQL editor, project creation</td>
+                </tr>
+                <tr>
+                    <td><strong>SyntheticHandler</strong></td>
+                    <td>Generated content processing</td>
+                    <td>seeder</td>
+                    <td>Template processing</td>
+                </tr>
+                <tr>
+                    <td><strong>CronHandler</strong></td>
+                    <td>Scheduled job execution</td>
+                    <td>cron_expression, cron_timezone</td>
+                    <td>Daily reports, maintenance tasks</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Handler Configuration Structure</h3>
+        <div class="json-example">
+<pre><code>{
+  <span class="key">"name"</span>: <span class="string">"Handler Display Name"</span>,
+  <span class="key">"type"</span>: <span class="string">"handler_type"</span>,
+  <span class="key">"title"</span>: <span class="string">"UI Title"</span>,
+  <span class="key">"description"</span>: <span class="string">"Handler description"</span>,
+  <span class="key">"requires_confirmation"</span>: <span class="boolean">true</span>,
+  <span class="key">"screen_id"</span>: <span class="string">"ui_screen_identifier"</span>,
+  <span class="key">"actions"</span>: [
+    {
+      <span class="key">"name"</span>: <span class="string">"action_name"</span>,
+      <span class="key">"key"</span>: <span class="string">"context_key"</span>,
+      <span class="key">"requires_confirmation"</span>: <span class="boolean">false</span>
+    }
+  ],
+  <span class="key">"user_inputs"</span>: [
+    {
+      <span class="key">"key"</span>: <span class="string">"input_key"</span>,
+      <span class="key">"title"</span>: <span class="string">"Input Title"</span>,
+      <span class="key">"is_required"</span>: <span class="boolean">true</span>,
+      <span class="key">"validation_regex"</span>: <span class="string">"^[A-Za-z0-9]+$"</span>
+    }
+  ],
+  <span class="key">"output_format"</span>: <span class="string">"Output template: $(variable)"</span>
+}</code></pre>
+        </div>
+
+        <h2 id="plugin-development">5. 🔌 Plugin Development</h2>
+
+        <div class="highlight">
+            <strong>Plugin System:</strong> The Contextualizer application uses a sophisticated plugin architecture that allows developers to extend functionality through four main plugin types: Handlers, Actions, Content Validators, and Context Providers.
+        </div>
+
+        <h3>Plugin Contracts</h3>
+
+        <h4>IHandler Interface</h4>
+        <pre><code>public interface IHandler
+{
+    static virtual string TypeName => throw new NotImplementedException();
+    Task&lt;bool&gt; CanHandle(ClipboardContent clipboardContent);
+    Task Execute(ClipboardContent clipboardContent);
+    HandlerConfig HandlerConfig { get; }
+}</code></pre>
+
+        <h4>IAction Interface</h4>
+        <pre><code>public interface IAction
+{
+    string Name { get; }
+    void Initialize(IPluginServiceProvider serviceProvider);
+    Task Action(ConfigAction action, ContextWrapper context);
+}</code></pre>
+
+        <h4>IContentValidator Interface</h4>
+        <pre><code>public interface IContentValidator
+{
+    string Name { get; }
+    Task&lt;bool&gt; Validate(ClipboardContent clipboardContent);
+}</code></pre>
+
+        <h4>IContextProvider Interface</h4>
+        <pre><code>public interface IContextProvider
+{
+    string Name { get; }
+    Task&lt;Dictionary&lt;string, string&gt;&gt; CreateContext(ClipboardContent clipboardContent);
+}</code></pre>
+
+        <h3>Creating a Custom Action Plugin</h3>
+
+        <div class="json-example">
+<pre><code>using Contextualizer.PluginContracts;
+
+public class EmailValidatorAction : IAction
+{
+    private IPluginServiceProvider _serviceProvider;
+    
+    public string Name => "email_validator";
+
+    public void Initialize(IPluginServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    public async Task Action(ConfigAction action, ContextWrapper context)
+    {
+        // Get services
+        var userService = _serviceProvider.GetService&lt;IUserInteractionService&gt;();
+        var clipboardService = _serviceProvider.GetService&lt;IClipboardService&gt;();
+        
+        // Get email from context
+        string email = context[action.Key];
+        
+        // Validate email
+        bool isValid = IsValidEmail(email);
+        
+        // Show result
+        if (isValid)
+        {
+            userService.ShowNotification($"Valid email: {email}", LogType.Info);
+            await clipboardService.SetTextAsync($"VALID: {email}");
+        }
+        else
+        {
+            userService.ShowNotification($"Invalid email: {email}", LogType.Error);
+        }
+    }
+    
+    private bool IsValidEmail(string email)
+    {
+        // Email validation logic
+        return email.Contains("@") && email.Contains(".");
+    }
+}</code></pre>
+        </div>
+
+        <h3>Plugin Deployment</h3>
+        <ol>
+            <li>Create a new .NET 9.0 class library project</li>
+            <li>Reference <code>Contextualizer.PluginContracts</code></li>
+            <li>Implement the desired plugin interface</li>
+            <li>Build the project to generate the plugin DLL</li>
+            <li>Copy the DLL to the application's plugin folder</li>
+            <li>Configure the plugin in <code>handlers.json</code></li>
+            <li>Restart the application to load the new plugin</li>
+        </ol>
+
+        <h2 id="configuration">6. ⚙️ Configuration System</h2>
+
+        <p>The application uses <code>handlers.json</code> as its central configuration file. This JSON file defines all handlers, their behaviors, actions, and user interface elements.</p>
+
+        <h3>Real-World Configuration Examples</h3>
+
+        <h4>1. API Handler - GitHub User Information</h4>
+        <div class="json-example">
+<pre><code>{
+  <span class="key">"name"</span>: <span class="string">"GitHub User Info"</span>,
+  <span class="key">"title"</span>: <span class="string">"Github User Info"</span>,
+  <span class="key">"type"</span>: <span class="string">"Api"</span>,
+  <span class="key">"screen_id"</span>: <span class="string">"jsonformatter"</span>,
+  <span class="key">"description"</span>: <span class="string">"GitHub kullanıcı bilgilerini getirir"</span>,
+  <span class="key">"requires_confirmation"</span>: <span class="boolean">true</span>,
+  <span class="key">"regex"</span>: <span class="string">"^[a-zA-Z0-9-]+$"</span>,
+  <span class="key">"groups"</span>: [<span class="string">"username"</span>],
+  <span class="key">"url"</span>: <span class="string">"https://api.github.com/users/$(username)"</span>,
+  <span class="key">"method"</span>: <span class="string">"GET"</span>,
+  <span class="key">"headers"</span>: {
+    <span class="key">"Accept"</span>: <span class="string">"application/vnd.github.v3+json"</span>,
+    <span class="key">"User-Agent"</span>: <span class="string">"Contextualizer"</span>
+  },
+  <span class="key">"output_format"</span>: <span class="string">"GitHub User: $(name)\nBio: ${bio}\nFollowers: $(followers)\nFollowing: $(following)"</span>,
+  <span class="key">"actions"</span>: [
+    {
+      <span class="key">"name"</span>: <span class="string">"copytoclipboard"</span>,
+      <span class="key">"key"</span>: <span class="string">"_self"</span>
+    },
+    {
+      <span class="key">"name"</span>: <span class="string">"simple_print_key"</span>,
+      <span class="key">"key"</span>: <span class="string">"RawResponse"</span>,
+      <span class="key">"message"</span>: <span class="string">"GitHub user $(name) bilgileri kopyalandı"</span>
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <h4>2. Database Handler - Strategy Query</h4>
+        <div class="json-example">
+<pre><code>{
+  <span class="key">"name"</span>: <span class="string">"Strategy Query"</span>,
+  <span class="key">"requires_confirmation"</span>: <span class="boolean">false</span>,
+  <span class="key">"screen_id"</span>: <span class="string">"markdown2"</span>,
+  <span class="key">"regex"</span>: <span class="string">"^\\S+$"</span>,
+  <span class="key">"title"</span>: <span class="string">"Strategy Bilgileri"</span>,
+  <span class="key">"description"</span>: <span class="string">"[NorthPole].[Strategy].[Parameter] tablosundan [Name] kolonundan bilgileri getirir."</span>,
+  <span class="key">"type"</span>: <span class="string">"database"</span>,
+  <span class="key">"connectionString"</span>: <span class="string">"Server=localhost\\SQLEXPRESS;Database=NorthPole;Trusted_Connection=True;TrustServerCertificate=True;"</span>,
+  <span class="key">"connector"</span>: <span class="string">"mssql"</span>,
+  <span class="key">"query"</span>: <span class="string">"SELECT [ParameterId],[Name],[Description],[DefaultValue],[IsArray],[Seperator],[FormatedName] FROM [Strategy].[Parameter] WHERE Name = @_input"</span>,
+  <span class="key">"actions"</span>: [
+    {
+      <span class="key">"name"</span>: <span class="string">"simple_print_key"</span>,
+      <span class="key">"key"</span>: <span class="string">"_formatted_output"</span>
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <h4>3. Lookup Handler with User Inputs</h4>
+        <div class="json-example">
+<pre><code>{
+  <span class="key">"name"</span>: <span class="string">"Corp Lookup"</span>,
+  <span class="key">"type"</span>: <span class="string">"lookup"</span>,
+  <span class="key">"screen_id"</span>: <span class="string">"markdown2"</span>,
+  <span class="key">"title"</span>: <span class="string">"Kurum Bilgileri"</span>,
+  <span class="key">"path"</span>: <span class="string">"C:\\Finder\\corp_data.txt"</span>,
+  <span class="key">"delimiter"</span>: <span class="string">"||"</span>,
+  <span class="key">"key_names"</span>: [<span class="string">"drivercode"</span>, <span class="string">"oid"</span>],
+  <span class="key">"value_names"</span>: [<span class="string">"drivercode"</span>, <span class="string">"oid"</span>, <span class="string">"name"</span>, <span class="string">"engine"</span>, <span class="string">"platform"</span>],
+  <span class="key">"user_inputs"</span>: [
+    {
+      <span class="key">"key"</span>: <span class="string">"platform"</span>,
+      <span class="key">"title"</span>: <span class="string">"Platform Selection"</span>,
+      <span class="key">"message"</span>: <span class="string">"Please select your target platform:"</span>,
+      <span class="key">"is_required"</span>: <span class="boolean">true</span>,
+      <span class="key">"is_selection_list"</span>: <span class="boolean">true</span>,
+      <span class="key">"selection_items"</span>: [
+        {<span class="key">"value"</span>: <span class="string">"windows"</span>, <span class="key">"display"</span>: <span class="string">"Windows"</span>},
+        {<span class="key">"value"</span>: <span class="string">"linux"</span>, <span class="key">"display"</span>: <span class="string">"Linux"</span>},
+        {<span class="key">"value"</span>: <span class="string">"macos"</span>, <span class="key">"display"</span>: <span class="string">"macOS"</span>}
+      ],
+      <span class="key">"default_value"</span>: <span class="string">"windows"</span>
+    },
+    {
+      <span class="key">"key"</span>: <span class="string">"api_key"</span>,
+      <span class="key">"title"</span>: <span class="string">"API Key"</span>,
+      <span class="key">"message"</span>: <span class="string">"Enter your API key:"</span>,
+      <span class="key">"is_required"</span>: <span class="boolean">true</span>,
+      <span class="key">"is_password"</span>: <span class="boolean">true</span>,
+      <span class="key">"validation_regex"</span>: <span class="string">"^[A-Za-z0-9-_]{32}$"</span>
+    }
+  ],
+  <span class="key">"output_format"</span>: <span class="string">"$file:C:\\Finder\\output_template\\markdown_capabilities.txt"</span>
+}</code></pre>
+        </div>
+
+        <h4>4. Cron Handler - Scheduled Database Report</h4>
+        <div class="json-example">
+<pre><code>{
+  <span class="key">"name"</span>: <span class="string">"Daily Database Report"</span>,
+  <span class="key">"type"</span>: <span class="string">"cron"</span>,
+  <span class="key">"cron_job_id"</span>: <span class="string">"daily_report"</span>,
+  <span class="key">"cron_expression"</span>: <span class="string">"0 0 8 * * ?"</span>,
+  <span class="key">"cron_timezone"</span>: <span class="string">"Europe/Istanbul"</span>,
+  <span class="key">"cron_enabled"</span>: <span class="boolean">true</span>,
+  <span class="key">"actual_type"</span>: <span class="string">"database"</span>,
+  <span class="key">"connectionString"</span>: <span class="string">"Server=localhost;Database=MyDB;Trusted_Connection=True;"</span>,
+  <span class="key">"connector"</span>: <span class="string">"mssql"</span>,
+  <span class="key">"query"</span>: <span class="string">"SELECT COUNT(*) as total FROM Users WHERE created_date = CAST(GETDATE() as DATE)"</span>,
+  <span class="key">"actions"</span>: [
+    {
+      <span class="key">"name"</span>: <span class="string">"simple_print_key"</span>,
+      <span class="key">"key"</span>: <span class="string">"_formatted_output"</span>
+    }
+  ],
+  <span class="key">"output_format"</span>: <span class="string">"Daily Report: $(total) new users on $(execution_time)"</span>
+}</code></pre>
+        </div>
+
+        <h3>User Input Types</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Input Type</th>
+                    <th>Configuration</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Text Input</strong></td>
+                    <td><code>validation_regex</code></td>
+                    <td>Single-line text with regex validation</td>
+                </tr>
+                <tr>
+                    <td><strong>Password Input</strong></td>
+                    <td><code>is_password: true</code></td>
+                    <td>Masked password input</td>
+                </tr>
+                <tr>
+                    <td><strong>Selection List</strong></td>
+                    <td><code>is_selection_list: true</code></td>
+                    <td>Dropdown with predefined options</td>
+                </tr>
+                <tr>
+                    <td><strong>Multi-Select</strong></td>
+                    <td><code>is_multi_select: true</code></td>
+                    <td>Multiple selection with checkboxes</td>
+                </tr>
+                <tr>
+                    <td><strong>File Picker</strong></td>
+                    <td><code>is_file_picker: true</code></td>
+                    <td>File browser dialog</td>
+                </tr>
+                <tr>
+                    <td><strong>Dependent Selection</strong></td>
+                    <td><code>dependent_key</code></td>
+                    <td>Options change based on another selection</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="function-processing">7. 🔄 Function Processing</h2>
+
+        <p>The function processing system provides 50+ built-in functions with support for method chaining and Unix-style pipelines. Functions can be used in output formats, conditions, and user inputs.</p>
+
+        <h3>Function Syntax Types</h3>
+        <ol>
+            <li><strong>Direct Functions:</strong> <code>$func:functionName(parameters)</code></li>
+            <li><strong>Method Chaining:</strong> <code>$func:today.add(days,5).format(yyyy-MM-dd)</code></li>
+            <li><strong>Pipeline Syntax:</strong> <code>$func:{{ input | function1 | function2 | function3 }}</code></li>
+        </ol>
+
+        <h3>Function Categories</h3>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>📅 Date/Time Functions</h4>
+                <ul>
+                    <li><code>today</code>, <code>now</code>, <code>yesterday</code>, <code>tomorrow</code></li>
+                    <li><strong>Chaining:</strong> <code>.add(days,5)</code>, <code>.format(yyyy-MM-dd)</code></li>
+                    <li><strong>Example:</strong> <code>$func:today.add(days,30).format(dd/MM/yyyy)</code></li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>🔤 String Functions</h4>
+                <ul>
+                    <li><code>string.upper</code>, <code>string.lower</code>, <code>string.trim</code></li>
+                    <li><code>string.replace</code>, <code>string.substring</code>, <code>string.split</code></li>
+                    <li><strong>Example:</strong> <code>$func:string.upper(hello world)</code></li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>🔢 Math Functions</h4>
+                <ul>
+                    <li><code>math.add</code>, <code>math.subtract</code>, <code>math.multiply</code></li>
+                    <li><code>math.round</code>, <code>math.floor</code>, <code>math.ceil</code></li>
+                    <li><strong>Example:</strong> <code>$func:math.add(10,20)</code></li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>📋 Array Functions</h4>
+                <ul>
+                    <li><code>array.get</code>, <code>array.length</code>, <code>array.join</code></li>
+                    <li><strong>Negative indexing:</strong> <code>array.get(-1)</code></li>
+                    <li><strong>Example:</strong> <code>$func:array.join(;,[1,2,3])</code></li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>🌐 Web Functions</h4>
+                <ul>
+                    <li><code>web.get</code>, <code>web.post</code>, <code>web.put</code>, <code>web.delete</code></li>
+                    <li><code>url.encode</code>, <code>url.decode</code>, <code>url.domain</code></li>
+                    <li><strong>Example:</strong> <code>$func:web.get(https://api.example.com/data)</code></li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>📄 JSON Functions</h4>
+                <ul>
+                    <li><code>json.get</code>, <code>json.length</code>, <code>json.first</code></li>
+                    <li><code>json.create</code>, <code>json.last</code></li>
+                    <li><strong>Example:</strong> <code>$func:json.get($.user.name,{"user":{"name":"John"}})</code></li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Pipeline Processing Examples</h3>
+        <div class="json-example">
+<pre><code>// Basic pipeline: transform text to uppercase and add prefix
+$func:{{ hello world | string.upper | string.replace( ,_) }}
+// Result: HELLO_WORLD
+
+// Complex pipeline: process JSON data
+$func:{{ {"users":[{"name":"John"},{"name":"Jane"}]} | json.get($.users) | array.length }}
+// Result: 2
+
+// Date processing pipeline
+$func:{{ 2024-01-15 | date.add(days,30) | date.format(dd/MM/yyyy) }}
+// Result: 14/02/2024
+
+// URL processing pipeline
+$func:{{ https://example.com/path?param=value | url.domain }}
+// Result: example.com</code></pre>
+        </div>
+
+        <h3>Advanced Function Examples</h3>
+        <div class="json-example">
+<pre><code>// Hash generation
+$func:hash.md5(sensitive data)
+
+// Base64 encoding
+$func:base64encode(plain text data)
+
+// Environment variables
+$func:env(USERNAME)
+
+// Random values
+$func:random(1000,9999)
+
+// IP operations
+$func:ip.local()
+$func:ip.isprivate(192.168.1.1)
+
+// Complex chaining with date operations
+$func:today.add(days,5).add(hours,3).format(yyyy-MM-dd HH:mm:ss)</code></pre>
+        </div>
+
+        <h2 id="cron-scheduling">8. ⏰ Cron Scheduling</h2>
+
+        <p>The Contextualizer application includes enterprise-grade job scheduling using Quartz.NET, allowing handlers to be executed on a time-based schedule rather than clipboard triggers.</p>
+
+        <div class="success">
+            <h4>🚀 Cron Features</h4>
+            <ul>
+                <li><strong>Enterprise Scheduling:</strong> Quartz.NET integration with robust persistence</li>
+                <li><strong>Standard Cron Expressions:</strong> 6-field format (seconds-level precision)</li>
+                <li><strong>Timezone Support:</strong> Global deployment with configurable timezones</li>
+                <li><strong>Job Management:</strong> Enable/disable, manual triggering, monitoring</li>
+                <li><strong>Real-time UI:</strong> Professional management interface</li>
+            </ul>
+        </div>
+
+        <h3>Cron Expression Format</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Position</th>
+                    <th>Field</th>
+                    <th>Values</th>
+                    <th>Special Characters</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Seconds</td>
+                    <td>0-59</td>
+                    <td>, - * /</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Minutes</td>
+                    <td>0-59</td>
+                    <td>, - * /</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Hours</td>
+                    <td>0-23</td>
+                    <td>, - * /</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>Day of Month</td>
+                    <td>1-31</td>
+                    <td>, - * / ? L W</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>Month</td>
+                    <td>1-12 or JAN-DEC</td>
+                    <td>, - * /</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td>Day of Week</td>
+                    <td>1-7 or SUN-SAT</td>
+                    <td>, - * / ? L #</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Common Cron Expression Examples</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Expression</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>0 0 8 * * ?</code></td>
+                    <td>Every day at 8:00 AM</td>
+                    <td>Daily reports</td>
+                </tr>
+                <tr>
+                    <td><code>0 */15 * * * ?</code></td>
+                    <td>Every 15 minutes</td>
+                    <td>Monitoring checks</td>
+                </tr>
+                <tr>
+                    <td><code>0 0 18 * * MON-FRI</code></td>
+                    <td>Weekdays at 6:00 PM</td>
+                    <td>End-of-day processing</td>
+                </tr>
+                <tr>
+                    <td><code>0 0 0 1 * ?</code></td>
+                    <td>First day of every month at midnight</td>
+                    <td>Monthly reports</td>
+                </tr>
+                <tr>
+                    <td><code>0 30 2 * * SUN</code></td>
+                    <td>Every Sunday at 2:30 AM</td>
+                    <td>Weekly maintenance</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Cron Management UI</h3>
+        <p>The WPF application includes a professional cron management interface accessible through the main menu:</p>
+        <ul>
+            <li><strong>Real-time Status:</strong> Live job status with color-coded indicators</li>
+            <li><strong>Manual Triggers:</strong> Test jobs manually with confirmation dialogs</li>
+            <li><strong>Enable/Disable:</strong> Toggle jobs without removing them</li>
+            <li><strong>Execution History:</strong> View last execution times and results</li>
+            <li><strong>Next Run Times:</strong> See when jobs will execute next</li>
+            <li><strong>Toast Notifications:</strong> User feedback for all operations</li>
+        </ul>
+
+        <h2 id="user-interfaces">9. 🎨 User Interfaces</h2>
+
+        <h3>WPF Application Features</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>🎭 Theme System</h4>
+                <ul>
+                    <li>Carbon design system integration</li>
+                    <li>Dark/light mode support</li>
+                    <li>Consistent styling across all screens</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>🖥️ Dynamic Screens</h4>
+                <ul>
+                    <li>JSON Formatter with syntax highlighting</li>
+                    <li>XML Formatter with validation</li>
+                    <li>PL/SQL Editor with WebView2</li>
+                    <li>URL Viewer with shared profiles</li>
+                    <li>Markdown renderer</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>🔔 User Interaction</h4>
+                <ul>
+                    <li>Toast notifications system</li>
+                    <li>Confirmation dialogs</li>
+                    <li>Input validation and error handling</li>
+                    <li>Real-time activity logging</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>⚙️ Management Interfaces</h4>
+                <ul>
+                    <li>Cron job management</li>
+                    <li>Handler configuration</li>
+                    <li>Plugin management</li>
+                    <li>System monitoring</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Console Application</h3>
+        <p>The console application provides an alternative interface suitable for:</p>
+        <ul>
+            <li>Server deployments without GUI</li>
+            <li>Docker containers</li>
+            <li>Windows Services</li>
+            <li>Automated deployments</li>
+        </ul>
+
+        <h2 id="examples">10. 💼 Real-World Examples</h2>
+
+        <h3>Example 1: GitHub Integration Workflow</h3>
+        <div class="highlight">
+            <strong>Scenario:</strong> Developers frequently need to look up GitHub user information. When they copy a GitHub username, the system automatically fetches and displays the user's profile data.
+        </div>
+
+        <p><strong>Implementation Steps:</strong></p>
+        <ol>
+            <li>Configure an API handler for GitHub usernames</li>
+            <li>Set up regex pattern matching for valid usernames</li>
+            <li>Configure API endpoint and headers</li>
+            <li>Define output format for user information</li>
+            <li>Add actions to copy data and show notifications</li>
+        </ol>
+
+        <p><strong>User Experience:</strong></p>
+        <ol>
+            <li>Developer copies "octocat" to clipboard</li>
+            <li>Application detects valid GitHub username pattern</li>
+            <li>Shows confirmation dialog</li>
+            <li>Fetches data from GitHub API</li>
+            <li>Displays formatted profile in JSON formatter screen</li>
+            <li>Copies formatted data back to clipboard</li>
+        </ol>
+
+        <h3>Example 2: Database Development Workflow</h3>
+        <div class="highlight">
+            <strong>Scenario:</strong> Database developers need quick lookups of strategy parameters. When they copy a parameter name, the system queries the database and shows detailed information.
+        </div>
+
+        <p><strong>Configuration Benefits:</strong></p>
+        <ul>
+            <li>Eliminates manual SQL query writing</li>
+            <li>Provides consistent parameter information format</li>
+            <li>Reduces context switching between applications</li>
+            <li>Automatic parameterized query execution</li>
+        </ul>
+
+        <h3>Example 3: File Management Automation</h3>
+        <div class="highlight">
+            <strong>Scenario:</strong> When developers copy file paths to HTML/CSS files, the system automatically opens them in the default editor and logs the action.
+        </div>
+
+        <div class="json-example">
+<pre><code>{
+  <span class="key">"name"</span>: <span class="string">"Open File"</span>,
+  <span class="key">"type"</span>: <span class="string">"file"</span>,
+  <span class="key">"actions"</span>: [
+    {
+      <span class="key">"name"</span>: <span class="string">"open_file"</span>
+    },
+    {
+      <span class="key">"name"</span>: <span class="string">"print_details"</span>
+    }
+  ],
+  <span class="key">"file_extensions"</span>: [<span class="string">".html"</span>, <span class="string">".css"</span>]
+}</code></pre>
+        </div>
+
+        <h3>Example 4: Scheduled Reporting System</h3>
+        <div class="highlight">
+            <strong>Scenario:</strong> Automated daily reports that query the database and send formatted results to stakeholders.
+        </div>
+
+        <p><strong>Cron Configuration Benefits:</strong></p>
+        <ul>
+            <li>Timezone-aware scheduling</li>
+            <li>Enterprise-grade reliability with Quartz.NET</li>
+            <li>Real-time monitoring and management</li>
+            <li>Integration with existing handler pipeline</li>
+        </ul>
+
+        <h2 id="best-practices">11. ✅ Best Practices</h2>
+
+        <h3>Handler Development</h3>
+        <ul>
+            <li><strong>Single Responsibility:</strong> Each handler should focus on one specific content type</li>
+            <li><strong>Error Handling:</strong> Always implement comprehensive error handling and logging</li>
+            <li><strong>Performance:</strong> Use async/await patterns for I/O operations</li>
+            <li><strong>Security:</strong> Validate all user inputs and use parameterized queries</li>
+            <li><strong>Testing:</strong> Create comprehensive test cases using the provided test files</li>
+        </ul>
+
+        <h3>Configuration Management</h3>
+        <ul>
+            <li><strong>Documentation:</strong> Include clear descriptions for all handlers</li>
+            <li><strong>Validation:</strong> Use regex patterns for input validation</li>
+            <li><strong>Organization:</strong> Group related handlers logically</li>
+            <li><strong>Security:</strong> Store sensitive data (passwords, API keys) securely</li>
+            <li><strong>Backup:</strong> Maintain version control for configuration files</li>
+        </ul>
+
+        <h3>Plugin Development</h3>
+        <ul>
+            <li><strong>Interface Compliance:</strong> Strictly follow plugin contract interfaces</li>
+            <li><strong>Service Usage:</strong> Use the service provider for all core functionality access</li>
+            <li><strong>Error Handling:</strong> Implement graceful error handling with proper logging</li>
+            <li><strong>Resource Management:</strong> Properly dispose of resources and avoid memory leaks</li>
+            <li><strong>Documentation:</strong> Provide comprehensive XML documentation</li>
+        </ul>
+
+        <h3>Function Processing</h3>
+        <ul>
+            <li><strong>Complexity:</strong> Use pipelines for complex transformations</li>
+            <li><strong>Readability:</strong> Choose method chaining for fluent operations</li>
+            <li><strong>Testing:</strong> Validate functions using the comprehensive test files</li>
+            <li><strong>Performance:</strong> Consider caching for expensive operations</li>
+            <li><strong>Error Recovery:</strong> Implement fallback values for failed functions</li>
+        </ul>
+
+        <h2 id="troubleshooting">12. 🔧 Troubleshooting</h2>
+
+        <h3>Common Issues and Solutions</h3>
+
+        <div class="warning">
+            <h4>⚠️ Handler Not Triggering</h4>
+            <ul>
+                <li><strong>Check regex patterns:</strong> Ensure patterns match expected clipboard content</li>
+                <li><strong>Verify file extensions:</strong> Confirm file handlers have correct extensions</li>
+                <li><strong>Review configuration:</strong> Validate JSON syntax in handlers.json</li>
+                <li><strong>Check logs:</strong> Review application logs for error messages</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <h4>⚠️ Plugin Loading Failures</h4>
+            <ul>
+                <li><strong>Assembly References:</strong> Ensure plugin references correct contract version</li>
+                <li><strong>Target Framework:</strong> Verify plugins target .NET 9.0</li>
+                <li><strong>Deployment:</strong> Check plugin DLLs are in correct folder</li>
+                <li><strong>Dependencies:</strong> Ensure all plugin dependencies are available</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <h4>⚠️ Database Connection Issues</h4>
+            <ul>
+                <li><strong>Connection String:</strong> Verify database connection parameters</li>
+                <li><strong>Permissions:</strong> Ensure application has database access rights</li>
+                <li><strong>Network:</strong> Check network connectivity to database server</li>
+                <li><strong>SQL Syntax:</strong> Validate query syntax and parameter names</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <h4>⚠️ Cron Jobs Not Executing</h4>
+            <ul>
+                <li><strong>Expression Syntax:</strong> Validate cron expression format</li>
+                <li><strong>Timezone Configuration:</strong> Check timezone settings</li>
+                <li><strong>Job Status:</strong> Verify jobs are enabled in management UI</li>
+                <li><strong>Scheduler Status:</strong> Ensure Quartz.NET scheduler is running</li>
+            </ul>
+        </div>
+
+        <h3>Diagnostic Tools</h3>
+        <ul>
+            <li><strong>Application Logs:</strong> Monitor real-time activity and errors</li>
+            <li><strong>Function Test Files:</strong> Use provided test files to validate function processing</li>
+            <li><strong>Cron Management UI:</strong> Monitor job execution and status</li>
+            <li><strong>Handler Validation:</strong> Test handlers individually through manual screens</li>
+        </ul>
+
+        <h3>Performance Optimization</h3>
+        <ul>
+            <li><strong>Handler Order:</strong> Place most frequently used handlers first</li>
+            <li><strong>Regex Complexity:</strong> Optimize complex regex patterns</li>
+            <li><strong>Database Indexing:</strong> Ensure proper database indexes for queries</li>
+            <li><strong>Plugin Efficiency:</strong> Profile plugin performance and optimize bottlenecks</li>
+        </ul>
+
+        <div class="success">
+            <h4>🎯 Getting Help</h4>
+            <p>For additional support and advanced implementation guidance:</p>
+            <ul>
+                <li>Review the comprehensive test files in the repository</li>
+                <li>Examine built-in plugin implementations for examples</li>
+                <li>Use the WPF application's real-time logging for diagnostics</li>
+                <li>Leverage the cron management UI for scheduling troubleshooting</li>
+            </ul>
+        </div>
+
+        <hr style="margin: 40px 0; border: none; border-top: 2px solid #e9ecef;">
+
+        <div style="text-align: center; color: #6c757d; font-style: italic;">
+            <p><strong>Contextualizer v1.0</strong> - Enterprise Clipboard Automation Platform</p>
+            <p>Built with .NET 9.0 | Designed for Extensibility</p>
+            <p>© 2024 - This document provides comprehensive guidance for implementing and extending the Contextualizer application in your enterprise environment.</p>
+        </div>
+    </div>
+</body>
+</html>
