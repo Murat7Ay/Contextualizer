@@ -123,6 +123,64 @@ namespace Contextualizer.Core
             return _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase));
         }
 
+        /// <summary>
+        /// Execute a handler configuration through synthetic content (used by cron scheduler)
+        /// </summary>
+        /// <param name="handlerConfig">Handler configuration to execute</param>
+        /// <returns>Result description</returns>
+        public async Task<string> ExecuteHandlerConfig(HandlerConfig handlerConfig)
+        {
+            try
+            {
+                // Create a temporary handler from the configuration
+                var handler = HandlerFactory.Create(handlerConfig);
+                if (handler == null)
+                {
+                    var error = $"Failed to create handler of type: {handlerConfig.Type}";
+                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, error);
+                    return error;
+                }
+
+                // Create synthetic clipboard content based on handler type
+                ClipboardContent clipboardContent;
+                
+                if (handler is ISyntheticContent syntheticHandler && handlerConfig.SyntheticInput != null)
+                {
+                    // Use synthetic content creation
+                    clipboardContent = syntheticHandler.CreateSyntheticContent(handlerConfig.SyntheticInput);
+                    if (!clipboardContent.Success)
+                    {
+                        var error = "Failed to create synthetic content for cron job";
+                        ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, error);
+                        return error;
+                    }
+                }
+                else
+                {
+                    // Create default synthetic content for cron trigger
+                    clipboardContent = new ClipboardContent
+                    {
+                        Success = true,
+                        IsText = true,
+                        Text = $"Cron trigger: {handlerConfig.Name} at {DateTime.Now:yyyy-MM-dd HH:mm:ss}"
+                    };
+                }
+
+                // Execute the handler
+                await Task.Run(() => handler.Execute(clipboardContent));
+                
+                var result = $"Successfully executed cron job: {handlerConfig.Name}";
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, result);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                var error = $"Error executing cron job {handlerConfig.Name}: {ex.Message}";
+                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, error);
+                return error;
+            }
+        }
+
         public void Dispose()
         {
             _hook.TextCaptured -= OnTextCaptured;

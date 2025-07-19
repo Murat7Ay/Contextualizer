@@ -39,7 +39,7 @@ namespace Contextualizer.ConsoleApp
                 {
                     var regex = new Regex(request.ValidationRegex);
 
-                    if (!regex.IsMatch(userInput))
+                    if (!regex.IsMatch(userInput ?? string.Empty))
                     {
                         System.Console.WriteLine("Invalid input format. Please follow the expected format.");
                         continue;
@@ -102,6 +102,55 @@ namespace Contextualizer.ConsoleApp
         public void ShowWindow(string screenId, string title, Dictionary<string, string> context, List<KeyValuePair<string, Action<Dictionary<string, string>>>>? actions = null)
         {
             throw new NotImplementedException();
+        }
+
+        public NavigationResult GetUserInputWithNavigation(UserInputRequest request, Dictionary<string, string> context, bool canGoBack, int currentStep, int totalSteps)
+        {
+            System.Console.WriteLine($"Step {currentStep} of {totalSteps}");
+            if (canGoBack)
+            {
+                System.Console.WriteLine("Enter 'back' to go back, 'cancel' to cancel, or provide input:");
+            }
+            else
+            {
+                System.Console.WriteLine("Enter 'cancel' to cancel, or provide input:");
+            }
+
+            var input = GetUserInput(request);
+            
+            if (string.IsNullOrEmpty(input))
+            {
+                return new NavigationResult { Action = NavigationAction.Cancel };
+            }
+            
+            if (input.ToLower() == "back" && canGoBack)
+            {
+                return new NavigationResult { Action = NavigationAction.Back };
+            }
+            
+            if (input.ToLower() == "cancel")
+            {
+                return new NavigationResult { Action = NavigationAction.Cancel };
+            }
+
+            return new NavigationResult 
+            { 
+                Action = NavigationAction.Next, 
+                Value = input 
+            };
+        }
+
+        public void ShowNotificationWithActions(string message, LogType notificationType = LogType.Info, string title = "", int durationInSeconds = 5, params ToastAction[] actions)
+        {
+            System.Console.WriteLine($"[{notificationType}] {title}: {message}");
+            if (actions != null && actions.Length > 0)
+            {
+                System.Console.WriteLine("Available actions:");
+                for (int i = 0; i < actions.Length; i++)
+                {
+                    System.Console.WriteLine($"{i + 1}. {actions[i].Text}");
+                }
+            }
         }
 
     }

@@ -1,4 +1,5 @@
 ﻿using Contextualizer.Core;
+using Contextualizer.Core.Services;
 using System;
 using System.Windows;
 using WpfInteractionApp.Services;
@@ -12,6 +13,7 @@ namespace WpfInteractionApp
         private HandlerManager? _handlerManager;
         private MainWindow? _mainWindow;
         private SettingsService? _settingsService;
+        private CronScheduler? _cronScheduler;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -41,6 +43,14 @@ namespace WpfInteractionApp
                 var userInteractionService = new WpfUserInteractionService(_mainWindow);
                 ServiceLocator.Register<IUserInteractionService>(userInteractionService);
 
+                // Initialize and register CronScheduler
+                _cronScheduler = new CronScheduler();
+
+                // Start the CronScheduler
+                await _cronScheduler.Start();
+
+                ServiceLocator.Register<ICronService>(_cronScheduler);
+
                 // Create the HandlerManager
                 _handlerManager = new HandlerManager(
                     userInteractionService,
@@ -55,6 +65,7 @@ namespace WpfInteractionApp
 
                 // Start the HandlerManager
                 await _handlerManager.StartAsync();
+
             }
             catch (Exception ex)
             {
@@ -77,6 +88,8 @@ namespace WpfInteractionApp
             }
 
             _handlerManager?.Dispose();
+            _cronScheduler?.Stop().Wait();
+            _cronScheduler?.Dispose();
             base.OnExit(e);
         }
     }

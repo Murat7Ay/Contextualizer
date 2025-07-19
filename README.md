@@ -14,6 +14,7 @@ Contextualizer is a powerful Windows application that provides context-aware cli
   - **Custom Handler**: Implement custom handling logic
   - **Manual Handler**: Trigger actions manually
   - **Synthetic Handler**: Generate and handle synthetic content programmatically
+  - **Cron Handler**: Schedule and automate handlers using cron expressions with Quartz.NET
 
 - **Plugin System**:
   - Extensible architecture supporting custom plugins
@@ -40,6 +41,16 @@ Contextualizer is a powerful Windows application that provides context-aware cli
   - Functions for dates, strings, math, arrays, JSON, URL, web requests, hashing, and more
   - Pipeline-safe processing of placeholders containing special characters
 
+- **Cron Scheduling System**:
+  - Enterprise-grade job scheduling using Quartz.NET
+  - Standard cron expressions (6-field format with seconds)
+  - Timezone support for global deployments
+  - Job pause/resume and manual triggering
+  - Real-time execution monitoring and logging
+  - Seamless integration with all existing handler types
+  - Synthetic content generation for scheduled tasks
+  - Robust error handling and retry mechanisms
+
 - **Advanced Features**:
   - Theme-aware components
   - Dynamic screen management
@@ -64,11 +75,36 @@ Contextualizer is a powerful Windows application that provides context-aware cli
 The application uses a JSON configuration file (`handlers.json`) to define handlers and their behaviors. The configuration includes:
 
 - Handler definitions
+- Cron scheduling configurations
 - Plugin settings
 - Database connections
 - Lookup data
 - Custom actions
 - Theme preferences
+
+### Cron Handler Configuration Example
+
+```json
+{
+  "name": "Daily Database Report",
+  "type": "cron",
+  "cron_job_id": "daily_report",
+  "cron_expression": "0 0 8 * * ?",
+  "cron_timezone": "Europe/Istanbul", 
+  "cron_enabled": true,
+  "actual_type": "database",
+  "connectionString": "Server=localhost;Database=MyDB;Trusted_Connection=True;",
+  "connector": "mssql",
+  "query": "SELECT COUNT(*) as total FROM Users WHERE created_date = CAST(GETDATE() as DATE)",
+  "actions": [
+    {
+      "name": "simple_print_key",
+      "key": "_formatted_output"
+    }
+  ],
+  "output_format": "Daily Report: $(total) new users on $(execution_time)"
+}
+```
 
 ## Project Structure
 
@@ -107,6 +143,7 @@ The application uses a JSON configuration file (`handlers.json`) to define handl
 - Markdig: For markdown processing
 - Microsoft.Web.WebView2: For web view components
 - System.Text.Json: For JSON processing
+- Quartz.NET: For enterprise-grade cron scheduling
 
 ## License
 
