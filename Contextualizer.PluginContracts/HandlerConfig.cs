@@ -87,6 +87,16 @@ namespace Contextualizer.PluginContracts
         public string? ActualType { get; set; }
         [JsonPropertyName("synthetic_input")]
         public UserInputRequest? SyntheticInput { get; set; }
+
+        // Cron handler properties
+        [JsonPropertyName("cron_job_id")]
+        public string? CronJobId { get; set; }
+        [JsonPropertyName("cron_expression")]
+        public string? CronExpression { get; set; }
+        [JsonPropertyName("cron_timezone")]
+        public string? CronTimezone { get; set; }
+        [JsonPropertyName("cron_enabled")]
+        public bool CronEnabled { get; set; } = true;
     }
 
 }
