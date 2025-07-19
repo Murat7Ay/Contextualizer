@@ -220,6 +220,13 @@ namespace WpfInteractionApp
             exchangeWindow.Show();
         }
 
+        private void OpenCronManager_Click(object sender, RoutedEventArgs e)
+        {
+            var cronManagerWindow = new CronManagerWindow();
+            cronManagerWindow.Owner = this;
+            cronManagerWindow.Show();
+        }
+
         private void LoadWindowSettings()
         {
             try

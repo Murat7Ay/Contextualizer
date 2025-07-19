@@ -16,6 +16,12 @@
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
             <converters:ArrayToStringConverter x:Key="ArrayToStringConverter"/>
             <converters:BoolToInstalledConverter x:Key="BoolToInstalledConverter"/>
+            <converters:BoolToStatusConverter x:Key="BoolToStatusConverter"/>
+            <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+            <converters:LastResultConverter x:Key="LastResultConverter"/>
+            <converters:LastResultColorConverter x:Key="LastResultColorConverter"/>
+            <converters:EnableButtonTextConverter x:Key="EnableButtonTextConverter"/>
+            <converters:EnableButtonColorConverter x:Key="EnableButtonColorConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
