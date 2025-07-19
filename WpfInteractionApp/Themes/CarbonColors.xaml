@@ -32,6 +32,7 @@
     <SolidColorBrush x:Key="Carbon.Brush.Background.Secondary" Color="{DynamicResource Carbon.Background.Secondary}" />
     <SolidColorBrush x:Key="Carbon.Brush.Background.Tertiary" Color="{DynamicResource Carbon.Background.Tertiary}" />
     <SolidColorBrush x:Key="Carbon.Brush.Background.Active" Color="{DynamicResource Carbon.Background.Active}" />
+    <SolidColorBrush x:Key="Carbon.Brush.Background.Hover" Color="{DynamicResource Carbon.Background.Secondary}" />
     
     <SolidColorBrush x:Key="Carbon.Brush.Text.Primary" Color="{DynamicResource Carbon.Text.Primary}" />
     <SolidColorBrush x:Key="Carbon.Brush.Text.Secondary" Color="{DynamicResource Carbon.Text.Secondary}" />

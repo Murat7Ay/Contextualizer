@@ -36,8 +36,9 @@ dotnet build
 **Contextualizer.Core** - Contains the main business logic and handler system:
 - **Handler Architecture**: Plugin-based system where handlers inherit from `Dispatch` base class
 - **Service Locator Pattern**: Central service registry in `ServiceLocator.cs` for dependency injection
-- **Handler Types**: RegexHandler, FileHandler, DatabaseHandler, ApiHandler, CustomHandler, ManualHandler, SyntheticHandler
+- **Handler Types**: RegexHandler, FileHandler, DatabaseHandler, ApiHandler, CustomHandler, ManualHandler, SyntheticHandler, CronHandler
 - **Dynamic Loading**: Uses `DynamicAssemblyLoader` to load plugins at runtime
+- **Cron Scheduling**: Enterprise-grade scheduling system using Quartz.NET for time-based automation
 
 **Contextualizer.PluginContracts** - Interface definitions for extensibility:
 - Core interfaces: `IHandler`, `IAction`, `IContentValidator`, `IContextProvider`
@@ -54,6 +55,7 @@ dotnet build
 - Dynamic screens implementing `IDynamicScreen` interface
 - User interaction dialogs and toast notifications
 - PL/SQL editor with syntax highlighting using WebView2
+- Cron Management UI with real-time job monitoring and control
 
 ### Handler Execution Flow
 
@@ -138,6 +140,58 @@ These test files cover all supported functions and provide examples for:
 
 **Usage**: Use any test file as OutputFormat (`$file:path/to/test.md`) to validate function processor capabilities and see live examples of all supported functionality.
 
+### Cron Scheduling System
+
+**CronHandler.cs** - Time-based automation system:
+- **Enterprise Scheduling**: Quartz.NET integration with robust job execution and persistence
+- **Standard Cron Expressions**: 6-field format supporting seconds-level precision
+- **Timezone Support**: Global deployment support with configurable timezones
+- **Synthetic Content Generation**: Integrates with existing handler pipeline via SyntheticHandler
+- **Job Management**: Enable/disable, manual triggering, and execution monitoring
+- **Error Handling**: Comprehensive logging with retry mechanisms and error tracking
+
+**ICronService Interface** - Cron service contract:
+- `ScheduleJob(jobId, cronExpression, handlerConfig, timezone)` - Schedule new jobs
+- `GetScheduledJobs()` - Retrieve all scheduled jobs with status information
+- `SetJobEnabled(jobId, enabled)` - Enable/disable jobs without removing them
+- `TriggerJob(jobId)` - Manually trigger job execution for testing
+- `IsRunning` - Check scheduler status and health
+
+**CronScheduler Implementation** - Core scheduling service:
+- **Quartz.NET Integration**: Enterprise-grade job scheduling with persistence
+- **Job Execution Context**: Passes HandlerConfig and execution metadata to handlers
+- **Background Service**: Runs independently of UI with proper lifecycle management
+- **Memory Management**: Efficient job storage and cleanup mechanisms
+- **Thread Safety**: Concurrent job execution with proper synchronization
+
+**Configuration Example**:
+```json
+{
+  "name": "Daily Database Report",
+  "type": "cron",
+  "cron_job_id": "daily_report",
+  "cron_expression": "0 0 8 * * ?",
+  "cron_timezone": "Europe/Istanbul",
+  "cron_enabled": true,
+  "actual_type": "database",
+  "connectionString": "Server=localhost;Database=MyDB;Trusted_Connection=True;",
+  "connector": "mssql",
+  "query": "SELECT COUNT(*) as total FROM Users WHERE created_date = CAST(GETDATE() as DATE)",
+  "actions": [{"name": "simple_print_key", "key": "_formatted_output"}],
+  "output_format": "Daily Report: $(total) new users on $(execution_time)"
+}
+```
+
+**Cron Management UI Features**:
+- Real-time job status monitoring with color-coded status indicators
+- Manual job triggering with confirmation dialogs and user feedback
+- Job enable/disable controls with immediate state updates
+- Professional table layout showing cron expressions, execution history, and next run times
+- Refresh capability for live updates without restart
+- Toast notifications for all operations with success/error feedback
+- Carbon design system integration for consistent theming
+- Proper converter architecture following existing application patterns
+
 ### Database Support
 
 - **Database Handlers**: Support for MSSQL and Oracle via Dapper
@@ -148,4 +202,4 @@ These test files cover all supported functions and provide examples for:
 
 - **.NET 9.0**: All projects target .NET 9.0
 - **WPF**: UI application uses net9.0-windows with WPF support
-- **Dependencies**: SharpHook for keyboard hooks, Dapper for database access, Markdig for markdown processing
+- **Dependencies**: SharpHook for keyboard hooks, Dapper for database access, Markdig for markdown processing, Quartz.NET for enterprise cron scheduling
