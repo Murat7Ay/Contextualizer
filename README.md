@@ -9,9 +9,11 @@ Contextualizer is a powerful Windows application that provides context-aware cli
   - **Regex Handler**: Process text using regular expressions
   - **File Handler**: Handle file-based operations
   - **Database Handler**: Interact with MSSQL and Oracle databases
+  - **API Handler**: Handle HTTP API requests and responses
   - **Lookup Handler**: Perform lookups against predefined data
   - **Custom Handler**: Implement custom handling logic
   - **Manual Handler**: Trigger actions manually
+  - **Synthetic Handler**: Generate and handle synthetic content programmatically
 
 - **Plugin System**:
   - Extensible architecture supporting custom plugins
@@ -28,6 +30,15 @@ Contextualizer is a powerful Windows application that provides context-aware cli
   - PL/SQL editor with syntax highlighting
   - Markdown viewer with live preview
   - User input dialogs with validation
+
+- **Advanced Function Processing System**:
+  - Comprehensive function library with 50+ built-in functions
+  - Unix-style pipeline syntax: `$func:{{ input | function1 | function2 }}`
+  - Method chaining: `$func:today.add(days,5).format(yyyy-MM-dd)`
+  - Context variable substitution: `$(variableName)`
+  - Advanced parsing with nested parentheses and quote handling
+  - Functions for dates, strings, math, arrays, JSON, URL, web requests, hashing, and more
+  - Pipeline-safe processing of placeholders containing special characters
 
 - **Advanced Features**:
   - Theme-aware components
