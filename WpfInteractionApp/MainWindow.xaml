@@ -34,6 +34,7 @@
             </MenuItem>
             <MenuItem Header="Settings" Style="{DynamicResource Carbon.MenuItem.Light}">
                 <MenuItem Header="Application Settings" Click="SettingsMenuItem_Click" Style="{DynamicResource Carbon.MenuItem.Light}"/>
+                <MenuItem Header="Logging Settings" Click="LoggingSettingsMenuItem_Click" Style="{DynamicResource Carbon.MenuItem.Light}"/>
                 <MenuItem Header="Handler Exchange" Click="OpenHandlerExchange_Click" Style="{DynamicResource Carbon.MenuItem.Light}"/>
                 <MenuItem Header="Cron Job Manager" Click="OpenCronManager_Click" Style="{DynamicResource Carbon.MenuItem.Light}"/>
             </MenuItem>

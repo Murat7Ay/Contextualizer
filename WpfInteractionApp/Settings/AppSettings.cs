@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
+using Contextualizer.PluginContracts;
 
 namespace WpfInteractionApp.Settings
 {
@@ -31,6 +32,9 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("ui_settings")]
         public UISettings UISettings { get; set; } = new UISettings();
+
+        [JsonPropertyName("logging_settings")]
+        public LoggingSettings LoggingSettings { get; set; } = new LoggingSettings();
     }
 
     public class KeyboardShortcut
@@ -113,5 +117,60 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("theme")]
         public string Theme { get; set; } = "Dark";
+    }
+
+    public class LoggingSettings
+    {
+        [JsonPropertyName("enable_local_logging")]
+        public bool EnableLocalLogging { get; set; } = true;
+
+        [JsonPropertyName("enable_usage_tracking")]
+        public bool EnableUsageTracking { get; set; } = true;
+
+        [JsonPropertyName("local_log_path")]
+        public string LocalLogPath { get; set; } = "";
+
+        [JsonPropertyName("usage_endpoint_url")]
+        public string? UsageEndpointUrl { get; set; } = "http://localhost:5678/webhook/api/usage";
+
+        [JsonPropertyName("minimum_log_level")]
+        public LogLevel MinimumLogLevel { get; set; } = LogLevel.Info;
+
+        [JsonPropertyName("max_log_file_size_mb")]
+        public int MaxLogFileSizeMB { get; set; } = 10;
+
+        [JsonPropertyName("max_log_file_count")]
+        public int MaxLogFileCount { get; set; } = 5;
+
+        [JsonPropertyName("enable_debug_mode")]
+        public bool EnableDebugMode { get; set; } = false;
+
+        public LoggingConfiguration ToLoggingConfiguration()
+        {
+            var defaultPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Contextualizer", "logs");
+            return new LoggingConfiguration
+            {
+                EnableLocalLogging = EnableLocalLogging,
+                EnableUsageTracking = EnableUsageTracking,
+                LocalLogPath = string.IsNullOrEmpty(LocalLogPath) ? defaultPath : LocalLogPath,
+                UsageEndpointUrl = UsageEndpointUrl,
+                MinimumLogLevel = MinimumLogLevel,
+                MaxLogFileSizeMB = MaxLogFileSizeMB,
+                MaxLogFileCount = MaxLogFileCount,
+                EnableDebugMode = EnableDebugMode
+            };
+        }
+
+        public void FromLoggingConfiguration(LoggingConfiguration config)
+        {
+            EnableLocalLogging = config.EnableLocalLogging;
+            EnableUsageTracking = config.EnableUsageTracking;
+            LocalLogPath = config.LocalLogPath;
+            UsageEndpointUrl = config.UsageEndpointUrl;
+            MinimumLogLevel = config.MinimumLogLevel;
+            MaxLogFileSizeMB = config.MaxLogFileSizeMB;
+            MaxLogFileCount = config.MaxLogFileCount;
+            EnableDebugMode = config.EnableDebugMode;
+        }
     }
 } 

@@ -28,15 +28,30 @@ namespace Contextualizer.Core
             {
                 try
                 {
+                    var logger = ServiceLocator.Get<ILoggingService>();
+                    
                     // IAction implementasyonlarını bul
                     var actionTypes = assembly.GetTypes()
                         .Where(t => typeof(IAction).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
                     foreach (var type in actionTypes)
                     {
-                        var instance = (IAction)Activator.CreateInstance(type);
-                        instance.Initialize(new PluginServiceProviderImp());
-                        _actions[instance.Name] = instance;
+                        try
+                        {
+                            var instance = (IAction)Activator.CreateInstance(type);
+                            instance.Initialize(new PluginServiceProviderImp());
+                            _actions[instance.Name] = instance;
+                            
+                            logger?.LogDebug($"Action loaded: {instance.Name} from {assembly.GetName().Name}");
+                        }
+                        catch (Exception ex)
+                        {
+                            logger?.LogError($"Failed to load action {type.Name}", ex, new Dictionary<string, object>
+                            {
+                                ["assembly"] = assembly.GetName().Name ?? "unknown",
+                                ["action_type"] = type.FullName ?? "unknown"
+                            });
+                        }
                     }
 
                     var validatorTypes = assembly.GetTypes()

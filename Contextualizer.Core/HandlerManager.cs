@@ -1,6 +1,7 @@
 ﻿using Contextualizer.PluginContracts;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,29 +36,75 @@ namespace Contextualizer.Core
 
         public async Task StartAsync()
         {
+            var logger = ServiceLocator.Get<ILoggingService>();
+            
             await _hook.StartAsync();
             ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info,"Listener started.");
+            
+            logger.LogInfo("HandlerManager started successfully");
+            await logger.LogSystemEventAsync("application_start");
         }
 
         public void Stop()
         {
+            var logger = ServiceLocator.Get<ILoggingService>();
+            
             _hook.Stop();
             ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, "Listener stopped.");
+            
+            logger.LogInfo("HandlerManager stopped");
+            _ = logger.LogSystemEventAsync("application_stop");
         }
 
         private void OnTextCaptured(object? sender, ClipboardCapturedEventArgs e)
         {
+            var logger = ServiceLocator.Get<ILoggingService>();
+            
             ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Captured Text: {e.ToString()}");
+            
+            var contentLength = e.ClipboardContent?.IsText == true ? e.ClipboardContent.Text?.Length ?? 0 : 0;
+            logger.LogDebug($"Clipboard content captured: {contentLength} characters");
+            _ = logger.LogUserActivityAsync("clipboard_capture", new Dictionary<string, object>
+            {
+                ["content_length"] = contentLength,
+                ["content_type"] = e.ClipboardContent?.IsText == true ? "text" : e.ClipboardContent?.IsFile == true ? "file" : "unknown",
+                ["is_text"] = e.ClipboardContent?.IsText ?? false,
+                ["is_file"] = e.ClipboardContent?.IsFile ?? false
+            });
 
             foreach (var handler in _handlers)
             {
+                var stopwatch = Stopwatch.StartNew();
                 try
                 {
                     handler.Execute(e.ClipboardContent);
+                    stopwatch.Stop();
+                    
+                    logger.LogHandlerExecution(
+                        handler.HandlerConfig.Name, 
+                        handler.GetType().Name, 
+                        stopwatch.Elapsed, 
+                        true,
+                        new Dictionary<string, object>
+                        {
+                            ["content_length"] = contentLength
+                        });
                 }
                 catch (Exception ex)
                 {
+                    stopwatch.Stop();
+                    
                     ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error in handler {handler.GetType().Name}: {ex.Message}");
+                    
+                    logger.LogHandlerError(
+                        handler.HandlerConfig.Name, 
+                        handler.GetType().Name, 
+                        ex,
+                        new Dictionary<string, object>
+                        {
+                            ["content_length"] = contentLength,
+                            ["execution_time_ms"] = stopwatch.ElapsedMilliseconds
+                        });
                 }
             }
         }

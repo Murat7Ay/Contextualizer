@@ -5,6 +5,7 @@ using System.Windows;
 using WpfInteractionApp.Services;
 using System.Linq;
 using Contextualizer.PluginContracts;
+using System.IO;
 
 namespace WpfInteractionApp
 {
@@ -24,6 +25,12 @@ namespace WpfInteractionApp
                 // Initialize settings service first
                 _settingsService = new SettingsService();
                 ServiceLocator.Register<SettingsService>(_settingsService);
+
+                // Initialize and register logging service using settings
+                var loggingService = new LoggingService();
+                var loggingConfig = _settingsService.Settings.LoggingSettings.ToLoggingConfiguration();
+                loggingService.SetConfiguration(loggingConfig);
+                ServiceLocator.Register<ILoggingService>(loggingService);
 
                 // Initialize and apply the saved theme from AppSettings
                 ThemeManager.Instance.ApplyTheme(_settingsService.Settings.UISettings.Theme);
