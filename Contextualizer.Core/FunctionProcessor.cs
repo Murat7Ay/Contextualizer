@@ -39,6 +39,14 @@ namespace Contextualizer.Core
             catch (Exception ex)
             {
                 ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error processing functions: {ex.Message}");
+                
+                var logger = ServiceLocator.Get<ILoggingService>();
+                logger?.LogError("Function processing failed", ex, new Dictionary<string, object>
+                {
+                    ["input"] = input?.Substring(0, Math.Min(input?.Length ?? 0, 100)) ?? "null",
+                    ["context_keys"] = context?.Keys.ToArray() ?? Array.Empty<string>()
+                });
+                
                 return input;
             }
         }
