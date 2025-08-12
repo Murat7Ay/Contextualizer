@@ -192,6 +192,26 @@ These test files cover all supported functions and provide examples for:
 - Carbon design system integration for consistent theming
 - Proper converter architecture following existing application patterns
 
+### Agent Integration System (PLANNED)
+
+**Agent Framework Integration** - User-defined AI agent capabilities:
+- **Qwen Agent Backend**: Python-based agent framework with Gradio 5 UI and built-in RAG support
+- **WebView2 Integration**: Embed Qwen Agent Gradio interface directly in WPF application
+- **Agent Builder Wizard**: Visual no-code interface for creating personalized AI agents
+- **RAG Document Management**: Upload PDF/Word/TXT/HTML documents to create agent knowledge base
+- **Custom Tool Creation**: Visual builder for creating MCP-compatible tools from existing handlers
+- **Tool Arsenal**: Existing Contextualizer handlers automatically available as agent tools
+
+**Implementation Plan**:
+- Phase 1: WebView2 + Python backend foundation
+- Phase 2: Tool integration and MCP compatibility  
+- Phase 3: Agent builder UI and templates
+- Phase 4: Advanced features and agent marketplace
+
+**Architecture**: Agent tab in WPF → WebView2 (localhost:7860) → Qwen Agent Gradio UI → Python backend → RAG + Tools
+
+**Status**: Planning complete, implementation ready. See `AGENT_INTEGRATION_PLAN.md` for detailed specifications.
+
 ### Database Support
 
 - **Database Handlers**: Support for MSSQL and Oracle via Dapper
