@@ -5,6 +5,7 @@ using System.Windows;
 using WpfInteractionApp.Services;
 using System.Linq;
 using Contextualizer.PluginContracts;
+using System.IO;
 
 namespace WpfInteractionApp
 {
@@ -21,6 +22,19 @@ namespace WpfInteractionApp
 
             try
             {
+                // Initialize and register logging service
+                var loggingService = new LoggingService();
+                var loggingConfig = new LoggingConfiguration
+                {
+                    EnableLocalLogging = true,
+                    EnableUsageTracking = true,
+                    LocalLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Contextualizer", "logs"),
+                    UsageEndpointUrl = "http://localhost:5678/webhook/api/usage", // TODO: Replace with actual endpoint
+                    MinimumLogLevel = LogLevel.Info,
+                    EnableDebugMode = false
+                };
+                loggingService.SetConfiguration(loggingConfig);
+                ServiceLocator.Register<ILoggingService>(loggingService);
                 // Initialize settings service first
                 _settingsService = new SettingsService();
                 ServiceLocator.Register<SettingsService>(_settingsService);

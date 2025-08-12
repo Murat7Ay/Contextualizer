@@ -42,6 +42,10 @@ namespace Contextualizer.Core.Services
                     LogType.Info, 
                     "CronScheduler: Quartz scheduler started successfully"
                 );
+
+                var logger = ServiceLocator.Get<ILoggingService>();
+                logger?.LogInfo("CronScheduler started successfully");
+                _ = logger?.LogSystemEventAsync("cron_scheduler_start");
             }
             catch (Exception ex)
             {
@@ -49,6 +53,9 @@ namespace Contextualizer.Core.Services
                     LogType.Error, 
                     $"CronScheduler: Failed to start scheduler: {ex.Message}"
                 );
+
+                var logger = ServiceLocator.Get<ILoggingService>();
+                logger?.LogError("CronScheduler failed to start", ex);
                 throw;
             }
         }
