@@ -214,6 +214,35 @@ namespace WpfInteractionApp
             }
         }
 
+        private void LoggingSettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var loggingSettingsWindow = new LoggingSettingsWindow
+                {
+                    Owner = this
+                };
+
+                loggingSettingsWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error opening logging settings: {ex.Message}", 
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                
+                // Log the error if logging service is available
+                try
+                {
+                    var loggingService = ServiceLocator.Get<ILoggingService>();
+                    loggingService?.LogError("Failed to open logging settings window", ex);
+                }
+                catch
+                {
+                    // Ignore logging errors to prevent recursive issues
+                }
+            }
+        }
+
         private void OpenHandlerExchange_Click(object sender, RoutedEventArgs e)
         {
             var exchangeWindow = new HandlerExchangeWindow();
