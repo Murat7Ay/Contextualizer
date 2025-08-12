@@ -22,22 +22,15 @@ namespace WpfInteractionApp
 
             try
             {
-                // Initialize and register logging service
-                var loggingService = new LoggingService();
-                var loggingConfig = new LoggingConfiguration
-                {
-                    EnableLocalLogging = true,
-                    EnableUsageTracking = true,
-                    LocalLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Contextualizer", "logs"),
-                    UsageEndpointUrl = "http://localhost:5678/webhook/api/usage", // TODO: Replace with actual endpoint
-                    MinimumLogLevel = LogLevel.Info,
-                    EnableDebugMode = false
-                };
-                loggingService.SetConfiguration(loggingConfig);
-                ServiceLocator.Register<ILoggingService>(loggingService);
                 // Initialize settings service first
                 _settingsService = new SettingsService();
                 ServiceLocator.Register<SettingsService>(_settingsService);
+
+                // Initialize and register logging service using settings
+                var loggingService = new LoggingService();
+                var loggingConfig = _settingsService.Settings.LoggingSettings.ToLoggingConfiguration();
+                loggingService.SetConfiguration(loggingConfig);
+                ServiceLocator.Register<ILoggingService>(loggingService);
 
                 // Initialize and apply the saved theme from AppSettings
                 ThemeManager.Instance.ApplyTheme(_settingsService.Settings.UISettings.Theme);
