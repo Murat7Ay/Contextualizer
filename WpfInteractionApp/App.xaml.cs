@@ -9,6 +9,8 @@ using System.IO;
 
 namespace WpfInteractionApp
 {
+    //dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true /p:PublishTrimmed=false -o "\\laptop-qtnej1vb\PortableApps\deploy"
+
     public partial class App : Application
     {
         private HandlerManager? _handlerManager;
