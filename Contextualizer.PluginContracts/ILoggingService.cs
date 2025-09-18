@@ -59,7 +59,7 @@ namespace Contextualizer.PluginContracts
         public bool EnableLocalLogging { get; set; } = true;
         public bool EnableUsageTracking { get; set; } = true;
         public LogLevel MinimumLogLevel { get; set; } = LogLevel.Info;
-        public string LocalLogPath { get; set; } = "logs";
+        public string LocalLogPath { get; set; } = @"C:\PortableApps\Contextualizer\Data\Logs";
         public string? UsageEndpointUrl { get; set; }
         public int MaxLogFileSizeMB { get; set; } = 10;
         public int MaxLogFileCount { get; set; } = 5;

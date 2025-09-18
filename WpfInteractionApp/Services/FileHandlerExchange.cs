@@ -24,7 +24,7 @@ namespace WpfInteractionApp.Services
             ISettingsService settingsService = ServiceLocator.Get<SettingsService>();
             _exchangePath = settingsService.ExchangeDirectory;
             _handlersFilePath = settingsService.HandlersFilePath;
-            _installedHandlersPath = Path.Combine(Path.GetDirectoryName(_handlersFilePath), "installed");
+            _installedHandlersPath = @"C:\PortableApps\Contextualizer\Data\Installed";
             _jsonOptions = new JsonSerializerOptions
             {
                 WriteIndented = true,

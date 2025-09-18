@@ -7,13 +7,13 @@ namespace WpfInteractionApp.Settings
     public class AppSettings
     {
         [JsonPropertyName("handlers_file_path")]
-        public string HandlersFilePath { get; set; } = @"C:\Finder\handlers.json";
+        public string HandlersFilePath { get; set; } = @"C:\PortableApps\Contextualizer\Config\handlers.json";
 
         [JsonPropertyName("plugins_directory")]
-        public string PluginsDirectory { get; set; } = @"C:\Finder\Plugins";
+        public string PluginsDirectory { get; set; } = @"C:\PortableApps\Contextualizer\Plugins";
 
         [JsonPropertyName("exchange_directory")]
-        public string ExchangeDirectory { get; set; } = @"C:\Finder\Exchange";
+        public string ExchangeDirectory { get; set; } = @"C:\PortableApps\Contextualizer\Data\Exchange";
 
         [JsonPropertyName("keyboard_shortcut")]
         public KeyboardShortcut KeyboardShortcut { get; set; } = new KeyboardShortcut();
