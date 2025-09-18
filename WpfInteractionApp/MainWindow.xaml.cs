@@ -69,12 +69,20 @@ namespace WpfInteractionApp
             if (!string.IsNullOrEmpty(log.Message) && log.Message.Length > maxLength)
                 log.Message = log.Message.Substring(0, maxLength) + "...";
 
-            _logs.Add(log);
+            // ✅ Insert at the beginning so newest logs appear at top
+            _logs.Insert(0, log);
 
+            // ✅ Remove oldest logs from the end
             if (_logs.Count > 50)
-                _logs.RemoveRange(0, _logs.Count - 50);
+                _logs.RemoveRange(50, _logs.Count - 50);
 
             LogListBox.Items.Refresh();
+            
+            // ✅ Select the newest log (first item) to highlight it
+            if (_logs.Count > 0)
+            {
+                LogListBox.SelectedIndex = 0;
+            }
         }
 
         public void AddOrUpdateTab(string screenId, string title, UIElement content)
