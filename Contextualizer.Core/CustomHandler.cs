@@ -24,12 +24,12 @@ namespace Contextualizer.Core
         {
             if (clipboardContent == null || !clipboardContent.Success)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, "Invalid clipboard content provided to CustomHandler.");
+                UserFeedback.ShowError("Invalid clipboard content provided to CustomHandler");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(HandlerConfig.Validator))
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, "No validator configured for CustomHandler.");
+                UserFeedback.ShowError("No validator configured for CustomHandler");
                 return false;
             }
 
@@ -37,7 +37,7 @@ namespace Contextualizer.Core
 
             if (validator == null)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Validator {HandlerConfig.Validator} not found.");
+                UserFeedback.ShowError($"Validator {HandlerConfig.Validator} not found");
                 return false;
             }
 
@@ -52,13 +52,13 @@ namespace Contextualizer.Core
 
             if (contextProvider == null)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Context provider {HandlerConfig.ContextProvider} not found.");
+                UserFeedback.ShowError($"Context provider {HandlerConfig.ContextProvider} not found");
                 return new Dictionary<string, string>();
             }
 
             if (clipboardContent == null || !clipboardContent.Success)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, "Invalid clipboard content provided to CustomHandler.");
+                UserFeedback.ShowError("Invalid clipboard content provided to CustomHandler");
                 return new Dictionary<string, string>();
             }
 

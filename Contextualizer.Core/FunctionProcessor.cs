@@ -38,7 +38,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error processing functions: {ex.Message}");
+                UserFeedback.ShowError($"Error processing functions: {ex.Message}");
                 
                 var logger = ServiceLocator.Get<ILoggingService>();
                 logger?.LogError("Function processing failed", ex, new Dictionary<string, object>
@@ -75,7 +75,7 @@ namespace Contextualizer.Core
                 }
                 catch (Exception ex)
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error processing pipeline function: {ex.Message}");
+                    UserFeedback.ShowError($"Error processing pipeline function: {ex.Message}");
                     startIndex = contentEnd + 2;
                 }
             }
@@ -292,7 +292,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error processing function '{functionCall}': {ex.Message}");
+                UserFeedback.ShowError($"Error processing function '{functionCall}': {ex.Message}");
                 return $"$func:{functionCall}";
             }
         }
@@ -524,7 +524,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error processing pipeline '{functionCall}': {ex.Message}");
+                UserFeedback.ShowError($"Error processing pipeline '{functionCall}': {ex.Message}");
                 return string.Empty;
             }
         }
@@ -1065,7 +1065,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Web GET error: {ex.Message}");
+                UserFeedback.ShowError($"Web GET error: {ex.Message}");
                 return string.Empty;
             }
         }
@@ -1085,7 +1085,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Web POST error: {ex.Message}");
+                UserFeedback.ShowError($"Web POST error: {ex.Message}");
                 return string.Empty;
             }
         }
@@ -1105,7 +1105,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Web PUT error: {ex.Message}");
+                UserFeedback.ShowError($"Web PUT error: {ex.Message}");
                 return string.Empty;
             }
         }
@@ -1124,7 +1124,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Web DELETE error: {ex.Message}");
+                UserFeedback.ShowError($"Web DELETE error: {ex.Message}");
                 return string.Empty;
             }
         }
@@ -1221,7 +1221,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"JSON get error: {ex.Message}");
+                UserFeedback.ShowError($"JSON get error: {ex.Message}");
                 return string.Empty;
             }
         }

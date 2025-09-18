@@ -182,7 +182,7 @@ namespace Contextualizer.Core
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error replacing dynamic values: {ex.Message}");
+                UserFeedback.ShowError($"Error replacing dynamic values: {ex.Message}");
                 return input;
             }
         }

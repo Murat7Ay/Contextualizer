@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -19,8 +20,11 @@ namespace Contextualizer.Core
             HandlerConfig = handlerConfig;
         }
 
-        public async Task Execute(ClipboardContent clipboardContent)
+        public async Task<bool> Execute(ClipboardContent clipboardContent)
         {
+            var logger = ServiceLocator.SafeGet<ILoggingService>();
+            var stopwatch = Stopwatch.StartNew();
+            
             bool canHandle = await CanHandleAsync(clipboardContent);
             if (canHandle)
             {
@@ -30,8 +34,8 @@ namespace Contextualizer.Core
 
                     if (!confirmed)
                     {
-                        ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Handler {HandlerConfig.Name} cancelled.");
-                        return;
+                        UserFeedback.ShowWarning($"Handler {HandlerConfig.Name} cancelled");
+                        return false;
                     }
                 }
                 var context = await CreateContextAsync(clipboardContent);
@@ -42,14 +46,33 @@ namespace Contextualizer.Core
 
                 if(!isUserCompleted)
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Handler {HandlerConfig.Name} cancelled by user input.");
-                    return;
+                    UserFeedback.ShowWarning($"Handler {HandlerConfig.Name} cancelled by user input");
+                    return false;
                 }
 
                 handlerContextProcessor.ContextResolve(HandlerConfig.ConstantSeeder, HandlerConfig.Seeder, contextWrapper);
                 ContextDefaultSeed(contextWrapper);
                 DispatchAction(GetActions(), contextWrapper);
+                
+                // ✅ Log successful handler execution
+                stopwatch.Stop();
+                logger?.LogHandlerExecution(
+                    HandlerConfig.Name,
+                    this.GetType().Name,
+                    stopwatch.Elapsed,
+                    true,
+                    new Dictionary<string, object>
+                    {
+                        ["content_length"] = clipboardContent?.Text?.Length ?? 0,
+                        ["can_handle"] = true,
+                        ["executed_actions"] = GetActions()?.Count ?? 0
+                    });
+                    
+                UserFeedback.ShowActivity(LogType.Info, $"Handler '{HandlerConfig.Name}' processed content successfully");
+                return true;  // Successfully processed
             }
+            
+            return false;  // Cannot handle this content
         }
 
         protected abstract Task<bool> CanHandleAsync(ClipboardContent clipboardContent);

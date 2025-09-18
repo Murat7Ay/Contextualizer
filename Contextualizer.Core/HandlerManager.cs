@@ -36,67 +36,144 @@ namespace Contextualizer.Core
 
         public async Task StartAsync()
         {
-            var logger = ServiceLocator.Get<ILoggingService>();
-            
-            await _hook.StartAsync();
-            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info,"Listener started.");
-            
-            logger.LogInfo("HandlerManager started successfully");
-            await logger.LogSystemEventAsync("application_start");
+            var logger = ServiceLocator.SafeGet<ILoggingService>();
+            using (logger?.BeginScope("HandlerManagerStartup", new Dictionary<string, object>
+            {
+                ["total_handlers"] = _handlers.Count,
+                ["manual_handlers"] = _manualHandlers.Count,
+                ["startup_time"] = DateTime.UtcNow
+            }))
+            {
+                var stopwatch = Stopwatch.StartNew();
+                
+                logger?.LogInfo("HandlerManager startup initiated");
+                
+                await _hook.StartAsync();
+                UserFeedback.ShowSuccess("Clipboard listener started");
+                
+                stopwatch.Stop();
+                logger?.LogPerformance("handler_manager_startup", stopwatch.Elapsed, new Dictionary<string, object>
+                {
+                    ["handlers_loaded"] = _handlers.Count + _manualHandlers.Count
+                });
+                
+                logger?.LogInfo("HandlerManager started successfully");
+                if (logger != null)
+                    await logger.LogSystemEventAsync("application_start");
+            }
         }
 
         public void Stop()
         {
-            var logger = ServiceLocator.Get<ILoggingService>();
-            
-            _hook.Stop();
-            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, "Listener stopped.");
-            
-            logger.LogInfo("HandlerManager stopped");
-            _ = logger.LogSystemEventAsync("application_stop");
+            var logger = ServiceLocator.SafeGet<ILoggingService>();
+            using (logger?.BeginScope("HandlerManagerShutdown"))
+            {
+                logger?.LogInfo("HandlerManager shutdown initiated");
+                
+                _hook.Stop();
+                UserFeedback.ShowActivity(LogType.Info, "Clipboard listener stopped");
+                
+                logger?.LogInfo("HandlerManager stopped successfully");
+                _ = logger?.LogSystemEventAsync("application_stop");
+            }
         }
 
-        private void OnTextCaptured(object? sender, ClipboardCapturedEventArgs e)
+        private async void OnTextCaptured(object? sender, ClipboardCapturedEventArgs e)
         {
-            var logger = ServiceLocator.Get<ILoggingService>();
-            
-            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Captured Text: {e.ToString()}");
-            
+            var logger = ServiceLocator.SafeGet<ILoggingService>();
             var contentLength = e.ClipboardContent?.IsText == true ? e.ClipboardContent.Text?.Length ?? 0 : 0;
-            logger.LogDebug($"Clipboard content captured: {contentLength} characters");
-            _ = logger.LogUserActivityAsync("clipboard_capture", new Dictionary<string, object>
+            
+            using (logger?.BeginScope("ClipboardProcessing", new Dictionary<string, object>
             {
                 ["content_length"] = contentLength,
                 ["content_type"] = e.ClipboardContent?.IsText == true ? "text" : e.ClipboardContent?.IsFile == true ? "file" : "unknown",
-                ["is_text"] = e.ClipboardContent?.IsText ?? false,
-                ["is_file"] = e.ClipboardContent?.IsFile ?? false
-            });
+                ["handlers_count"] = _handlers.Count
+            }))
+            {
+                UserFeedback.ShowActivity(LogType.Info, $"Processing clipboard content: {e.ToString()[..Math.Min(50, e.ToString().Length)]}...");
+                
+                logger?.LogDebug($"Clipboard content captured: {contentLength} characters");
+                _ = logger?.LogUserActivityAsync("clipboard_capture", new Dictionary<string, object>
+                {
+                    ["content_length"] = contentLength,
+                    ["content_type"] = e.ClipboardContent?.IsText == true ? "text" : e.ClipboardContent?.IsFile == true ? "file" : "unknown",
+                    ["is_text"] = e.ClipboardContent?.IsText ?? false,
+                    ["is_file"] = e.ClipboardContent?.IsFile ?? false
+                });
 
-            foreach (var handler in _handlers)
+                int totalHandlers = _handlers.Count;
+                var handlerTasks = new List<Task<bool>>();
+
+                // ✅ Start all handlers in parallel
+                foreach (var handler in _handlers)
+                {
+                    var handlerTask = ExecuteHandlerAsync(handler, e.ClipboardContent, logger, contentLength);
+                    handlerTasks.Add(handlerTask);
+                }
+
+                // ✅ Wait for all handlers to complete and count successful ones
+                bool[] results = await Task.WhenAll(handlerTasks);
+                int handlersProcessed = results.Count(r => r);
+                
+                // ✅ Log summary of clipboard processing attempt
+                logger?.LogInfo($"Clipboard processing completed: {handlersProcessed}/{totalHandlers} handlers processed content", new Dictionary<string, object>
+                {
+                    ["handlers_processed"] = handlersProcessed,
+                    ["total_handlers"] = totalHandlers,
+                    ["content_length"] = contentLength,
+                    ["processing_successful"] = handlersProcessed > 0
+                });
+                
+                // ✅ User feedback based on results
+                if (handlersProcessed == 0)
+                {
+                    UserFeedback.ShowActivity(LogType.Warning, $"No handlers could process the clipboard content ({contentLength} chars)");
+                    
+                    // ✅ Log user activity for analytics - even when no handlers match
+                    _ = logger?.LogUserActivityAsync("clipboard_no_handlers_matched", new Dictionary<string, object>
+                    {
+                        ["content_length"] = contentLength,
+                        ["total_handlers_checked"] = totalHandlers,
+                        ["content_type"] = e.ClipboardContent?.IsText == true ? "text" : e.ClipboardContent?.IsFile == true ? "file" : "unknown",
+                        ["content_preview"] = e.ToString()[..Math.Min(100, e.ToString().Length)]
+                    });
+                }
+                else if (handlersProcessed == 1)
+                {
+                    UserFeedback.ShowActivity(LogType.Info, "1 handler processed the clipboard content");
+                }
+                else
+                {
+                    UserFeedback.ShowSuccess($"{handlersProcessed} handlers processed the clipboard content");
+                }
+            }
+        }
+
+        private async Task<bool> ExecuteHandlerAsync(IHandler handler, ClipboardContent clipboardContent, ILoggingService? logger, int contentLength)
+        {
+            using (logger?.BeginScope("HandlerExecution", new Dictionary<string, object>
+            {
+                ["handler_name"] = handler.HandlerConfig.Name,
+                ["handler_type"] = handler.GetType().Name
+            }))
             {
                 var stopwatch = Stopwatch.StartNew();
                 try
                 {
-                    handler.Execute(e.ClipboardContent);
+                    bool wasProcessed = await handler.Execute(clipboardContent);
                     stopwatch.Stop();
                     
-                    logger.LogHandlerExecution(
-                        handler.HandlerConfig.Name, 
-                        handler.GetType().Name, 
-                        stopwatch.Elapsed, 
-                        true,
-                        new Dictionary<string, object>
-                        {
-                            ["content_length"] = contentLength
-                        });
+                    // Note: Success logging is handled within the Execute() method itself
+                    // Only handlers that actually process content will generate logs
+                    return wasProcessed;
                 }
                 catch (Exception ex)
                 {
                     stopwatch.Stop();
                     
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error in handler {handler.GetType().Name}: {ex.Message}");
+                    UserFeedback.ShowError($"Handler {handler.GetType().Name} failed: {ex.Message}");
                     
-                    logger.LogHandlerError(
+                    logger?.LogHandlerError(
                         handler.HandlerConfig.Name, 
                         handler.GetType().Name, 
                         ex,
@@ -105,13 +182,15 @@ namespace Contextualizer.Core
                             ["content_length"] = contentLength,
                             ["execution_time_ms"] = stopwatch.ElapsedMilliseconds
                         });
+                    
+                    return false;  // Failed execution
                 }
             }
         }
 
         private void OnLogMessage(object? sender, LogMessageEventArgs e)
         {
-            ServiceLocator.Get<IUserInteractionService>().Log(e.Level, e.Message);
+            UserFeedback.ShowActivity(e.Level, e.Message);
         }
 
         public List<string> GetManualHandlerNames()
@@ -124,7 +203,7 @@ namespace Contextualizer.Core
             var handler = _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase));
             if (handler == null)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Handler not found: {handlerName}");
+                UserFeedback.ShowWarning($"Handler not found: {handlerName}");
                 return;
             }
 
@@ -134,12 +213,12 @@ namespace Contextualizer.Core
 
                 if (!clipboardContent.Success)
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, "Failed to create synthetic content.");
+                    UserFeedback.ShowError("Failed to create synthetic content");
                     return;
                 }
 
                 if(syntheticHandler.GetActualHandler is not null) {
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Executing synthetic handler: {syntheticHandler.GetActualHandler.HandlerConfig.Name}");
+                    UserFeedback.ShowActivity(LogType.Info, $"Executing handler: {syntheticHandler.GetActualHandler.HandlerConfig.Name}");
                     syntheticHandler.GetActualHandler.Execute(clipboardContent);
                     return;
                 }
@@ -147,12 +226,12 @@ namespace Contextualizer.Core
 
                 var referenceHandler = GetHandlerByName(handler.HandlerConfig.ReferenceHandler);
                 if(referenceHandler != null) {
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Executing reference handler: {referenceHandler.HandlerConfig.Name}");
+                    UserFeedback.ShowActivity(LogType.Info, $"Executing reference handler: {referenceHandler.HandlerConfig.Name}");
                     referenceHandler.Execute(clipboardContent);
                 }
                 else
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Reference handler not found: {handler.HandlerConfig.ReferenceHandler}");
+                    UserFeedback.ShowWarning($"Reference handler not found: {handler.HandlerConfig.ReferenceHandler}");
                 }
                 return;
             }
@@ -184,7 +263,7 @@ namespace Contextualizer.Core
                 if (handler == null)
                 {
                     var error = $"Failed to create handler of type: {handlerConfig.Type}";
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, error);
+                    UserFeedback.ShowError(error);
                     return error;
                 }
 
@@ -198,7 +277,7 @@ namespace Contextualizer.Core
                     if (!clipboardContent.Success)
                     {
                         var error = "Failed to create synthetic content for cron job";
-                        ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, error);
+                        UserFeedback.ShowError(error);
                         return error;
                     }
                 }
@@ -217,13 +296,13 @@ namespace Contextualizer.Core
                 await Task.Run(() => handler.Execute(clipboardContent));
                 
                 var result = $"Successfully executed cron job: {handlerConfig.Name}";
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, result);
+                UserFeedback.ShowSuccess(result);
                 return result;
             }
             catch (Exception ex)
             {
                 var error = $"Error executing cron job {handlerConfig.Name}: {ex.Message}";
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, error);
+                UserFeedback.ShowError(error);
                 return error;
             }
         }

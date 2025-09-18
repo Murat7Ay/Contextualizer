@@ -102,7 +102,7 @@ namespace WpfInteractionApp
             });
         }
 
-        public void Log(LogType notificationType, string message, DateTime? timestamp = null, string additionalInfo = null)
+        public void ShowActivityFeedback(LogType notificationType, string message, DateTime? timestamp = null, string additionalInfo = null)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -122,6 +122,12 @@ namespace WpfInteractionApp
                     MessageBox.Show($"Log kaydedilemedi: {ex.Message}", "Hata", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             });
+        }
+
+        [Obsolete("Use ShowActivityFeedback instead for clarity")]
+        public void Log(LogType notificationType, string message, DateTime? timestamp = null, string additionalInfo = null)
+        {
+            ShowActivityFeedback(notificationType, message, timestamp, additionalInfo);
         }
 
         public async Task<bool> ShowConfirmationAsync(string title, string message)

@@ -88,7 +88,7 @@ namespace Contextualizer.Core
 
                 string parametersJson = JsonSerializer.Serialize(parameters, options);
 
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"No records found matching the criteria.{Environment.NewLine}" +
+                UserFeedback.ShowWarning($"No records found matching the criteria.{Environment.NewLine}" +
                     $"Query: {HandlerConfig.Query}{Environment.NewLine}" +
                     $"Parameters:{Environment.NewLine}{parametersJson}");
             }

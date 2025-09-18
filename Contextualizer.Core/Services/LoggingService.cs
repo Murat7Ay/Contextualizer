@@ -1,16 +1,20 @@
 using Contextualizer.PluginContracts;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Contextualizer.Core.Services
 {
-    public class LoggingService : ILoggingService
+    public class LoggingService : ILoggingService, IDisposable
     {
         private readonly HttpClient _httpClient;
         private LoggingConfiguration _config;
@@ -18,6 +22,17 @@ namespace Contextualizer.Core.Services
         private readonly string _userId;
         private readonly string _version;
         private readonly object _fileLock = new object();
+        
+        // Async logging support
+        private readonly Channel<LogEntry> _logChannel;
+        private readonly ChannelWriter<LogEntry> _logWriter;
+        private readonly ChannelReader<LogEntry> _logReader;
+        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly Task _backgroundLoggingTask;
+        
+        // Performance metrics
+        private readonly ConcurrentDictionary<string, PerformanceMetrics> _performanceMetrics;
+        private volatile bool _disposed = false;
 
         public LoggingService()
         {
@@ -26,6 +41,23 @@ namespace Contextualizer.Core.Services
             _sessionId = Guid.NewGuid().ToString();
             _userId = GetAnonymousUserId();
             _version = GetApplicationVersion();
+            
+            // Initialize async logging channel
+            var options = new BoundedChannelOptions(10000)
+            {
+                FullMode = BoundedChannelFullMode.Wait,
+                SingleReader = true,
+                SingleWriter = false
+            };
+            _logChannel = Channel.CreateBounded<LogEntry>(options);
+            _logWriter = _logChannel.Writer;
+            _logReader = _logChannel.Reader;
+            
+            _cancellationTokenSource = new CancellationTokenSource();
+            _performanceMetrics = new ConcurrentDictionary<string, PerformanceMetrics>();
+            
+            // Start background logging task
+            _backgroundLoggingTask = Task.Run(ProcessLogEntriesAsync);
         }
 
         public void SetConfiguration(LoggingConfiguration config)
@@ -43,7 +75,7 @@ namespace Contextualizer.Core.Services
             if (!ShouldLog(LogLevel.Error)) return;
             
             var logEntry = CreateLogEntry(LogLevel.Error, message, exception, context);
-            WriteToFile("error", logEntry);
+            LogAsync(logEntry);
         }
 
         public void LogWarning(string message, Dictionary<string, object>? context = null)
@@ -51,7 +83,7 @@ namespace Contextualizer.Core.Services
             if (!ShouldLog(LogLevel.Warning)) return;
             
             var logEntry = CreateLogEntry(LogLevel.Warning, message, null, context);
-            WriteToFile("warning", logEntry);
+            LogAsync(logEntry);
         }
 
         public void LogInfo(string message, Dictionary<string, object>? context = null)
@@ -59,7 +91,7 @@ namespace Contextualizer.Core.Services
             if (!ShouldLog(LogLevel.Info)) return;
             
             var logEntry = CreateLogEntry(LogLevel.Info, message, null, context);
-            WriteToFile("info", logEntry);
+            LogAsync(logEntry);
         }
 
         public void LogDebug(string message, Dictionary<string, object>? context = null)
@@ -67,7 +99,7 @@ namespace Contextualizer.Core.Services
             if (!ShouldLog(LogLevel.Debug)) return;
             
             var logEntry = CreateLogEntry(LogLevel.Debug, message, null, context);
-            WriteToFile("debug", logEntry);
+            LogAsync(logEntry);
         }
 
         #endregion
@@ -192,16 +224,120 @@ namespace Contextualizer.Core.Services
 
         private LogEntry CreateLogEntry(LogLevel level, string message, Exception? exception = null, Dictionary<string, object>? context = null)
         {
+            var logContext = LogContext.Current;
+            var combinedContext = new Dictionary<string, object>(logContext.Properties);
+            
+            if (context != null)
+            {
+                foreach (var kvp in context)
+                {
+                    combinedContext[kvp.Key] = kvp.Value;
+                }
+            }
+
             return new LogEntry
             {
                 Timestamp = DateTime.UtcNow,
                 Level = level,
                 Message = message,
                 Exception = exception?.ToString(),
-                Context = context ?? new Dictionary<string, object>(),
+                Context = combinedContext,
                 SessionId = _sessionId,
-                UserId = _userId
+                UserId = _userId,
+                CorrelationId = logContext.CorrelationId,
+                TraceId = logContext.TraceId,
+                Component = logContext.Component
             };
+        }
+
+        private void LogAsync(LogEntry logEntry)
+        {
+            if (_disposed) return;
+
+            try
+            {
+                if (!_logWriter.TryWrite(logEntry))
+                {
+                    // Channel is full, try async write with timeout
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                            await _logWriter.WriteAsync(logEntry, cts.Token);
+                        }
+                        catch
+                        {
+                            // Fallback to console if async write fails
+                            Console.WriteLine($"[{logEntry.Timestamp:yyyy-MM-dd HH:mm:ss}] {logEntry.Level}: {logEntry.Message}");
+                        }
+                    });
+                }
+            }
+            catch
+            {
+                // Fallback to console if channel write fails
+                Console.WriteLine($"[{logEntry.Timestamp:yyyy-MM-dd HH:mm:ss}] {logEntry.Level}: {logEntry.Message}");
+            }
+        }
+
+        private async Task ProcessLogEntriesAsync()
+        {
+            try
+            {
+                await foreach (var logEntry in _logReader.ReadAllAsync(_cancellationTokenSource.Token))
+                {
+                    var stopwatch = Stopwatch.StartNew();
+                    try
+                    {
+                        WriteToFile(GetLogFileName(logEntry.Level), logEntry);
+                        UpdatePerformanceMetrics(logEntry.Component, stopwatch.Elapsed, false);
+                    }
+                    catch (Exception ex)
+                    {
+                        UpdatePerformanceMetrics(logEntry.Component, stopwatch.Elapsed, true);
+                        
+                        // Fallback to console if file write fails
+                        Console.WriteLine($"Logging failed: {ex.Message}");
+                        Console.WriteLine($"Original log: {logEntry.Level} - {logEntry.Message}");
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when shutting down
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Background logging task failed: {ex.Message}");
+            }
+        }
+
+        private string GetLogFileName(LogLevel level)
+        {
+            return level switch
+            {
+                LogLevel.Error => "error",
+                LogLevel.Warning => "warning", 
+                LogLevel.Info => "info",
+                LogLevel.Debug => "debug",
+                LogLevel.Critical => "critical",
+                _ => "general"
+            };
+        }
+
+        private void UpdatePerformanceMetrics(string component, TimeSpan duration, bool isError)
+        {
+            _performanceMetrics.AddOrUpdate(component, 
+                new PerformanceMetrics { TotalLogs = 1, TotalErrors = isError ? 1 : 0, TotalDuration = duration },
+                (key, existing) => 
+                {
+                    existing.TotalLogs++;
+                    if (isError) existing.TotalErrors++;
+                    existing.TotalDuration = existing.TotalDuration.Add(duration);
+                    existing.LastUpdate = DateTime.UtcNow;
+                    return existing;
+                });
         }
 
         private void WriteToFile(string logType, LogEntry logEntry)
@@ -344,7 +480,73 @@ namespace Contextualizer.Core.Services
 
         public void Dispose()
         {
-            _httpClient?.Dispose();
+            if (_disposed) return;
+            _disposed = true;
+
+            try
+            {
+                // Stop accepting new log entries
+                _logWriter.Complete();
+                
+                // Wait for background task to finish processing remaining entries
+                _backgroundLoggingTask.Wait(TimeSpan.FromSeconds(5));
+                
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during logging service disposal: {ex.Message}");
+            }
+            finally
+            {
+                _httpClient?.Dispose();
+            }
+        }
+
+        // New API methods for enhanced logging
+
+        public Dictionary<string, PerformanceMetrics> GetPerformanceMetrics()
+        {
+            return new Dictionary<string, PerformanceMetrics>(_performanceMetrics);
+        }
+
+        public void LogPerformance(string operation, TimeSpan duration, Dictionary<string, object>? context = null)
+        {
+            var enrichedContext = context ?? new Dictionary<string, object>();
+            enrichedContext["duration_ms"] = duration.TotalMilliseconds;
+            enrichedContext["operation"] = operation;
+            
+            LogInfo($"Performance: {operation} completed in {duration.TotalMilliseconds:F2}ms", enrichedContext);
+        }
+
+        public IDisposable BeginScope(string component, Dictionary<string, object>? properties = null)
+        {
+            return LogContext.BeginScope(component, properties);
+        }
+
+        public void LogStructured(LogLevel level, string template, params object[] args)
+        {
+            if (!ShouldLog(level)) return;
+
+            try
+            {
+                var message = string.Format(template, args);
+                var context = new Dictionary<string, object>();
+                
+                // Add structured parameters
+                for (int i = 0; i < args.Length; i++)
+                {
+                    context[$"arg{i}"] = args[i];
+                }
+
+                var logEntry = CreateLogEntry(level, message, null, context);
+                LogAsync(logEntry);
+            }
+            catch (Exception ex)
+            {
+                LogError($"Failed to log structured message: {template}", ex);
+            }
         }
     }
 
@@ -357,5 +559,63 @@ namespace Contextualizer.Core.Services
         public Dictionary<string, object> Context { get; set; } = new();
         public string SessionId { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;
+        public string CorrelationId { get; set; } = string.Empty;
+        public string TraceId { get; set; } = string.Empty;
+        public string Component { get; set; } = string.Empty;
+        public TimeSpan? Duration { get; set; }
+    }
+
+
+    public class LogContext
+    {
+        private static readonly AsyncLocal<LogContext> _current = new();
+        
+        public static LogContext Current 
+        { 
+            get => _current.Value ??= new LogContext(); 
+            set => _current.Value = value; 
+        }
+
+        public string CorrelationId { get; set; } = Guid.NewGuid().ToString("N")[..8];
+        public string TraceId { get; set; } = Guid.NewGuid().ToString("N")[..12];
+        public string Component { get; set; } = "Unknown";
+        public Dictionary<string, object> Properties { get; set; } = new();
+
+        public static IDisposable BeginScope(string component, Dictionary<string, object>? properties = null)
+        {
+            var previous = Current;
+            Current = new LogContext
+            {
+                CorrelationId = previous.CorrelationId,
+                TraceId = Guid.NewGuid().ToString("N")[..12],
+                Component = component,
+                Properties = new Dictionary<string, object>(previous.Properties)
+            };
+
+            if (properties != null)
+            {
+                foreach (var kvp in properties)
+                {
+                    Current.Properties[kvp.Key] = kvp.Value;
+                }
+            }
+
+            return new LogScope(previous);
+        }
+
+        private class LogScope : IDisposable
+        {
+            private readonly LogContext _previous;
+
+            public LogScope(LogContext previous)
+            {
+                _previous = previous;
+            }
+
+            public void Dispose()
+            {
+                Current = _previous;
+            }
+        }
     }
 }

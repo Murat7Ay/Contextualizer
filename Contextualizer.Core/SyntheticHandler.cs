@@ -47,14 +47,14 @@ namespace Contextualizer.Core
         {
             if (userInputRequest is null)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, "User input request was null or invalid.");
+                UserFeedback.ShowError("User input request was null or invalid");
                 return new ClipboardContent { Success = false };
             }
 
             var userInput = ServiceLocator.Get<IUserInteractionService>().GetUserInput(userInputRequest);
             if (string.IsNullOrEmpty(userInput))
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, "User input was null or invalid.");
+                UserFeedback.ShowError("User input was null or invalid");
                 return new ClipboardContent { Success = false };
             }
 

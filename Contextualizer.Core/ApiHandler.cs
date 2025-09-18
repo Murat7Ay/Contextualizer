@@ -113,7 +113,7 @@ namespace Contextualizer.Core
                     {
                         context["RawResponse"] = responseContent;
                         context["JsonParseError"] = ex.Message;
-                        ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Failed to parse JSON response: {ex.Message}");
+                        UserFeedback.ShowError($"Failed to parse JSON response: {ex.Message}");
                     }
                 }
                 else
@@ -124,7 +124,7 @@ namespace Contextualizer.Core
             catch (Exception ex)
             {
                 context["Error"] = ex.Message;
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"API request failed: {ex.Message}");
+                UserFeedback.ShowError($"API request failed: {ex.Message}");
             }
 
             return context;

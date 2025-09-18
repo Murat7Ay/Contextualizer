@@ -1,6 +1,7 @@
 ﻿using Contextualizer.Core;
 using Contextualizer.Core.Services;
 using System;
+using System.Diagnostics;
 using System.Windows;
 using WpfInteractionApp.Services;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace WpfInteractionApp
         private MainWindow? _mainWindow;
         private SettingsService? _settingsService;
         private CronScheduler? _cronScheduler;
+        private ILoggingService? _loggingService;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -27,10 +29,21 @@ namespace WpfInteractionApp
                 ServiceLocator.Register<SettingsService>(_settingsService);
 
                 // Initialize and register logging service using settings
-                var loggingService = new LoggingService();
+                _loggingService = new LoggingService();
                 var loggingConfig = _settingsService.Settings.LoggingSettings.ToLoggingConfiguration();
-                loggingService.SetConfiguration(loggingConfig);
-                ServiceLocator.Register<ILoggingService>(loggingService);
+                _loggingService.SetConfiguration(loggingConfig);
+                ServiceLocator.Register<ILoggingService>(_loggingService);
+
+                // Log application startup
+                using (_loggingService.BeginScope("ApplicationStartup", new Dictionary<string, object>
+                {
+                    ["startup_time"] = DateTime.UtcNow,
+                    ["version"] = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "unknown",
+                    ["args"] = e.Args
+                }))
+                {
+                    _loggingService.LogInfo("Application startup initiated");
+                }
 
                 // Initialize and apply the saved theme from AppSettings
                 ThemeManager.Instance.ApplyTheme(_settingsService.Settings.UISettings.Theme);
@@ -73,9 +86,24 @@ namespace WpfInteractionApp
                 // Start the HandlerManager
                 await _handlerManager.StartAsync();
 
+                _loggingService.LogInfo("Application startup completed successfully");
             }
             catch (Exception ex)
             {
+                // Try to log the error if logging service is available
+                try
+                {
+                    _loggingService?.LogError("Critical error during application startup", ex, new Dictionary<string, object>
+                    {
+                        ["startup_phase"] = "initialization",
+                        ["fatal"] = true
+                    });
+                }
+                catch
+                {
+                    // If logging fails, continue with showing the message box
+                }
+
                 MessageBox.Show($"Error during startup: {ex.Message}\n\nDetails: {ex}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Shutdown();
             }
@@ -83,21 +111,69 @@ namespace WpfInteractionApp
 
         protected override void OnExit(ExitEventArgs e)
         {
-            // Save settings before exit
             try
             {
-                _settingsService?.SaveSettings();
-            }
-            catch (Exception ex)
-            {
-                // Log error but don't prevent shutdown
-                System.Diagnostics.Debug.WriteLine($"Error saving settings on exit: {ex.Message}");
-            }
+                // Log application shutdown
+                using (_loggingService?.BeginScope("ApplicationShutdown", new Dictionary<string, object>
+                {
+                    ["shutdown_time"] = DateTime.UtcNow,
+                    ["exit_code"] = e.ApplicationExitCode,
+                    ["session_duration"] = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime).TotalMinutes
+                }))
+                {
+                    _loggingService?.LogInfo("Application shutdown initiated");
 
-            _handlerManager?.Dispose();
-            _cronScheduler?.Stop().Wait();
-            _cronScheduler?.Dispose();
-            base.OnExit(e);
+                    // Save settings before exit
+                    try
+                    {
+                        _settingsService?.SaveSettings();
+                        _loggingService?.LogInfo("Settings saved successfully");
+                    }
+                    catch (Exception ex)
+                    {
+                        _loggingService?.LogError("Error saving settings on exit", ex);
+                        System.Diagnostics.Debug.WriteLine($"Error saving settings on exit: {ex.Message}");
+                    }
+
+                    // Dispose services in reverse order
+                    try
+                    {
+                        _handlerManager?.Dispose();
+                        _loggingService?.LogInfo("HandlerManager disposed");
+                    }
+                    catch (Exception ex)
+                    {
+                        _loggingService?.LogError("Error disposing HandlerManager", ex);
+                    }
+
+                    try
+                    {
+                        _cronScheduler?.Stop().Wait();
+                        _cronScheduler?.Dispose();
+                        _loggingService?.LogInfo("CronScheduler stopped and disposed");
+                    }
+                    catch (Exception ex)
+                    {
+                        _loggingService?.LogError("Error disposing CronScheduler", ex);
+                    }
+
+                    _loggingService?.LogInfo("Application shutdown completed");
+                }
+            }
+            finally
+            {
+                // Dispose logging service last to capture all shutdown logs
+                try
+                {
+                    _loggingService?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error disposing LoggingService: {ex.Message}");
+                }
+
+                base.OnExit(e);
+            }
         }
     }
 }
