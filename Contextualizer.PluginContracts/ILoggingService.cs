@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.PluginContracts
 {
-    public interface ILoggingService
+    public interface ILoggingService : IDisposable
     {
         // Local file logging (errors, debug, warnings)
         void LogError(string message, Exception? exception = null, Dictionary<string, object>? context = null);
@@ -27,6 +27,21 @@ namespace Contextualizer.PluginContracts
         // Configuration
         void SetConfiguration(LoggingConfiguration config);
         LoggingConfiguration GetConfiguration();
+        
+        // Enhanced logging features
+        void LogPerformance(string operation, TimeSpan duration, Dictionary<string, object>? context = null);
+        void LogStructured(LogLevel level, string template, params object[] args);
+        IDisposable BeginScope(string component, Dictionary<string, object>? properties = null);
+        Dictionary<string, PerformanceMetrics> GetPerformanceMetrics();
+    }
+
+    public class PerformanceMetrics
+    {
+        public long TotalLogs { get; set; }
+        public long TotalErrors { get; set; }
+        public TimeSpan TotalDuration { get; set; }
+        public TimeSpan AverageDuration => TotalLogs > 0 ? TimeSpan.FromTicks(TotalDuration.Ticks / TotalLogs) : TimeSpan.Zero;
+        public DateTime LastUpdate { get; set; } = DateTime.UtcNow;
     }
 
     public class UsageEvent

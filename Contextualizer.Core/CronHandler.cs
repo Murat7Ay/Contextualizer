@@ -15,26 +15,17 @@ namespace Contextualizer.Core
 
         public CronHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
-            ServiceLocator.Get<IUserInteractionService>().Log(
-                LogType.Info, 
-                $"CronHandler created for: {HandlerConfig.Name}"
-            );
+            UserFeedback.ShowActivity(LogType.Info, $"CronHandler created for: {HandlerConfig.Name}");
             
             // Register this handler with the cron scheduler if it has cron properties
             if (!string.IsNullOrEmpty(HandlerConfig.CronExpression))
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(
-                    LogType.Info, 
-                    $"Registering cron job for: {HandlerConfig.Name} with expression: {HandlerConfig.CronExpression}"
-                );
+                UserFeedback.ShowActivity(LogType.Info, $"Registering cron job for: {HandlerConfig.Name} with expression: {HandlerConfig.CronExpression}");
                 RegisterCronJob();
             }
             else
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(
-                    LogType.Warning, 
-                    $"CronHandler {HandlerConfig.Name} has no cron expression"
-                );
+                UserFeedback.ShowWarning($"CronHandler {HandlerConfig.Name} has no cron expression");
             }
         }
 
@@ -60,25 +51,16 @@ namespace Contextualizer.Core
 
                 if (success)
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(
-                        LogType.Info, 
-                        $"Cron job scheduled: {HandlerConfig.Name} (ID: {jobId}) with expression '{HandlerConfig.CronExpression}'"
-                    );
+                    UserFeedback.ShowSuccess($"Cron job scheduled: {HandlerConfig.Name} (ID: {jobId}) with expression '{HandlerConfig.CronExpression}'");
                 }
                 else
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(
-                        LogType.Error, 
-                        $"Failed to schedule cron job: {HandlerConfig.Name}"
-                    );
+                    UserFeedback.ShowError($"Failed to schedule cron job: {HandlerConfig.Name}");
                 }
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(
-                    LogType.Error, 
-                    $"Error registering cron job for {HandlerConfig.Name}: {ex.Message}"
-                );
+                UserFeedback.ShowError($"Error registering cron job for {HandlerConfig.Name}: {ex.Message}");
             }
 
             //ExecuteNow();
@@ -146,25 +128,16 @@ namespace Contextualizer.Core
                 var success = cronService.TriggerJob(jobId);
                 if (success)
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(
-                        LogType.Info, 
-                        $"Manually triggered cron job: {HandlerConfig.Name} (ID: {jobId})"
-                    );
+                    UserFeedback.ShowActivity(LogType.Info, $"Manually triggered cron job: {HandlerConfig.Name} (ID: {jobId})");
                 }
                 else
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(
-                        LogType.Warning, 
-                        $"Cron job not found for manual execution: {HandlerConfig.Name} (ID: {jobId})"
-                    );
+                    UserFeedback.ShowWarning($"Cron job not found for manual execution: {HandlerConfig.Name} (ID: {jobId})");
                 }
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(
-                    LogType.Error, 
-                    $"Error manually executing cron job {HandlerConfig.Name}: {ex.Message}"
-                );
+                UserFeedback.ShowError($"Error manually executing cron job {HandlerConfig.Name}: {ex.Message}");
             }
         }
 
@@ -183,25 +156,16 @@ namespace Contextualizer.Core
                 var success = cronService.SetJobEnabled(jobId, enabled);
                 if (success)
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(
-                        LogType.Info, 
-                        $"Cron job {(enabled ? "enabled" : "disabled")}: {HandlerConfig.Name} (ID: {jobId})"
-                    );
+                    UserFeedback.ShowActivity(LogType.Info, $"Cron job {(enabled ? "enabled" : "disabled")}: {HandlerConfig.Name} (ID: {jobId})");
                 }
                 else
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(
-                        LogType.Warning, 
-                        $"Cron job not found for state change: {HandlerConfig.Name} (ID: {jobId})"
-                    );
+                    UserFeedback.ShowWarning($"Cron job not found for state change: {HandlerConfig.Name} (ID: {jobId})");
                 }
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(
-                    LogType.Error, 
-                    $"Error setting cron job enabled state for {HandlerConfig.Name}: {ex.Message}"
-                );
+                UserFeedback.ShowError($"Error setting cron job enabled state for {HandlerConfig.Name}: {ex.Message}");
             }
         }
     }

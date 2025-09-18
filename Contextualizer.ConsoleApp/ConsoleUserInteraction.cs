@@ -52,9 +52,15 @@ namespace Contextualizer.ConsoleApp
             return userInput;
         }
 
-        public void Log(LogType notificationType, string message, DateTime? timestamp = null, string? additionalInfo = null)
+        public void ShowActivityFeedback(LogType notificationType, string message, DateTime? timestamp = null, string? additionalInfo = null)
         {
             System.Console.WriteLine($"[{notificationType.ToString()}]: {message}");
+        }
+
+        [Obsolete("Use ShowActivityFeedback instead for clarity")]
+        public void Log(LogType notificationType, string message, DateTime? timestamp = null, string? additionalInfo = null)
+        {
+            ShowActivityFeedback(notificationType, message, timestamp, additionalInfo);
         }
 
         public Task ShowActionableNotification(string message, string actionLabel, Action action, LogType notificationType = LogType.Info)

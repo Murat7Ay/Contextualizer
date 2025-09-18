@@ -100,17 +100,17 @@ namespace Contextualizer.Core
 
         public async Task Action(ConfigAction configAction, ContextWrapper contextWrapper)
         {
-            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{configAction.Name}' started.");
+            UserFeedback.ShowActivity(LogType.Info, $"Action '{configAction.Name}' started");
             HandlerContextProcessor handlerContextProcessor = new HandlerContextProcessor();
             handlerContextProcessor.PromptUserInputsAsync(configAction.UserInputs, contextWrapper);
             handlerContextProcessor.ContextResolve(configAction.ConstantSeeder, configAction.Seeder, contextWrapper);
             bool isConditionSuccessed = ConditionEvaluator.EvaluateCondition(configAction.Conditions, contextWrapper);
             if (!isConditionSuccessed)
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action {configAction.Name} condition failed.");
+                UserFeedback.ShowWarning($"Action {configAction.Name} condition failed");
                 return;
             }
-            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{configAction.Name}' condition finished.");
+            UserFeedback.ShowActivity(LogType.Info, $"Action '{configAction.Name}' condition finished");
             if (_actions.TryGetValue(configAction.Name, out var actionInstance))
             {
                 if (configAction.RequiresConfirmation)
@@ -118,19 +118,19 @@ namespace Contextualizer.Core
                     bool confirmed = await ServiceLocator.Get<IUserInteractionService>().ShowConfirmationAsync("Action Confirmation", $"Do you want to proceed with action: {configAction.Name}?");
 
                     if (!confirmed) {
-                        ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action {configAction.Name} cancelled.");
+                        UserFeedback.ShowWarning($"Action {configAction.Name} cancelled");
                         return;
                     }
                 }
 
                 // Execute main action with proper await
                 await actionInstance.Action(configAction, contextWrapper);
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Action '{configAction.Name}' finished.");
+                UserFeedback.ShowSuccess($"Action '{configAction.Name}' finished");
 
                 // Execute inner actions sequentially if they exist
                 if (configAction.InnerActions != null && configAction.InnerActions.Count > 0)
                 {
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"Executing {configAction.InnerActions.Count} inner actions for '{configAction.Name}'.");
+                    UserFeedback.ShowActivity(LogType.Info, $"Executing {configAction.InnerActions.Count} inner actions for '{configAction.Name}'");
                     
                     foreach (var innerAction in configAction.InnerActions)
                     {
@@ -140,17 +140,17 @@ namespace Contextualizer.Core
                         }
                         catch (Exception ex)
                         {
-                            ServiceLocator.Get<IUserInteractionService>().Log(LogType.Error, $"Error executing inner action '{innerAction.Name}': {ex.Message}");
+                            UserFeedback.ShowError($"Error executing inner action '{innerAction.Name}': {ex.Message}");
                             // Continue with next inner action even if one fails
                         }
                     }
                     
-                    ServiceLocator.Get<IUserInteractionService>().Log(LogType.Info, $"All inner actions for '{configAction.Name}' completed.");
+                    UserFeedback.ShowSuccess($"All inner actions for '{configAction.Name}' completed");
                 }
             }
             else
             {
-                ServiceLocator.Get<IUserInteractionService>().Log(LogType.Warning, $"Action '{configAction.Name}' not found.");
+                UserFeedback.ShowWarning($"Action '{configAction.Name}' not found");
             }
         }
 

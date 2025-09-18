@@ -141,16 +141,8 @@ namespace WpfInteractionApp
 
         public LoggingSettingsWindow()
         {
-            try
-            {
-                _loggingService = ServiceLocator.Get<ILoggingService>();
-                _config = _loggingService.GetConfiguration();
-            }
-            catch
-            {
-                // Fallback if service not available
-                _config = new LoggingConfiguration();
-            }
+            _loggingService = ServiceLocator.SafeGet<ILoggingService>();
+            _config = _loggingService?.GetConfiguration() ?? new LoggingConfiguration();
 
             InitializeComponent();
             DataContext = this;

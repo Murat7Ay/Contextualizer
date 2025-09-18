@@ -231,15 +231,8 @@ namespace WpfInteractionApp
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 
                 // Log the error if logging service is available
-                try
-                {
-                    var loggingService = ServiceLocator.Get<ILoggingService>();
-                    loggingService?.LogError("Failed to open logging settings window", ex);
-                }
-                catch
-                {
-                    // Ignore logging errors to prevent recursive issues
-                }
+                ServiceLocator.SafeExecute<ILoggingService>(logger => 
+                    logger.LogError("Failed to open logging settings window", ex));
             }
         }
 

@@ -12,6 +12,15 @@ namespace Contextualizer.PluginContracts
 
         public Task ShowActionableNotification(string message, string actionLabel, Action action, LogType notificationType = LogType.Info);
 
+        /// <summary>
+        /// Shows activity feedback to user in the UI activity log panel
+        /// </summary>
+        public void ShowActivityFeedback(LogType notificationType, string message, DateTime? timestamp = null, string? additionalInfo = null);
+        
+        /// <summary>
+        /// Legacy method - use ShowActivityFeedback instead
+        /// </summary>
+        [Obsolete("Use ShowActivityFeedback instead for clarity")]
         public void Log(LogType notificationType, string message, DateTime? timestamp = null, string? additionalInfo = null);
 
         public void ShowWindow(string screenId, string title, Dictionary<string, string> context, List<KeyValuePair<string,Action<Dictionary<string,string>>>>? actions = null);

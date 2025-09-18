@@ -58,6 +58,18 @@ Contextualizer is a powerful Windows application that provides context-aware cli
   - Synthetic content generation for scheduled tasks
   - Robust error handling and retry mechanisms
 
+- **Advanced Logging & Analytics System**:
+  - **Dual Logging Architecture**: Separate UI activity logs and technical system logs
+  - **User Activity Tracking**: Comprehensive analytics for "who used what" insights
+  - **Smart Handler Execution Logging**: Only logs handlers that actually process content
+  - **Parallel Handler Processing**: All handlers execute simultaneously for optimal performance
+  - **Usage Analytics**: Track successful executions, failed attempts, and unmatched content
+  - **Performance Monitoring**: Detailed execution times and system metrics
+  - **Structured Logging**: Rich contextual information with correlation IDs
+  - **Asynchronous Logging**: Non-blocking log writes for better performance
+  - **Remote Analytics**: Optional usage data collection for product insights
+  - **No-Match Detection**: Tracks when users attempt to use the system but no handlers match
+
 - **Advanced Features**:
   - Theme-aware components
   - Dynamic screen management
@@ -193,6 +205,114 @@ Create reusable handler templates that can be customized during installation:
 - `$(key)` - Replaced with user input value during installation
 - Supports all existing function processing features
 - Can be used in any string field within the handler configuration
+
+## Logging & Analytics System
+
+The application features a comprehensive dual logging system designed for both user experience and technical monitoring:
+
+### Dual Logging Architecture
+
+#### **1. User Activity Feedback (`UserFeedback` / `IUserInteractionService`)**
+- **Purpose**: Show user-friendly notifications in the UI activity panel
+- **Target Audience**: End users
+- **Usage**: Success messages, warnings, errors visible to users
+- **Examples**:
+  ```csharp
+  UserFeedback.ShowSuccess("Handler completed successfully");
+  UserFeedback.ShowWarning("No handlers could process the content");
+  UserFeedback.ShowError("Database connection failed");
+  ```
+
+#### **2. System Logging (`ILoggingService`)**
+- **Purpose**: Technical monitoring, debugging, and usage analytics
+- **Target Audience**: Developers, system administrators, product analytics
+- **Features**:
+  - **Asynchronous Processing**: Non-blocking log writes using `System.Threading.Channels`
+  - **Structured Logging**: Rich contextual data with correlation IDs
+  - **Performance Tracking**: Execution times, system metrics per component
+  - **Remote Analytics**: Optional usage data collection
+  - **Log Rotation**: Automatic cleanup of old log files
+  - **Scoped Logging**: Component-based log contexts
+
+### Smart Handler Execution Logging
+
+The system intelligently tracks handler usage with the following approach:
+
+#### **Parallel Handler Processing**
+```csharp
+// All handlers execute simultaneously for optimal performance
+var handlerTasks = new List<Task<bool>>();
+foreach (var handler in _handlers)
+{
+    var handlerTask = ExecuteHandlerAsync(handler, clipboardContent, logger, contentLength);
+    handlerTasks.Add(handlerTask);
+}
+
+// Wait for all handlers and count successful ones
+bool[] results = await Task.WhenAll(handlerTasks);
+int handlersProcessed = results.Count(r => r);
+```
+
+#### **Accurate Usage Analytics**
+- **Only Successful Executions Logged**: Handlers that cannot process content are not logged as "successful"
+- **Comprehensive Tracking**: Both successful executions and "no handlers matched" scenarios
+- **Performance Metrics**: Real execution times (not including CanHandle checks)
+
+#### **Example Log Outputs**
+
+**Successful Handler Execution:**
+```json
+{
+  "eventType": "handler_execution",
+  "timestamp": "2025-09-18T21:54:10.3741914Z",
+  "data": {
+    "handler_name": "Database Handler",
+    "handler_type": "CustomHandler",
+    "duration_ms": 2.47,
+    "success": true,
+    "content_length": 150,
+    "can_handle": true,
+    "executed_actions": 2
+  }
+}
+```
+
+**No Handlers Matched:**
+```json
+{
+  "eventType": "clipboard_no_handlers_matched",
+  "timestamp": "2025-09-18T21:54:15.1234567Z",
+  "data": {
+    "content_length": 45,
+    "total_handlers_checked": 5,
+    "content_type": "text",
+    "content_preview": "Some text that no handler could process..."
+  }
+}
+```
+
+### Usage Guidelines
+
+#### **Use UserFeedback for:**
+- Handler completion notifications
+- User-friendly error messages
+- Application state changes
+- Action confirmations and warnings
+
+#### **Use ILoggingService for:**
+- Performance monitoring and metrics
+- Detailed error tracking with stack traces
+- Usage analytics and user behavior tracking
+- System debugging and troubleshooting
+- Remote telemetry data collection
+
+### Benefits
+
+- **Accurate Analytics**: "Who used what" reports show only actual usage
+- **Performance Insights**: Real execution times and system bottlenecks
+- **User Experience**: Clear feedback on what happened and why
+- **Product Intelligence**: Understanding which content types need new handlers
+- **Debugging**: Rich contextual information for troubleshooting
 
 ## Project Structure
 
