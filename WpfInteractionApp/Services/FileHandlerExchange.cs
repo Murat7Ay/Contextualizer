@@ -129,13 +129,30 @@ namespace WpfInteractionApp.Services
             var currentHandlers = await File.ReadAllTextAsync(_handlersFilePath);
             using var handlersDoc = JsonDocument.Parse(currentHandlers);
             var handlersElement = handlersDoc.RootElement.GetProperty("handlers");
-            var handlersArray = JsonSerializer.Deserialize<List<JsonElement>>(handlersElement, _jsonOptions);
             
-            handlersArray.Add(package.HandlerJson);
+            // JsonElement listesini kullanmak yerine, raw JSON string ile çalış
+            var handlersList = new List<object>();
+            foreach (var handler in handlersElement.EnumerateArray())
+            {
+                handlersList.Add(JsonSerializer.Deserialize<object>(handler.GetRawText()));
+            }
             
-            var updatedHandlers = new { handlers = handlersArray };
+            // Yeni handler'ı raw JSON olarak ekle
+            var newHandlerObject = JsonSerializer.Deserialize<object>(package.HandlerJson.GetRawText());
+            handlersList.Add(newHandlerObject);
+            
+            var updatedHandlers = new { handlers = handlersList };
+            
+            // UnsafeRelaxedJsonEscaping kullanarak karakter kaçışlarını engelle
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            
             await File.WriteAllTextAsync(_handlersFilePath, 
-                JsonSerializer.Serialize(updatedHandlers, _jsonOptions));
+                JsonSerializer.Serialize(updatedHandlers, options));
 
             // Kurulum kaydını oluştur
             await File.WriteAllTextAsync(
@@ -190,17 +207,33 @@ namespace WpfInteractionApp.Services
             var currentHandlers = await File.ReadAllTextAsync(_handlersFilePath);
             using var handlersDoc = JsonDocument.Parse(currentHandlers);
             var handlersElement = handlersDoc.RootElement.GetProperty("handlers");
-            var handlersArray = JsonSerializer.Deserialize<List<JsonElement>>(handlersElement, _jsonOptions);
             
-            var handlerToRemove = handlersArray.FirstOrDefault(h => 
-                h.GetProperty("name").GetString() == package.Name);
+            // JsonElement listesini kullanmak yerine, raw JSON string ile çalış
+            var handlersList = new List<object>();
+            foreach (var handler in handlersElement.EnumerateArray())
+            {
+                // Kaldırılacak handler'ı kontrol et
+                if (handler.TryGetProperty("name", out var nameProperty) &&
+                    nameProperty.GetString() == package.Name)
+                {
+                    continue; // Bu handler'ı ekleme (kaldır)
+                }
+                
+                handlersList.Add(JsonSerializer.Deserialize<object>(handler.GetRawText()));
+            }
             
-            if (handlerToRemove.ValueKind != JsonValueKind.Undefined)
-                handlersArray.Remove(handlerToRemove);
+            var updatedHandlers = new { handlers = handlersList };
             
-            var updatedHandlers = new { handlers = handlersArray };
+            // UnsafeRelaxedJsonEscaping kullanarak karakter kaçışlarını engelle
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            
             await File.WriteAllTextAsync(_handlersFilePath, 
-                JsonSerializer.Serialize(updatedHandlers, _jsonOptions));
+                JsonSerializer.Serialize(updatedHandlers, options));
 
             // Kurulum kaydını sil
             var installedPath = Path.Combine(_installedHandlersPath, $"{handlerId}.json");
