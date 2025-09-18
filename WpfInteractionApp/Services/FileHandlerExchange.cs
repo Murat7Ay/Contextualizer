@@ -1,5 +1,6 @@
 using Contextualizer.Core;
 using Contextualizer.Core.Services;
+using Contextualizer.PluginContracts;
 using Contextualizer.PluginContracts.Interfaces;
 using Contextualizer.PluginContracts.Models;
 using System;
@@ -125,6 +126,21 @@ namespace WpfInteractionApp.Services
             var package = await GetHandlerDetailsAsync(handlerId);
             if (package == null) return false;
 
+            // Template user inputs varsa işle
+            var processedHandlerJson = package.HandlerJson.GetRawText();
+            if (package.TemplateUserInputs != null && package.TemplateUserInputs.Any())
+            {
+                var templateValues = ProcessTemplateUserInputs(package.TemplateUserInputs);
+                
+                // Eğer kullanıcı işlemi iptal ettiyse kurulumu durdur
+                if (!templateValues.Any())
+                {
+                    return false;
+                }
+                
+                processedHandlerJson = ProcessTemplateJson(processedHandlerJson, templateValues);
+            }
+
             // Handler'ı handlers.json'a ekle
             var currentHandlers = await File.ReadAllTextAsync(_handlersFilePath);
             using var handlersDoc = JsonDocument.Parse(currentHandlers);
@@ -137,8 +153,8 @@ namespace WpfInteractionApp.Services
                 handlersList.Add(JsonSerializer.Deserialize<object>(handler.GetRawText()));
             }
             
-            // Yeni handler'ı raw JSON olarak ekle
-            var newHandlerObject = JsonSerializer.Deserialize<object>(package.HandlerJson.GetRawText());
+            // İşlenmiş handler JSON'ını ekle
+            var newHandlerObject = JsonSerializer.Deserialize<object>(processedHandlerJson);
             handlersList.Add(newHandlerObject);
             
             var updatedHandlers = new { handlers = handlersList };
@@ -387,6 +403,35 @@ namespace WpfInteractionApp.Services
             }
 
             return installedHandlers;
+        }
+
+        private Dictionary<string, string> ProcessTemplateUserInputs(List<UserInputRequest> templateUserInputs)
+        {
+            var templateValues = new Dictionary<string, string>();
+            
+            if (templateUserInputs == null || !templateUserInputs.Any())
+                return templateValues;
+
+            // Mevcut navigation sistemini kullan
+            var handlerContextProcessor = new HandlerContextProcessor();
+            bool completed = handlerContextProcessor.PromptUserInputsWithNavigation(templateUserInputs, templateValues);
+            
+            if (!completed)
+            {
+                // Kullanıcı işlemi iptal etti, boş dictionary döndür
+                return new Dictionary<string, string>();
+            }
+
+            return templateValues;
+        }
+
+        private string ProcessTemplateJson(string handlerJsonString, Dictionary<string, string> templateValues)
+        {
+            if (templateValues == null || !templateValues.Any())
+                return handlerJsonString;
+
+            // Mevcut sistem formatını kullan: $(key)
+            return HandlerContextProcessor.ReplaceDynamicValues(handlerJsonString, templateValues);
         }
     }
 } 

@@ -22,6 +22,13 @@ Contextualizer is a powerful Windows application that provides context-aware cli
   - Well-defined plugin contracts
   - Plugin-specific settings management
 
+- **Template Handler System**:
+  - Create reusable handler templates with configurable parameters
+  - Template user inputs with navigation support (back/next/cancel)
+  - Dynamic placeholder replacement using `$(key)` syntax
+  - Installation-time customization for different environments
+  - Seamless integration with the existing function processing system
+
 - **Modern User Interface**:
   - Clean, modern WPF interface with dark/light theme support
   - Tab-based content management
@@ -106,6 +113,87 @@ The application uses a JSON configuration file (`handlers.json`) to define handl
 }
 ```
 
+### Template Handler Configuration Example
+
+Create reusable handler templates that can be customized during installation:
+
+```json
+{
+  "id": "database-connection-template",
+  "name": "Database Connection Template",
+  "version": "1.0.0",
+  "author": "Contextualizer Team",
+  "description": "Template for creating database handlers with custom connection settings",
+  "tags": ["database", "template", "mssql"],
+  "template_user_inputs": [
+    {
+      "key": "server_name",
+      "title": "Database Server",
+      "message": "Enter the SQL Server name or IP address:",
+      "is_required": true,
+      "default_value": "localhost\\SQLEXPRESS",
+      "validation_regex": "^[a-zA-Z0-9\\.\\\\-]+$"
+    },
+    {
+      "key": "database_name",
+      "title": "Database Name",
+      "message": "Enter the database name:",
+      "is_required": true,
+      "validation_regex": "^[a-zA-Z0-9_]+$"
+    },
+    {
+      "key": "connection_timeout",
+      "title": "Connection Timeout",
+      "message": "Enter connection timeout in seconds:",
+      "is_required": false,
+      "default_value": "30",
+      "validation_regex": "^[0-9]+$"
+    }
+  ],
+  "handlerJson": {
+    "name": "Custom Database Handler - $(database_name)",
+    "type": "manual",
+    "screen_id": "database_screen",
+    "title": "Query $(database_name) Database",
+    "connectionString": "Server=$(server_name);Database=$(database_name);Connection Timeout=$(connection_timeout);Trusted_Connection=True;TrustServerCertificate=True;",
+    "connector": "mssql",
+    "query": "SELECT TOP 10 * FROM $(database_name).sys.tables",
+    "actions": [
+      {
+        "name": "db_context_enricher"
+      },
+      {
+        "name": "simple_print_key",
+        "key": "_self"
+      }
+    ],
+    "user_inputs": [
+      {
+        "key": "custom_query",
+        "title": "Custom SQL Query",
+        "message": "Enter your SQL query (use $(table_name) for dynamic values):",
+        "is_required": false,
+        "is_multi_line": true,
+        "default_value": "SELECT * FROM Users WHERE id = 1"
+      }
+    ],
+    "output_format": "Database: $(database_name) | Server: $(server_name) | Results: $(query_result)"
+  }
+}
+```
+
+**Template Installation Process:**
+1. User selects template from marketplace
+2. System presents step-by-step navigation for template inputs
+3. User can navigate back/forward through configuration steps
+4. Placeholders in `handlerJson` are replaced with user-provided values
+5. Customized handler is installed and ready to use
+
+**Template Placeholder Syntax:**
+- `$(key)` - Replaced with user input value during installation
+- Supports all existing function processing features
+- Can be used in any string field within the handler configuration
+
 ## Project Structure
 
 - **Contextualizer.Core**: Core business logic and handler implementations
@@ -133,6 +221,55 @@ The application uses a JSON configuration file (`handlers.json`) to define handl
    - `IHandlerContextProvider` for custom context providers
    - `IDynamicScreen` for custom UI components
    - `IThemeAware` for theme-aware components
+
+### Creating Handler Templates
+
+1. **Design Your Template**
+   - Identify configurable parameters (connection strings, URLs, etc.)
+   - Plan the user input flow and validation requirements
+   - Consider default values and help text
+
+2. **Create Template Package**
+   ```json
+   {
+     "id": "unique-template-id",
+     "name": "Display Name",
+     "version": "1.0.0",
+     "author": "Your Name",
+     "description": "Template description",
+     "tags": ["tag1", "tag2"],
+     "template_user_inputs": [
+       {
+         "key": "parameter_name",
+         "title": "User-friendly Title",
+         "message": "Help text for user",
+         "is_required": true,
+         "default_value": "default_value",
+         "validation_regex": "^[a-zA-Z0-9]+$"
+       }
+     ],
+     "handlerJson": {
+       // Your handler configuration with $(parameter_name) placeholders
+     }
+   }
+   ```
+
+3. **Template User Input Options**
+   - `key`: Parameter identifier for replacement
+   - `title`: Display title in the UI
+   - `message`: Help text or prompt
+   - `is_required`: Whether input is mandatory
+   - `default_value`: Pre-filled value
+   - `validation_regex`: Input validation pattern
+   - `is_password`: Hide input for sensitive data
+   - `is_multi_line`: Allow multi-line text input
+   - `is_selection_list`: Provide dropdown options
+   - `is_file_picker`: File/folder selection dialog
+
+4. **Publishing Templates**
+   - Place template JSON files in the exchange directory
+   - Use `IHandlerExchange.PublishHandlerAsync()` programmatically
+   - Templates appear in the marketplace for installation
 
 ## Dependencies
 
