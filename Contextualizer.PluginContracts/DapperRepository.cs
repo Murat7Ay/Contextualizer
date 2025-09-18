@@ -13,18 +13,28 @@ namespace Contextualizer.PluginContracts
     public class DapperRepository
     {
         public HandlerConfig? HandlerConfig { get; set; }
-        public void Initialize(HandlerConfig handlerConfig)
+        public string ConnectionString { get; }
+        public string Connector { get; }
+
+        public DapperRepository(string connectionString, string connector)
+        {
+            ConnectionString = connectionString;
+            Connector = connector;
+        }
+        public DapperRepository(HandlerConfig handlerConfig)
         {
             HandlerConfig = handlerConfig ?? throw new ArgumentNullException(nameof(handlerConfig));
+            ConnectionString = handlerConfig.ConnectionString;
+            Connector = handlerConfig.Connector;
         }
 
         protected IDbConnection CreateConnection()
         {
-            return HandlerConfig.Connector.ToLowerInvariant() switch
+            return Connector.ToLowerInvariant() switch
             {
-                "mssql" => new SqlConnection(HandlerConfig.ConnectionString),
-                "plsql" => new OracleConnection(HandlerConfig.ConnectionString),
-                _ => throw new NotSupportedException($"Connector type '{HandlerConfig.Connector}' is not supported.")
+                "mssql" => new SqlConnection(ConnectionString),
+                "plsql" => new OracleConnection(ConnectionString),
+                _ => throw new NotSupportedException($"Connector type '{Connector}' is not supported.")
             };
         }
 
@@ -41,11 +51,11 @@ namespace Contextualizer.PluginContracts
 
         private string GetParameterAlias()
         {
-            return HandlerConfig.Connector.ToLowerInvariant() switch
+            return Connector.ToLowerInvariant() switch
             {
                 "mssql" => "@",
                 "plsql" => ":",
-                _ => throw new NotSupportedException($"Connector type '{HandlerConfig.Connector}' is not supported.")
+                _ => throw new NotSupportedException($"Connector type '{Connector}' is not supported.")
             };
         }
 
