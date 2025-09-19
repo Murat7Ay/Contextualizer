@@ -13,98 +13,39 @@
         ResizeMode="NoResize">
     
     <Window.Resources>
-        <Style TargetType="ComboBox">
+        <!-- Enhanced ComboBox Style -->
+        <Style TargetType="ComboBox" BasedOn="{StaticResource Carbon.ComboBox}">
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        
+        <!-- Enhanced ComboBoxItem Style -->
+        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource Carbon.ComboBoxItem}"/>
+
+        <!-- Enhanced TextBox Style -->
+        <Style TargetType="TextBox" BasedOn="{StaticResource Carbon.TextBox}">
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+
+        <!-- Enhanced PasswordBox Style -->
+        <Style TargetType="PasswordBox">
             <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
             <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid>
-                            <ToggleButton x:Name="ToggleButton"
-                                        Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border x:Name="Border" 
-                                                Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="1">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition />
-                                                    <ColumnDefinition Width="20" />
-                                                </Grid.ColumnDefinitions>
-                                                <ContentPresenter Grid.Column="0"
-                                                                Margin="6,3"
-                                                                HorizontalAlignment="Left"
-                                                                VerticalAlignment="Center" />
-                                                <Path x:Name="Arrow"
-                                                      Grid.Column="1"
-                                                      Fill="{DynamicResource Carbon.Brush.Text.Primary}"
-                                                      HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"
-                                                      Data="M0,0 L4,4 L8,0 Z"/>
-                                            </Grid>
-                                        </Border>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-                            <ContentPresenter x:Name="ContentSite"
-                                            Margin="6,3"
-                                            IsHitTestVisible="False"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Center"
-                                            Content="{TemplateBinding SelectionBoxItem}"
-                                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
-                            <Popup x:Name="Popup"
-                                   AllowsTransparency="True"
-                                   IsOpen="{TemplateBinding IsDropDownOpen}"
-                                   Placement="Bottom"
-                                   PopupAnimation="Slide">
-                                <Grid x:Name="DropDown"
-                                      MinWidth="{TemplateBinding ActualWidth}"
-                                      MaxHeight="{TemplateBinding MaxDropDownHeight}"
-                                      SnapsToDevicePixels="True">
-                                    <Border x:Name="DropDownBorder"
-                                            Background="{DynamicResource Carbon.Brush.Background.Secondary}"
-                                            BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
-                                            BorderThickness="1"/>
-                                    <ScrollViewer SnapsToDevicePixels="True">
-                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
-                                    </ScrollViewer>
-                                </Grid>
-                            </Popup>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="12,8"/>
         </Style>
-        
-        <Style TargetType="ComboBoxItem">
+
+        <!-- Enhanced ListBox Style -->
+        <Style TargetType="ListBox">
             <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
             <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBoxItem">
-                        <Border x:Name="Border"
-                                Background="{TemplateBinding Background}"
-                                Padding="6,3">
-                            <ContentPresenter />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinHeight" Value="100"/>
+            <Setter Property="MaxHeight" Value="200"/>
         </Style>
     </Window.Resources>
     
@@ -194,32 +135,27 @@
         <!-- Input Controls Container -->
         <Grid Grid.Row="3" Margin="0,0,0,24">
             <TextBox x:Name="InputTextBox"
-                    Background="{DynamicResource Carbon.Brush.Background.Secondary}"
-                    Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
-                    BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
-                    Padding="8,6"
                     TextWrapping="Wrap"
                     AcceptsReturn="True"
-                    VerticalScrollBarVisibility="Auto"/>
+                    VerticalScrollBarVisibility="Auto"
+                    AutomationProperties.Name="User Input"
+                    AutomationProperties.HelpText="Enter your input here"/>
             
             <PasswordBox x:Name="PasswordBox"
-                        Background="{DynamicResource Carbon.Brush.Background.Secondary}"
-                        Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
-                        BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
-                        Padding="8,6"
-                        Visibility="Collapsed"/>
+                        Visibility="Collapsed"
+                        AutomationProperties.Name="Password Input"
+                        AutomationProperties.HelpText="Enter your password here"/>
             
             <ComboBox x:Name="SelectionComboBox"
-                      Padding="8,6"
-                      Visibility="Collapsed"/>
+                      Visibility="Collapsed"
+                      AutomationProperties.Name="Selection Input"
+                      AutomationProperties.HelpText="Select an option from the dropdown"/>
 
             <ListBox x:Name="MultiSelectListBox"
-                     Background="{DynamicResource Carbon.Brush.Background.Secondary}"
-                     Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
-                     BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
-                     Padding="8,6"
                      SelectionMode="Multiple"
-                     Visibility="Collapsed"/>
+                     Visibility="Collapsed"
+                     AutomationProperties.Name="Multiple Selection Input"
+                     AutomationProperties.HelpText="Select one or more options from the list"/>
 
             <Grid x:Name="FilePickerGrid" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
@@ -228,17 +164,17 @@
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="FilePathTextBox"
                          Grid.Column="0"
-                         Background="{DynamicResource Carbon.Brush.Background.Secondary}"
-                         Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
-                         BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
-                         Padding="8,6"
-                         IsReadOnly="True"/>
+                         IsReadOnly="True"
+                         AutomationProperties.Name="File Path"
+                         AutomationProperties.HelpText="Selected file path"/>
                 <Button x:Name="BrowseButton"
                         Grid.Column="1"
                         Content="Browse"
                         Style="{DynamicResource Carbon.Button.Secondary}"
                         Click="BrowseButton_Click"
-                        Margin="8,0,0,0"/>
+                        Margin="8,0,0,0"
+                        AutomationProperties.Name="Browse Files"
+                        AutomationProperties.HelpText="Click to browse and select a file"/>
             </Grid>
         </Grid>
 
@@ -251,19 +187,26 @@
                     Click="BackButton_Click"
                     MinWidth="100"
                     Margin="0,0,12,0"
-                    Visibility="Collapsed"/>
+                    Visibility="Collapsed"
+                    AutomationProperties.Name="Go Back"
+                    AutomationProperties.HelpText="Return to the previous step"/>
                     
             <Button Content="Cancel"
                     Style="{DynamicResource Carbon.Button.Secondary}"
                     Click="CancelButton_Click"
                     MinWidth="100"
-                    Margin="0,0,12,0"/>
+                    Margin="0,0,12,0"
+                    AutomationProperties.Name="Cancel"
+                    AutomationProperties.HelpText="Cancel the input dialog and close"/>
             
             <Button x:Name="OkButton"
                     Content="OK"
                     Style="{DynamicResource Carbon.Button.Base}"
                     Click="OkButton_Click"
-                    MinWidth="100"/>
+                    MinWidth="100"
+                    IsDefault="True"
+                    AutomationProperties.Name="Confirm"
+                    AutomationProperties.HelpText="Confirm the input and proceed"/>
         </StackPanel>
     </Grid>
 </Window>
