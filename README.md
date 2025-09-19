@@ -30,14 +30,19 @@ Contextualizer is a powerful Windows application that provides context-aware cli
   - Seamless integration with the existing function processing system
 
 - **Modern User Interface**:
-  - Clean, modern WPF interface with dark/light theme support
-  - Tab-based content management
-  - Real-time activity logging
-  - Toast notifications
-  - Support for markdown, JSON, and XML formatting
-  - PL/SQL editor with syntax highlighting
-  - Markdown viewer with live preview
-  - User input dialogs with validation
+  - **Clean, modern WPF interface** with Carbon Design System
+  - **Dark/Light theme support** with consistent styling across all components
+  - **Welcome Dashboard** with quick actions and system statistics
+  - **Modern Toolbar** with icon-based navigation and theme selector
+  - **Card-based layouts** for settings and configuration screens
+  - **Enhanced Activity Log** with search, filtering, and real-time updates
+  - **Tab-based content management** with dynamic visibility
+  - **Accessibility features** with screen reader support and keyboard navigation
+  - **Toast notifications** with progress indicators and action buttons
+  - **Support for markdown, JSON, and XML formatting** with syntax highlighting
+  - **PL/SQL editor** with advanced syntax highlighting
+  - **Markdown viewer** with live preview capabilities
+  - **Enhanced user input dialogs** with real-time validation and progress tracking
 
 - **Advanced Function Processing System**:
   - Comprehensive function library with 50+ built-in functions
@@ -70,16 +75,26 @@ Contextualizer is a powerful Windows application that provides context-aware cli
   - **Remote Analytics**: Optional usage data collection for product insights
   - **No-Match Detection**: Tracks when users attempt to use the system but no handlers match
 
+- **UI Design System**:
+  - **Carbon Design System**: Consistent, modern styling across all components
+  - **Enhanced Color Palette**: Success, Warning, Danger, Info color schemes
+  - **Modern Card Components**: Elevated surfaces with shadows and hover effects
+  - **Responsive Design**: Adaptive layouts based on window size
+  - **Icon-based Navigation**: Intuitive toolbar with quick access buttons
+  - **Status Indicators**: Visual badges for system states and job statuses
+  - **Progress Indicators**: Real-time feedback for long-running operations
+  - **Validation Feedback**: Inline error messages and success indicators
+
 - **Advanced Features**:
-  - Theme-aware components
-  - Dynamic screen management
-  - Context-based content processing
-  - Customizable user interactions
-  - Toast notifications with actions
-  - Confirmation dialogs
-  - Multi-line text input support
-  - File picker integration
-  - Selection lists with multi-select support
+  - Theme-aware components with automatic color adaptation
+  - Dynamic screen management with tab-based navigation
+  - Context-based content processing with smart routing
+  - Customizable user interactions with accessibility support
+  - Toast notifications with actions and progress tracking
+  - Enhanced confirmation dialogs with modern styling
+  - Multi-line text input support with validation
+  - File picker integration with path validation
+  - Selection lists with multi-select support and search
 
 ## System Requirements
 
@@ -88,6 +103,28 @@ Contextualizer is a powerful Windows application that provides context-aware cli
 - For database features:
   - Microsoft SQL Server client (for MSSQL connections)
   - Oracle client (for Oracle connections)
+
+## Getting Started
+
+### 🚀 **Quick Setup**
+
+1. **Download & Launch**: Run the application - it's portable and self-contained
+2. **First Launch**: The app automatically creates the directory structure at `C:\PortableApps\Contextualizer`
+3. **Welcome Dashboard**: Start with the modern dashboard showing system statistics
+4. **Configure Settings**: Use the modernized settings screens with card-based layouts
+
+### 🎨 **Modern UI Features**
+
+- **Theme Selection**: Choose between Light and Dark themes from the toolbar
+- **Dashboard Navigation**: Quick access to Handler Management, Cron Jobs, and Marketplace
+- **Activity Monitoring**: Real-time log panel with search and filtering capabilities
+- **Accessibility**: Full screen reader support and keyboard navigation
+
+### ⚙️ **Configuration**
+
+- **Settings**: Modern card-based interface for file paths, keyboard shortcuts, and timing
+- **Logging**: Comprehensive logging configuration with visual statistics
+- **Handlers**: Drag-and-drop handler management with template support
 
 ## Configuration
 

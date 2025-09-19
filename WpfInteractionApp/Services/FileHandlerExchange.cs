@@ -270,13 +270,13 @@ namespace WpfInteractionApp.Services
             return true;
         }
 
-        public async Task<bool> ValidateHandlerAsync(HandlerPackage package)
+        public Task<bool> ValidateHandlerAsync(HandlerPackage package)
         {
             if (string.IsNullOrEmpty(package.Id) || 
                 string.IsNullOrEmpty(package.Name) || 
                 string.IsNullOrEmpty(package.Version) ||
                 package.HandlerJson.ValueKind == JsonValueKind.Undefined)
-                return false;
+                return Task.FromResult(false);
 
             // Handler JSON formatını kontrol et
             try
@@ -284,14 +284,14 @@ namespace WpfInteractionApp.Services
                 var handlerJson = package.HandlerJson;
                 if (!handlerJson.TryGetProperty("name", out _) || 
                     !handlerJson.TryGetProperty("type", out _))
-                    return false;
+                    return Task.FromResult(false);
             }
             catch
             {
-                return false;
+                return Task.FromResult(false);
             }
 
-            return true;
+            return Task.FromResult(true);
         }
 
         public async Task<IEnumerable<string>> GetAvailableTagsAsync()
