@@ -8,103 +8,83 @@
         Style="{DynamicResource Carbon.Window}">
     
     <Window.Resources>
-        <Style TargetType="GroupBox">
+        <!-- Modern Card Style for Settings Sections -->
+        <Style x:Key="SettingsCard" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
-        </Style>
-
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-            <Setter Property="Padding" Value="8,6"/>
-        </Style>
-
-        <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
-        </Style>
-
-        <Style TargetType="Label">
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
-        </Style>
-
-        <Style TargetType="ComboBox">
-            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-            <Setter Property="Template">
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Effect">
                 <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid>
-                            <ToggleButton x:Name="ToggleButton"
-                                 Background="{TemplateBinding Background}"
-                                 BorderBrush="{TemplateBinding BorderBrush}"
-                                 IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border x:Name="Border" 
-                                         Background="{TemplateBinding Background}"
-                                         BorderBrush="{TemplateBinding BorderBrush}"
-                                         BorderThickness="1">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition />
-                                                    <ColumnDefinition Width="20" />
-                                                </Grid.ColumnDefinitions>
-                                                <ContentPresenter Grid.Column="0"
-                                                         Margin="6,3"
-                                                         HorizontalAlignment="Left"
-                                                         VerticalAlignment="Center" />
-                                                <Path x:Name="Arrow"
-                                               Grid.Column="1"
-                                               Fill="{DynamicResource Carbon.Brush.Text.Primary}"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               Data="M0,0 L4,4 L8,0 Z"/>
-                                            </Grid>
-                                        </Border>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-                            <ContentPresenter x:Name="ContentSite"
-                                     Margin="6,3"
-                                     IsHitTestVisible="False"
-                                     HorizontalAlignment="Left"
-                                     VerticalAlignment="Center"
-                                     Content="{TemplateBinding SelectionBoxItem}"
-                                     ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                     ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
-                            <Popup x:Name="Popup"
-                            AllowsTransparency="True"
-                            IsOpen="{TemplateBinding IsDropDownOpen}"
-                            Placement="Bottom"
-                            PopupAnimation="Slide">
-                                <Grid x:Name="DropDown"
-                               MinWidth="{TemplateBinding ActualWidth}"
-                               MaxHeight="{TemplateBinding MaxDropDownHeight}"
-                               SnapsToDevicePixels="True">
-                                    <Border x:Name="DropDownBorder"
-                                     Background="{DynamicResource Carbon.Brush.Background.Secondary}"
-                                     BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
-                                     BorderThickness="1"/>
-                                    <ScrollViewer SnapsToDevicePixels="True">
-                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
-                                    </ScrollViewer>
-                                </Grid>
-                            </Popup>
-                        </Grid>
-                    </ControlTemplate>
+                    <DropShadowEffect Color="Black" Opacity="0.08" BlurRadius="8" ShadowDepth="2"/>
                 </Setter.Value>
             </Setter>
         </Style>
 
-
-        <Style TargetType="Slider">
+        <!-- Card Header Style -->
+        <Style x:Key="CardHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
+        <!-- Form Field Container -->
+        <Style x:Key="FieldContainer" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <!-- Field Label Style -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <!-- Enhanced TextBox Style -->
+        <Style TargetType="TextBox" BasedOn="{StaticResource Carbon.TextBox}">
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+
+        <!-- Enhanced CheckBox Style -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- Enhanced ComboBox Style -->
+        <Style TargetType="ComboBox" BasedOn="{StaticResource Carbon.ComboBox}">
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+
+        <!-- Enhanced ComboBoxItem Style -->
+        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource Carbon.ComboBoxItem}"/>
+
+        <!-- Enhanced Slider Style -->
+        <Style TargetType="Slider">
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
+            <Setter Property="Height" Value="20"/>
+        </Style>
+
+        <!-- Info Text Style -->
+        <Style x:Key="InfoText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Secondary}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+
+        <!-- Statistics Display Style -->
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
         </Style>
     </Window.Resources>
 
@@ -116,165 +96,200 @@
 
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <!-- Local Logging Settings -->
-                <GroupBox Header="Local Logging">
-                    <StackPanel Margin="5">
+                <!-- Local Logging Settings Card -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="Local Logging" Style="{StaticResource CardHeader}"/>
+                        
                         <CheckBox x:Name="EnableLocalLoggingCheckBox" 
                                   Content="Enable Local Logging" 
-                                  IsChecked="{Binding EnableLocalLogging}"
-                                  Margin="0,5"/>
+                                  IsChecked="{Binding EnableLocalLogging}"/>
                         
-                        <DockPanel Margin="0,5">
-                            <Label Content="Log Directory:" Width="150"/>
-                            <Button Content="Browse..." 
-                                    DockPanel.Dock="Right" 
-                                    Margin="5,0,0,0" 
-                                    Click="BrowseLogDirectory_Click"
-                                    Style="{DynamicResource Carbon.Button.Secondary}"/>
-                            <TextBox x:Name="LogDirectoryTextBox" Text="{Binding LocalLogPath}"/>
-                        </DockPanel>
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Log Directory" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="LogDirectoryTextBox" 
+                                         Text="{Binding LocalLogPath}"
+                                         Grid.Column="0"/>
+                                <Button Content="Browse..." 
+                                        Grid.Column="1"
+                                        Margin="8,0,0,0" 
+                                        Click="BrowseLogDirectory_Click"
+                                        Style="{DynamicResource Carbon.Button.Secondary}"/>
+                            </Grid>
+                        </StackPanel>
 
-                        <DockPanel Margin="0,5">
-                            <Label Content="Minimum Log Level:" Width="150"/>
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Minimum Log Level" Style="{StaticResource FieldLabel}"/>
                             <ComboBox x:Name="MinimumLogLevelComboBox" 
                                       SelectedValue="{Binding MinimumLogLevel}"
                                       SelectedValuePath="Tag"
-                                      Width="150" HorizontalAlignment="Left">
+                                      Width="200" HorizontalAlignment="Left">
                                 <ComboBoxItem Content="Debug" Tag="Debug"/>
                                 <ComboBoxItem Content="Info" Tag="Info"/>
                                 <ComboBoxItem Content="Warning" Tag="Warning"/>
                                 <ComboBoxItem Content="Error" Tag="Error"/>
                                 <ComboBoxItem Content="Critical" Tag="Critical"/>
                             </ComboBox>
-                        </DockPanel>
+                        </StackPanel>
 
-                        <DockPanel Margin="0,5">
-                            <Label Content="Max File Size (MB):" Width="150"/>
-                            <StackPanel Orientation="Horizontal">
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Maximum File Size" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
                                 <Slider x:Name="MaxFileSizeSlider" 
+                                        Grid.Column="0"
                                         Minimum="1" Maximum="50" 
                                         Value="{Binding MaxLogFileSizeMB}" 
-                                        Width="200" 
                                         TickFrequency="5" 
-                                        IsSnapToTickEnabled="True"/>
-                                <Label Content="{Binding ElementName=MaxFileSizeSlider, Path=Value}" 
-                                       ContentStringFormat="{}{0} MB" 
-                                       Width="60"/>
-                            </StackPanel>
-                        </DockPanel>
+                                        IsSnapToTickEnabled="True"
+                                        Margin="0,0,12,0"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding ElementName=MaxFileSizeSlider, Path=Value, StringFormat='{}{0} MB'}" 
+                                           Style="{StaticResource StatValue}"
+                                           VerticalAlignment="Center"
+                                           MinWidth="60"/>
+                            </Grid>
+                        </StackPanel>
 
-                        <DockPanel Margin="0,5">
-                            <Label Content="Max File Count:" Width="150"/>
-                            <StackPanel Orientation="Horizontal">
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Maximum File Count" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
                                 <Slider x:Name="MaxFileCountSlider" 
+                                        Grid.Column="0"
                                         Minimum="1" Maximum="20" 
                                         Value="{Binding MaxLogFileCount}" 
-                                        Width="200" 
                                         TickFrequency="1" 
-                                        IsSnapToTickEnabled="True"/>
-                                <Label Content="{Binding ElementName=MaxFileCountSlider, Path=Value}" 
-                                       ContentStringFormat="{}{0} files" 
-                                       Width="80"/>
-                            </StackPanel>
-                        </DockPanel>
+                                        IsSnapToTickEnabled="True"
+                                        Margin="0,0,12,0"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding ElementName=MaxFileCountSlider, Path=Value, StringFormat='{}{0} files'}" 
+                                           Style="{StaticResource StatValue}"
+                                           VerticalAlignment="Center"
+                                           MinWidth="80"/>
+                            </Grid>
+                        </StackPanel>
 
                         <CheckBox x:Name="EnableDebugModeCheckBox" 
                                   Content="Enable Debug Mode (Verbose Logging)" 
-                                  IsChecked="{Binding EnableDebugMode}"
-                                  Margin="0,5"/>
+                                  IsChecked="{Binding EnableDebugMode}"/>
                     </StackPanel>
-                </GroupBox>
+                </Border>
 
-                <!-- Usage Analytics Settings -->
-                <GroupBox Header="Usage Analytics">
-                    <StackPanel Margin="5">
+                <!-- Usage Analytics Settings Card -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="Usage Analytics" Style="{StaticResource CardHeader}"/>
+                        
                         <CheckBox x:Name="EnableUsageTrackingCheckBox" 
                                   Content="Enable Usage Analytics (Anonymous)" 
-                                  IsChecked="{Binding EnableUsageTracking}"
-                                  Margin="0,5"/>
+                                  IsChecked="{Binding EnableUsageTracking}"/>
                         
-                        <DockPanel Margin="0,5">
-                            <Label Content="Analytics Endpoint URL:" Width="150"/>
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Analytics Endpoint URL" Style="{StaticResource FieldLabel}"/>
                             <TextBox x:Name="UsageEndpointUrlTextBox" 
                                      Text="{Binding UsageEndpointUrl}"
                                      IsEnabled="{Binding ElementName=EnableUsageTrackingCheckBox, Path=IsChecked}"/>
-                        </DockPanel>
+                        </StackPanel>
 
                         <TextBlock Text="Usage analytics help improve the application by collecting anonymous performance and usage data. No personal information is collected."
-                                   TextWrapping="Wrap"
-                                   Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
-                                   Margin="0,10,0,0"
-                                   FontSize="11"/>
+                                   Style="{StaticResource InfoText}"/>
                     </StackPanel>
-                </GroupBox>
+                </Border>
 
-                <!-- Log Statistics -->
-                <GroupBox Header="Log Statistics">
-                    <StackPanel Margin="5">
-                        <DockPanel Margin="0,5">
-                            <Label Content="Current Log Directory:" Width="150"/>
-                            <TextBlock x:Name="CurrentLogDirectoryText" 
-                                       Text="{Binding CurrentLogDirectory}"
-                                       Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
-                                       VerticalAlignment="Center"/>
-                        </DockPanel>
+                <!-- Log Statistics Card -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="Log Statistics" Style="{StaticResource CardHeader}"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Current Log Directory -->
+                            <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,12,12">
+                                <TextBlock Text="Current Directory" Style="{StaticResource FieldLabel}"/>
+                                <TextBlock x:Name="CurrentLogDirectoryText" 
+                                           Text="{Binding CurrentLogDirectory}"
+                                           Style="{StaticResource StatValue}"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding CurrentLogDirectory}"/>
+                            </StackPanel>
+                            
+                            <!-- Total Log Files -->
+                            <StackPanel Grid.Column="1" Grid.Row="0" Margin="0,0,12,12">
+                                <TextBlock Text="Total Files" Style="{StaticResource FieldLabel}"/>
+                                <TextBlock x:Name="TotalLogFilesText" 
+                                           Text="{Binding TotalLogFiles}"
+                                           Style="{StaticResource StatValue}"/>
+                            </StackPanel>
+                            
+                            <!-- Total Log Size -->
+                            <StackPanel Grid.Column="2" Grid.Row="0" Margin="0,0,0,12">
+                                <TextBlock Text="Total Size" Style="{StaticResource FieldLabel}"/>
+                                <TextBlock x:Name="TotalLogSizeText" 
+                                           Text="{Binding TotalLogSize}"
+                                           Style="{StaticResource StatValue}"/>
+                            </StackPanel>
+                        </Grid>
 
-                        <DockPanel Margin="0,5">
-                            <Label Content="Total Log Files:" Width="150"/>
-                            <TextBlock x:Name="TotalLogFilesText" 
-                                       Text="{Binding TotalLogFiles}"
-                                       Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
-                                       VerticalAlignment="Center"/>
-                        </DockPanel>
-
-                        <DockPanel Margin="0,5">
-                            <Label Content="Total Log Size:" Width="150"/>
-                            <TextBlock x:Name="TotalLogSizeText" 
-                                       Text="{Binding TotalLogSize}"
-                                       Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
-                                       VerticalAlignment="Center"/>
-                        </DockPanel>
-
-                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                             <Button Content="Open Log Folder" 
                                     Click="OpenLogFolder_Click"
                                     Style="{DynamicResource Carbon.Button.Secondary}"
-                                    Margin="0,0,10,0"/>
+                                    Margin="0,0,8,0"/>
                             <Button Content="Clear Old Logs" 
                                     Click="ClearOldLogs_Click"
-                                    Style="{DynamicResource Carbon.Button.Secondary}"
-                                    Margin="0,0,10,0"/>
+                                    Style="{DynamicResource Carbon.Button.Warning}"
+                                    Margin="0,0,8,0"/>
                             <Button Content="Refresh Statistics" 
                                     Click="RefreshStatistics_Click"
                                     Style="{DynamicResource Carbon.Button.Secondary}"/>
                         </StackPanel>
                     </StackPanel>
-                </GroupBox>
+                </Border>
 
-                <!-- Quick Actions -->
-                <GroupBox Header="Quick Actions">
-                    <StackPanel Margin="5">
-                        <StackPanel Orientation="Horizontal">
+                <!-- Quick Actions Card -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="Quick Actions" Style="{StaticResource CardHeader}"/>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                             <Button Content="Test Error Log" 
                                     Click="TestErrorLog_Click"
                                     Style="{DynamicResource Carbon.Button.Secondary}"
-                                    Margin="0,0,10,0"/>
+                                    Margin="0,0,8,0"/>
                             <Button Content="Test Usage Analytics" 
                                     Click="TestUsageAnalytics_Click"
-                                    Style="{DynamicResource Carbon.Button.Secondary}"
-                                    Margin="0,0,10,0"/>
+                                    Style="{DynamicResource Carbon.Button.Info}"
+                                    Margin="0,0,8,0"/>
                             <Button Content="Export Configuration" 
                                     Click="ExportConfiguration_Click"
                                     Style="{DynamicResource Carbon.Button.Secondary}"/>
                         </StackPanel>
                         
                         <TextBlock Text="Use these buttons to test the logging system and verify configuration."
-                                   TextWrapping="Wrap"
-                                   Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
-                                   Margin="0,10,0,0"
-                                   FontSize="11"/>
+                                   Style="{StaticResource InfoText}"/>
                     </StackPanel>
-                </GroupBox>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 
