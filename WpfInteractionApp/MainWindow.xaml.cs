@@ -268,7 +268,7 @@ namespace WpfInteractionApp
             Application.Current.Shutdown();
         }
 
-        private async void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var settingsService = ServiceLocator.Get<SettingsService>();
             var settingsWindow = new SettingsWindow(settingsService.Settings);
@@ -581,8 +581,8 @@ namespace WpfInteractionApp
     public class LogEntry
     {
         public LogType Type { get; set; }
-        public string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; }
-        public string AdditionalInfo { get; set; }
+        public string AdditionalInfo { get; set; } = string.Empty;
     }
 }

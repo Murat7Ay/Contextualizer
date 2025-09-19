@@ -19,7 +19,7 @@ namespace WpfInteractionApp
         private readonly IHandlerExchange _handlerExchange;
         private ObservableCollection<HandlerPackage> _handlers;
         private ObservableCollection<string> _tags;
-        private HandlerPackage _selectedHandler;
+        private HandlerPackage? _selectedHandler;
 
         public HandlerExchangeWindow()
         {
