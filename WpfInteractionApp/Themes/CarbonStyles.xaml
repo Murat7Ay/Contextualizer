@@ -14,6 +14,28 @@
     <SolidColorBrush x:Key="Carbon.Brush.Interactive.Active" Color="{StaticResource Carbon.Color.Interactive.Active}"/>
     <SolidColorBrush x:Key="Carbon.Brush.Interactive.Disabled" Color="{StaticResource Carbon.Color.Interactive.Disabled}"/>
 
+    <!-- Shadow Effects -->
+    <DropShadowEffect x:Key="Carbon.Shadow.Small" 
+                      ShadowDepth="1" 
+                      Direction="270" 
+                      Color="#40000000" 
+                      BlurRadius="3" 
+                      Opacity="0.2"/>
+    
+    <DropShadowEffect x:Key="Carbon.Shadow.Medium" 
+                      ShadowDepth="2" 
+                      Direction="270" 
+                      Color="#40000000" 
+                      BlurRadius="6" 
+                      Opacity="0.3"/>
+    
+    <DropShadowEffect x:Key="Carbon.Shadow.Large" 
+                      ShadowDepth="4" 
+                      Direction="270" 
+                      Color="#40000000" 
+                      BlurRadius="12" 
+                      Opacity="0.4"/>
+
     <!-- Base Text Styles -->
     <Style x:Key="Carbon.TextBlock.Base" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
@@ -461,19 +483,22 @@
     </Style>
 
     <Style x:Key="Carbon.TabItem" TargetType="TabItem">
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Secondary}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Padding" Value="16,12" />
-        <Setter Property="Margin" Value="0" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Margin" Value="2,0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="0,0,0,2">
+                            BorderThickness="1"
+                            CornerRadius="6,6,0,0"
+                            Margin="{TemplateBinding Margin}">
                         <ContentPresenter ContentSource="Header"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
@@ -481,12 +506,15 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
-                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Background.Primary}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -736,14 +764,19 @@
 
     <!-- Light Theme MenuItem Style -->
     <Style x:Key="Carbon.MenuItem.Light" TargetType="MenuItem" BasedOn="{StaticResource Carbon.MenuItem.Base}">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Padding" Value="8,6"/>
         <Style.Triggers>
             <Trigger Property="IsHighlighted" Value="True">
-                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
-                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
             </Trigger>
             <Trigger Property="IsSubmenuOpen" Value="True">
-                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
-                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
+                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -769,6 +802,318 @@
     <Style x:Key="Carbon.Window" TargetType="Window">
         <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Primary}" />
         <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
+    </Style>
+
+    <!-- ✨ NEW: Enhanced Color System -->
+    <!-- Success Colors -->
+    <SolidColorBrush x:Key="Carbon.Brush.Success.Primary" Color="#22C55E"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Success.Background" Color="#F0FDF4"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Success.Border" Color="#BBF7D0"/>
+
+    <!-- Warning Colors -->
+    <SolidColorBrush x:Key="Carbon.Brush.Warning.Primary" Color="#F59E0B"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Warning.Background" Color="#FFFBEB"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Warning.Border" Color="#FED7AA"/>
+
+    <!-- Danger Colors -->
+    <SolidColorBrush x:Key="Carbon.Brush.Danger.Primary" Color="#EF4444"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Danger.Background" Color="#FEF2F2"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Danger.Border" Color="#FECACA"/>
+
+    <!-- Info Colors -->
+    <SolidColorBrush x:Key="Carbon.Brush.Info.Primary" Color="#3B82F6"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Info.Background" Color="#EFF6FF"/>
+    <SolidColorBrush x:Key="Carbon.Brush.Info.Border" Color="#BFDBFE"/>
+
+    <!-- ✨ NEW: Modern Card Styles -->
+    <Style x:Key="Carbon.Card" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="16"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="Black" Opacity="0.1" BlurRadius="8" ShadowDepth="2"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Carbon.Card.Hover" TargetType="Border" BasedOn="{StaticResource Carbon.Card}">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Info.Primary}"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="Black" Opacity="0.12" BlurRadius="10" ShadowDepth="3"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ✨ NEW: Subtle Card Hover (for Dashboard) -->
+    <Style x:Key="Carbon.Card.Subtle" TargetType="Border" BasedOn="{StaticResource Carbon.Card}">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Info.Primary}"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="Black" Opacity="0.12" BlurRadius="10" ShadowDepth="3"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ✨ NEW: Enhanced Button Styles -->
+    <Style x:Key="Carbon.Button.Primary" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Info.Primary}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#2563EB"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="Carbon.Button.Success" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Success.Primary}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#16A34A"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="Carbon.Button.Warning" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Warning.Primary}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#D97706"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="Carbon.Button.Danger" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Danger.Primary}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#DC2626"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ✨ NEW: Icon Button Styles -->
+    <Style x:Key="Carbon.Button.Icon" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Secondary}">
+        <Setter Property="Width" Value="36"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="Padding" Value="6"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="MinWidth" Value="36"/>
+    </Style>
+
+    <Style x:Key="Carbon.Button.IconSmall" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Icon}">
+        <Setter Property="Width" Value="28"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="MinWidth" Value="28"/>
+    </Style>
+
+    <!-- ✨ NEW: Status Badge Styles -->
+    <Style x:Key="Carbon.Badge.Success" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Success.Primary}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <Style x:Key="Carbon.Badge.Warning" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Warning.Primary}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <Style x:Key="Carbon.Badge.Danger" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Danger.Primary}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <Style x:Key="Carbon.Badge.Info" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Carbon.Brush.Info.Primary}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <!-- ✨ NEW: Enhanced TextBox Styles -->
+    <Style x:Key="Carbon.TextBox" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6">
+                        <ScrollViewer x:Name="PART_ContentHost" 
+                                     Padding="{TemplateBinding Padding}"
+                                     VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter Property="BorderBrush" Value="{StaticResource Carbon.Brush.Info.Primary}"/>
+                            <Setter Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Hover}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ✨ NEW: Toolbar Styles -->
+    <Style x:Key="Carbon.ToolBar" TargetType="ToolBar">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding" Value="8"/>
+    </Style>
+
+    <Style x:Key="Carbon.ToolBarTray" TargetType="ToolBarTray">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+    </Style>
+
+    <!-- ✨ NEW: Enhanced ComboBox Styles -->
+    <Style x:Key="Carbon.ComboBox" TargetType="ComboBox">
+        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton x:Name="ToggleButton"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border x:Name="Border" 
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition Width="20" />
+                                            </Grid.ColumnDefinitions>
+                                            <ContentPresenter Grid.Column="0"
+                                                            Margin="8,6"
+                                                            HorizontalAlignment="Left"
+                                                            VerticalAlignment="Center" />
+                                            <Path x:Name="Arrow"
+                                                  Grid.Column="1"
+                                                  Fill="{DynamicResource Carbon.Brush.Text.Primary}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Data="M0,0 L4,4 L8,0 Z"/>
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Hover}"/>
+                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource Carbon.Brush.Info.Primary}"/>
+                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+                        <ContentPresenter x:Name="ContentSite"
+                                        Margin="8,6"
+                                        IsHitTestVisible="False"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Content="{TemplateBinding SelectionBoxItem}"
+                                        ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                        ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+                        <Popup x:Name="Popup"
+                               AllowsTransparency="True"
+                               IsOpen="{TemplateBinding IsDropDownOpen}"
+                               Placement="Bottom"
+                               PopupAnimation="Slide">
+                            <Grid x:Name="DropDown"
+                                  MinWidth="{TemplateBinding ActualWidth}"
+                                  MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                  SnapsToDevicePixels="True">
+                                <Border x:Name="DropDownBorder"
+                                        Background="{DynamicResource Carbon.Brush.Background.Secondary}"
+                                        BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Effect="{StaticResource Carbon.Shadow.Medium}"/>
+                                <ScrollViewer SnapsToDevicePixels="True" Margin="1">
+                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                </ScrollViewer>
+                            </Grid>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Carbon.ComboBoxItem" TargetType="ComboBoxItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}"
+                            CornerRadius="4"
+                            Margin="2">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
 </ResourceDictionary> 

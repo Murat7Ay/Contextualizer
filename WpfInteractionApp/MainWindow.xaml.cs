@@ -15,14 +15,24 @@ namespace WpfInteractionApp
     public partial class MainWindow : Window
     {
         private readonly List<LogEntry> _logs = new List<LogEntry>();
+        private readonly List<LogEntry> _filteredLogs = new List<LogEntry>();
         private readonly Dictionary<string, TabItem> _tabs = new Dictionary<string, TabItem>();
         private HandlerManager? _handlerManager;
+
+        // ✨ Dashboard Properties
+        public int ActiveHandlerCount => _handlerManager?.GetHandlerCount() ?? 0;
+        public int ActiveCronJobs => ServiceLocator.SafeGet<ICronService>()?.GetActiveJobCount() ?? 0;
+        public bool ShowWelcomeDashboard => _tabs.Count == 0;
+
+        // ✨ Log Filtering Properties
+        private string _logSearchText = "";
+        private LogType? _selectedLogLevel = null;
 
         public MainWindow()
         {
             InitializeComponent();
             ThemeManager.Instance.ThemeChanged += OnThemeChanged;
-            LogListBox.ItemsSource = _logs;
+            LogListBox.ItemsSource = _filteredLogs;
             LoadWindowSettings();
             
             // Subscribe to window events for saving settings
@@ -35,32 +45,81 @@ namespace WpfInteractionApp
         {
             _handlerManager = handlerManager ?? throw new ArgumentNullException(nameof(handlerManager));
             InitializeManualHandlersMenu();
+            UpdateDashboard();
+        }
+
+        // ✨ Dashboard Methods
+        private void UpdateDashboard()
+        {
+            // Update dashboard visibility and stats
+            if (WelcomeDashboard != null)
+            {
+                WelcomeDashboard.Visibility = ShowWelcomeDashboard ? Visibility.Visible : Visibility.Collapsed;
+            }
+            
+            // Update TabControl visibility (opposite of dashboard)
+            if (TabControl != null)
+            {
+                TabControl.Visibility = ShowWelcomeDashboard ? Visibility.Collapsed : Visibility.Visible;
+            }
+            
+            // Update stats if dashboard is visible
+            if (ShowWelcomeDashboard)
+            {
+                UpdateDashboardStats();
+            }
+        }
+
+        private void UpdateDashboardStats()
+        {
+            // Update handler count
+            if (HandlerCountText != null)
+                HandlerCountText.Text = ActiveHandlerCount.ToString();
+            
+            // Update cron jobs count  
+            if (CronJobsCountText != null)
+                CronJobsCountText.Text = ActiveCronJobs.ToString();
+        }
+
+        // ✨ Log Filtering Methods
+        private void FilterLogs()
+        {
+            // ✅ Null-safe check for LogListBox (might be called before InitializeComponent)
+            if (LogListBox == null) return;
+            
+            _filteredLogs.Clear();
+            
+            var filtered = _logs.Where(log =>
+            {
+                // Text search filter
+                bool matchesSearch = string.IsNullOrEmpty(_logSearchText) ||
+                                   log.Message.Contains(_logSearchText, StringComparison.OrdinalIgnoreCase) ||
+                                   (log.AdditionalInfo?.Contains(_logSearchText, StringComparison.OrdinalIgnoreCase) ?? false);
+                
+                // Log level filter
+                bool matchesLevel = _selectedLogLevel == null || log.Type == _selectedLogLevel;
+                
+                return matchesSearch && matchesLevel;
+            });
+            
+            foreach (var log in filtered)
+            {
+                _filteredLogs.Add(log);
+            }
+            
+            LogListBox.Items.Refresh();
+            
+            // Auto-select newest log if available
+            if (_filteredLogs.Count > 0)
+            {
+                LogListBox.SelectedIndex = 0;
+            }
         }
 
         private void InitializeManualHandlersMenu()
         {
-            if (_handlerManager == null) return;
-
-            ManualHandlersMenu.Items.Clear();
-            var handlers = _handlerManager.GetManualHandlerNames();
-
-            foreach (var handler in handlers)
-            {
-                var menuItem = new MenuItem
-                {
-                    Header = handler,
-                    Style = (Style)FindResource("Carbon.MenuItem.Light")
-                };
-                menuItem.Click += async (s, e) =>
-                {
-                    var dialog = new ConfirmationDialog($"Execute {handler}", $"Are you sure you want to execute the {handler}?");
-                    if (await dialog.ShowDialogAsync())
-                    {
-                        _handlerManager.ExecuteManualHandler(handler);
-                    }
-                };
-                ManualHandlersMenu.Items.Add(menuItem);
-            }
+            // Manual handlers are now handled by the toolbar button context menu
+            // No need to populate a menu here anymore
         }
 
         public void AddLog(LogEntry log)
@@ -76,13 +135,8 @@ namespace WpfInteractionApp
             if (_logs.Count > 50)
                 _logs.RemoveRange(50, _logs.Count - 50);
 
-            LogListBox.Items.Refresh();
-            
-            // ✅ Select the newest log (first item) to highlight it
-            if (_logs.Count > 0)
-            {
-                LogListBox.SelectedIndex = 0;
-            }
+            // ✨ Apply filtering to update filtered logs
+            FilterLogs();
         }
 
         public void AddOrUpdateTab(string screenId, string title, UIElement content)
@@ -127,6 +181,9 @@ namespace WpfInteractionApp
                 TabControl.Items.Add(tabItem);
                 _tabs.Add(key, tabItem);
             }
+            
+            // ✅ Update dashboard visibility when tabs change
+            UpdateDashboard();
         }
 
         private void CloseTab_Click(object sender, RoutedEventArgs e)
@@ -138,6 +195,9 @@ namespace WpfInteractionApp
                 {
                     _tabs.Remove(key);
                     TabControl.Items.Remove(tabItem);
+                    
+                    // ✅ Update dashboard visibility when tabs change
+                    UpdateDashboard();
                 }
             }
         }
@@ -357,6 +417,152 @@ namespace WpfInteractionApp
         private void MainWindow_StateChanged(object sender, EventArgs e)
         {
             SaveWindowSettings();
+        }
+
+        // ✨ Dashboard Event Handlers
+        private void ManageHandlers_Click(object sender, RoutedEventArgs e)
+        {
+            // Open handler management (existing functionality)
+            SettingsMenuItem_Click(sender, e);
+        }
+
+        private void CronManager_Click(object sender, RoutedEventArgs e)
+        {
+            // Open cron manager (existing functionality)
+            OpenCronManager_Click(sender, e);
+        }
+
+        private void Marketplace_Click(object sender, RoutedEventArgs e)
+        {
+            // Open handler exchange (existing functionality)
+            OpenHandlerExchange_Click(sender, e);
+        }
+
+        // ✨ Log Panel Event Handlers
+        private void LogSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                _logSearchText = textBox.Text;
+                FilterLogs();
+            }
+        }
+
+        private void LogLevelFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                string selectedLevel = selectedItem.Content.ToString();
+                _selectedLogLevel = selectedLevel switch
+                {
+                    "Success" => LogType.Success,
+                    "Error" => LogType.Error,
+                    "Warning" => LogType.Warning,
+                    "Info" => LogType.Info,
+                    "Debug" => LogType.Debug,
+                    "Critical" => LogType.Critical,
+                    _ => null
+                };
+                FilterLogs();
+            }
+        }
+
+        private void ClearLogs_Click(object sender, RoutedEventArgs e)
+        {
+            _logs.Clear();
+            FilterLogs();
+        }
+
+        // ✨ Toolbar Event Handlers
+        private void Home_Click(object sender, RoutedEventArgs e)
+        {
+            // Close all tabs to show dashboard
+            TabControl.Items.Clear();
+            _tabs.Clear();
+            UpdateDashboard();
+        }
+
+        private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                string theme = selectedItem.Tag?.ToString() ?? "Light";
+                switch (theme)
+                {
+                    case "Light":
+                        LightTheme_Click(sender, new RoutedEventArgs());
+                        break;
+                    case "Dark":
+                        DarkTheme_Click(sender, new RoutedEventArgs());
+                        break;
+                    case "Dim":
+                        DimTheme_Click(sender, new RoutedEventArgs());
+                        break;
+                }
+            }
+        }
+
+        private void ManualHandlersButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Create context menu for manual handlers
+            var contextMenu = new ContextMenu()
+            {
+                Background = (Brush)FindResource("Carbon.Brush.Background.Primary"),
+                BorderBrush = (Brush)FindResource("Carbon.Brush.Background.Tertiary"),
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(4),
+                Effect = new System.Windows.Media.Effects.DropShadowEffect
+                {
+                    Color = Colors.Black,
+                    Opacity = 0.2,
+                    BlurRadius = 8,
+                    ShadowDepth = 2
+                }
+            };
+            
+            if (_handlerManager != null)
+            {
+                var handlers = _handlerManager.GetManualHandlerNames();
+                foreach (var handler in handlers)
+                {
+                    var menuItem = new MenuItem
+                    {
+                        Header = handler,
+                        Style = (Style)FindResource("Carbon.MenuItem.Light")
+                    };
+                    menuItem.Click += async (s, args) =>
+                    {
+                        try
+                        {
+                            await _handlerManager.ExecuteManualHandlerAsync(handler);
+                        }
+                        catch (Exception ex)
+                        {
+                            AddLog(new LogEntry
+                            {
+                                Type = LogType.Error,
+                                Message = $"Failed to execute manual handler '{handler}': {ex.Message}",
+                                Timestamp = DateTime.Now
+                            });
+                        }
+                    };
+                    contextMenu.Items.Add(menuItem);
+                }
+            }
+            
+            if (contextMenu.Items.Count == 0)
+            {
+                var noHandlersItem = new MenuItem
+                {
+                    Header = "No manual handlers available",
+                    IsEnabled = false
+                };
+                contextMenu.Items.Add(noHandlersItem);
+            }
+            
+            contextMenu.PlacementTarget = sender as Button;
+            contextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            contextMenu.IsOpen = true;
         }
 
         protected override void OnClosed(EventArgs e)

@@ -40,12 +40,7 @@ namespace WpfInteractionApp
             Title = request.Title;
             MessageText.Text = request.Message;
             
-            // Show progress indicator if in navigation mode
-            if (totalSteps > 1)
-            {
-                ProgressText.Text = $"({currentStep + 1}/{totalSteps})";
-                ProgressText.Visibility = Visibility.Visible;
-            }
+            // Progress indicator is handled by SetupProgressIndicator() method
             
             // Show back button if navigation is possible
             BackButton.Visibility = canGoBack ? Visibility.Visible : Visibility.Collapsed;
@@ -199,6 +194,124 @@ namespace WpfInteractionApp
                     InputTextBox.Height = double.NaN; // Reset to default height
                 }
             }
+            
+            // ✨ Setup progress and validation
+            SetupProgressIndicator();
+            SetupValidation();
+        }
+
+        // ✨ Progress Indicator Setup
+        private void SetupProgressIndicator()
+        {
+            if (TotalSteps > 1)
+            {
+                CurrentStepText.Text = (CurrentStep + 1).ToString();
+                TotalStepsText.Text = TotalSteps.ToString();
+                
+                // Calculate progress bar width (60px total width)
+                double progressPercentage = (double)(CurrentStep + 1) / TotalSteps;
+                ProgressBar.Width = 60 * progressPercentage;
+            }
+            else
+            {
+                // Hide progress for single step
+                CurrentStepText.Visibility = Visibility.Collapsed;
+                TotalStepsText.Visibility = Visibility.Collapsed;
+                ProgressBar.Parent.SetValue(UIElement.VisibilityProperty, Visibility.Collapsed);
+            }
+        }
+
+        // ✨ Validation Setup
+        private void SetupValidation()
+        {
+            if (InputTextBox.Visibility == Visibility.Visible)
+            {
+                InputTextBox.TextChanged += InputTextBox_TextChanged;
+            }
+        }
+
+        // ✨ Real-time Validation
+        private void InputTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ValidateInput();
+        }
+
+        private void ValidateInput()
+        {
+            string input = InputTextBox.Text;
+            bool isValid = true;
+            string errorMessage = "";
+
+            // Required field validation
+            if (_request.IsRequired && string.IsNullOrWhiteSpace(input))
+            {
+                isValid = false;
+                errorMessage = "This field is required";
+            }
+            // Pattern validation
+            else if (!string.IsNullOrEmpty(_request.ValidationRegex) && !string.IsNullOrWhiteSpace(input))
+            {
+                try
+                {
+                    if (!Regex.IsMatch(input, _request.ValidationRegex))
+                    {
+                        isValid = false;
+                        errorMessage = "Input format is invalid";
+                    }
+                }
+                catch (Exception)
+                {
+                    // Invalid regex pattern
+                    isValid = false;
+                    errorMessage = "Invalid validation pattern";
+                }
+            }
+
+            // Update UI based on validation result
+            if (isValid && !string.IsNullOrWhiteSpace(input))
+            {
+                ShowSuccessFeedback();
+            }
+            else if (!isValid)
+            {
+                ShowValidationError(errorMessage);
+            }
+            else
+            {
+                HideAllFeedback();
+            }
+
+            // Enable/disable OK button
+            OkButton.IsEnabled = isValid || !_request.IsRequired;
+        }
+
+        private void ShowValidationError(string message)
+        {
+            ValidationErrorText.Text = message;
+            if (!string.IsNullOrEmpty(_request.ValidationRegex))
+            {
+                ValidationPatternText.Text = $"Expected format: {_request.ValidationRegex}";
+                ValidationPatternText.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ValidationPatternText.Visibility = Visibility.Collapsed;
+            }
+            
+            ValidationBorder.Visibility = Visibility.Visible;
+            SuccessBorder.Visibility = Visibility.Collapsed;
+        }
+
+        private void ShowSuccessFeedback()
+        {
+            SuccessBorder.Visibility = Visibility.Visible;
+            ValidationBorder.Visibility = Visibility.Collapsed;
+        }
+
+        private void HideAllFeedback()
+        {
+            ValidationBorder.Visibility = Visibility.Collapsed;
+            SuccessBorder.Visibility = Visibility.Collapsed;
         }
 
         private void SetInitialFocus()

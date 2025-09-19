@@ -307,6 +307,29 @@ namespace Contextualizer.Core
             }
         }
 
+        // ✨ New methods for UI dashboard
+        public int GetHandlerCount()
+        {
+            return _handlers.Count + _manualHandlers.Count;
+        }
+
+        public async Task ExecuteManualHandlerAsync(string handlerName)
+        {
+            var handler = _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name == handlerName);
+            if (handler != null)
+            {
+                try
+                {
+                    await handler.Execute(new ClipboardContent { Text = "", IsText = true });
+                }
+                catch (Exception ex)
+                {
+                    var logger = ServiceLocator.SafeGet<ILoggingService>();
+                    logger?.LogError($"Failed to execute manual handler '{handlerName}': {ex.Message}");
+                }
+            }
+        }
+
         public void Dispose()
         {
             _hook.TextCaptured -= OnTextCaptured;
