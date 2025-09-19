@@ -2,6 +2,7 @@
 using Contextualizer.PluginContracts;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -14,8 +15,8 @@ namespace WpfInteractionApp
 {
     public partial class MainWindow : Window
     {
-        private readonly List<LogEntry> _logs = new List<LogEntry>();
-        private readonly List<LogEntry> _filteredLogs = new List<LogEntry>();
+        private readonly ObservableCollection<LogEntry> _logs = new ObservableCollection<LogEntry>();
+        private readonly ObservableCollection<LogEntry> _filteredLogs = new ObservableCollection<LogEntry>();
         private readonly Dictionary<string, TabItem> _tabs = new Dictionary<string, TabItem>();
         private HandlerManager? _handlerManager;
 
@@ -87,8 +88,7 @@ namespace WpfInteractionApp
             // ✅ Null-safe check for LogListBox (might be called before InitializeComponent)
             if (LogListBox == null) return;
             
-            _filteredLogs.Clear();
-            
+            // ⚡ Performance optimization: Use batch operations to minimize UI updates
             var filtered = _logs.Where(log =>
             {
                 // Text search filter
@@ -100,8 +100,10 @@ namespace WpfInteractionApp
                 bool matchesLevel = _selectedLogLevel == null || log.Type == _selectedLogLevel;
                 
                 return matchesSearch && matchesLevel;
-            });
+            }).ToList();
             
+            // ⚡ Clear and add in batch to minimize ObservableCollection notifications
+            _filteredLogs.Clear();
             foreach (var log in filtered)
             {
                 _filteredLogs.Add(log);
@@ -131,9 +133,9 @@ namespace WpfInteractionApp
             // ✅ Insert at the beginning so newest logs appear at top
             _logs.Insert(0, log);
 
-            // ✅ Remove oldest logs from the end
-            if (_logs.Count > 50)
-                _logs.RemoveRange(50, _logs.Count - 50);
+            // ✅ Remove oldest logs from the end (ObservableCollection doesn't have RemoveRange)
+            while (_logs.Count > 50)
+                _logs.RemoveAt(_logs.Count - 1);
 
             // ✨ Apply filtering to update filtered logs
             FilterLogs();

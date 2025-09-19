@@ -12,9 +12,9 @@ namespace WpfInteractionApp
     public partial class UserInputDialog : Window
     {
         private readonly UserInputRequest _request;
-        public string UserInput { get; private set; }
-        public List<string> SelectedValues { get; private set; }
-        public NavigationResult NavigationResult { get; private set; }
+        public string UserInput { get; private set; } = string.Empty;
+        public List<string> SelectedValues { get; private set; } = new List<string>();
+        public NavigationResult NavigationResult { get; private set; } = new NavigationResult { Action = NavigationAction.Cancel };
         
         // Navigation properties
         public bool CanGoBack { get; set; } = false;
