@@ -117,25 +117,38 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            
-            <TextBlock Grid.Column="0" 
-                      x:Name="MessageText"
-                      Style="{DynamicResource Carbon.TextBlock.Body}"
-                      TextWrapping="Wrap"/>
-                      
-            <TextBlock Grid.Column="1" 
-                      x:Name="ProgressText" 
-                      Style="{DynamicResource Carbon.TextBlock.Caption}"
-                      Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
-                      VerticalAlignment="Top"
-                      Margin="8,0,0,0"
-                      Visibility="Collapsed"/>
-        </Grid>
+        <!-- ✨ Enhanced Header with Progress -->
+        <Border Grid.Row="0" Background="{DynamicResource Carbon.Brush.Background.Secondary}" 
+                Padding="20" Margin="-24,-24,-24,16" CornerRadius="8,8,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0">
+                    <TextBlock x:Name="TitleText" Text="{Binding Title}" FontWeight="Bold" FontSize="18"
+                              Style="{DynamicResource Carbon.TextBlock.Base}"/>
+                    <TextBlock x:Name="MessageText" TextWrapping="Wrap" Margin="0,8,0,0"
+                              Style="{DynamicResource Carbon.TextBlock.Body}" Opacity="0.8"/>
+                </StackPanel>
+                
+                <!-- ✨ Progress Indicator -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="CurrentStepText" Text="1" FontWeight="Bold" FontSize="14"
+                              Style="{DynamicResource Carbon.TextBlock.Base}"/>
+                    <TextBlock Text=" / " Opacity="0.6" FontSize="14" Margin="2,0"
+                              Style="{DynamicResource Carbon.TextBlock.Base}"/>
+                    <TextBlock x:Name="TotalStepsText" Text="1" Opacity="0.6" FontSize="14"
+                              Style="{DynamicResource Carbon.TextBlock.Base}"/>
+                    <Border Background="{StaticResource Carbon.Brush.Info.Primary}" Width="60" Height="6" 
+                           CornerRadius="3" Margin="12,0,0,0">
+                        <Border x:Name="ProgressBar" Background="{StaticResource Carbon.Brush.Success.Primary}" 
+                               Height="6" CornerRadius="3" HorizontalAlignment="Left" Width="20"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- Required Field Indicator -->
         <TextBlock Grid.Row="1"
@@ -145,14 +158,38 @@
                   Visibility="Collapsed"
                   Margin="0,0,0,8"/>
 
-        <!-- Validation Pattern Display -->
-        <TextBlock Grid.Row="2"
-                  x:Name="ValidationPatternText"
-                  Style="{DynamicResource Carbon.TextBlock.Caption}"
-                  TextWrapping="Wrap"
-                  Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
-                  Margin="0,0,0,8"
-                  Visibility="Collapsed"/>
+        <!-- ✨ Enhanced Validation Feedback -->
+        <Border Grid.Row="2" x:Name="ValidationBorder" Background="{StaticResource Carbon.Brush.Danger.Background}" 
+                BorderBrush="{StaticResource Carbon.Brush.Danger.Primary}" BorderThickness="1" 
+                CornerRadius="6" Padding="12" Margin="0,0,0,12" Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="⚠️" Foreground="{StaticResource Carbon.Brush.Danger.Primary}" 
+                          Margin="0,0,8,0" FontSize="16"/>
+                <StackPanel>
+                    <TextBlock x:Name="ValidationErrorText" Foreground="{StaticResource Carbon.Brush.Danger.Primary}" 
+                              TextWrapping="Wrap" FontWeight="SemiBold" FontSize="14"
+                              Style="{DynamicResource Carbon.TextBlock.Base}"/>
+                    <TextBlock x:Name="ValidationPatternText" TextWrapping="Wrap" 
+                              Foreground="{StaticResource Carbon.Brush.Danger.Primary}" 
+                              FontSize="12" Margin="0,4,0,0" Opacity="0.8"
+                              Style="{DynamicResource Carbon.TextBlock.Base}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- ✨ Success Feedback -->
+        <Border Grid.Row="2" x:Name="SuccessBorder" Background="{StaticResource Carbon.Brush.Success.Background}" 
+                BorderBrush="{StaticResource Carbon.Brush.Success.Primary}" BorderThickness="1" 
+                CornerRadius="6" Padding="12" Margin="0,0,0,12" Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="✅" Foreground="{StaticResource Carbon.Brush.Success.Primary}" 
+                          Margin="0,0,8,0" FontSize="16"/>
+                <TextBlock x:Name="SuccessText" Text="Input is valid" 
+                          Foreground="{StaticResource Carbon.Brush.Success.Primary}" 
+                          FontWeight="SemiBold" FontSize="14"
+                          Style="{DynamicResource Carbon.TextBlock.Base}"/>
+            </StackPanel>
+        </Border>
 
         <!-- Input Controls Container -->
         <Grid Grid.Row="3" Margin="0,0,0,24">

@@ -28,8 +28,9 @@ namespace WpfInteractionApp
             _handlerExchange = new FileHandlerExchange();
             _handlers = new ObservableCollection<HandlerPackage>();
             _tags = new ObservableCollection<string>();
-            
-            HandlersList.ItemsSource = _handlers;
+
+            // ✨ Use ItemsControl instead of ListView
+            HandlersItemsControl.ItemsSource = _handlers;
             TagFilter.ItemsSource = _tags;
             
             Loaded += HandlerExchangeWindow_Loaded;
@@ -96,14 +97,14 @@ namespace WpfInteractionApp
             }
 
             var selectedId = _selectedHandler?.Id;
-            HandlersList.ItemsSource = filteredHandlers;
+            HandlersItemsControl.ItemsSource = filteredHandlers;
             
             if (selectedId != null)
             {
                 var selectedItem = filteredHandlers.FirstOrDefault(h => h.Id == selectedId);
                 if (selectedItem != null)
                 {
-                    HandlersList.SelectedItem = selectedItem;
+                    // ItemsControl doesn't have SelectedItem, selection is handled differently
                 }
             }
         }
@@ -118,30 +119,32 @@ namespace WpfInteractionApp
             SearchBox_TextChanged(sender, null);
         }
 
-        private void HandlersList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        // Selection is now handled by individual card buttons, no need for list selection
+        private void HandlerCard_SelectionChanged(HandlerPackage handler)
         {
-            _selectedHandler = HandlersList.SelectedItem as HandlerPackage;
-            if (_selectedHandler != null)
-            {
-                InstallButton.IsEnabled = !_selectedHandler.IsInstalled;
-                UpdateButton.IsEnabled = _selectedHandler.IsInstalled && _selectedHandler.HasUpdate;
-                RemoveButton.IsEnabled = _selectedHandler.IsInstalled;
-            }
-            else
-            {
-                InstallButton.IsEnabled = false;
-                UpdateButton.IsEnabled = false;
-                RemoveButton.IsEnabled = false;
-            }
+            _selectedHandler = handler;
+            // Note: Individual card buttons handle their own state, no need to update bottom buttons
         }
 
         private async void Install_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedHandler == null) return;
+            HandlerPackage handler = null;
+            
+            // Check if this is from a card button (has DataContext) or bottom button (uses _selectedHandler)
+            if (sender is Button button && button.DataContext is HandlerPackage cardHandler)
+            {
+                handler = cardHandler;
+            }
+            else if (_selectedHandler != null)
+            {
+                handler = _selectedHandler;
+            }
+            
+            if (handler == null) return;
 
             try
             {
-                await _handlerExchange.InstallHandlerAsync(_selectedHandler.Id);
+                await _handlerExchange.InstallHandlerAsync(handler.Id);
                 await RefreshHandlers();
                 MessageBox.Show("Handler installed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -153,11 +156,23 @@ namespace WpfInteractionApp
 
         private async void Update_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedHandler == null) return;
+            HandlerPackage handler = null;
+            
+            // Check if this is from a card button (has DataContext) or bottom button (uses _selectedHandler)
+            if (sender is Button button && button.DataContext is HandlerPackage cardHandler)
+            {
+                handler = cardHandler;
+            }
+            else if (_selectedHandler != null)
+            {
+                handler = _selectedHandler;
+            }
+            
+            if (handler == null) return;
 
             try
             {
-                await _handlerExchange.UpdateHandlerAsync(_selectedHandler.Id);
+                await _handlerExchange.UpdateHandlerAsync(handler.Id);
                 await RefreshHandlers();
                 MessageBox.Show("Handler updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -169,10 +184,22 @@ namespace WpfInteractionApp
 
         private async void Remove_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedHandler == null) return;
+            HandlerPackage handler = null;
+            
+            // Check if this is from a card button (has DataContext) or bottom button (uses _selectedHandler)
+            if (sender is Button button && button.DataContext is HandlerPackage cardHandler)
+            {
+                handler = cardHandler;
+            }
+            else if (_selectedHandler != null)
+            {
+                handler = _selectedHandler;
+            }
+            
+            if (handler == null) return;
 
             var result = MessageBox.Show(
-                "Are you sure you want to remove this handler?",
+                $"Are you sure you want to remove '{handler.Name}' handler?",
                 "Confirm Removal",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question
@@ -182,7 +209,7 @@ namespace WpfInteractionApp
             {
                 try
                 {
-                    await _handlerExchange.RemoveHandlerAsync(_selectedHandler.Id);
+                    await _handlerExchange.RemoveHandlerAsync(handler.Id);
                     await RefreshHandlers();
                     MessageBox.Show("Handler removed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -276,6 +303,32 @@ namespace WpfInteractionApp
         private static bool IsValidSize(double value)
         {
             return !double.IsNaN(value) && !double.IsInfinity(value) && value > 0;
+        }
+
+        // ✨ New Event Handler for Details Button
+        private void Details_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is HandlerPackage handler)
+            {
+                // Show handler details in a popup or dialog
+                var detailsMessage = $"Handler: {handler.Name}\n" +
+                                   $"Version: {handler.Version}\n" +
+                                   $"Author: {handler.Author}\n" +
+                                   $"Description: {handler.Description}\n" +
+                                   $"Tags: {string.Join(", ", handler.Tags ?? new string[0])}\n" +
+                                   $"Dependencies: {string.Join(", ", handler.Dependencies ?? new string[0])}";
+                
+                MessageBox.Show(detailsMessage, "Handler Details", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        // ✨ New Event Handler for Card Click (Selection)
+        private void HandlerCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is HandlerPackage handler)
+            {
+                HandlerCard_SelectionChanged(handler);
+            }
         }
     }
 } 
