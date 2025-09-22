@@ -94,6 +94,12 @@ namespace Contextualizer.PluginContracts
         bool IsRunning { get; }
 
         /// <summary>
+        /// Get the count of active (enabled) jobs
+        /// </summary>
+        /// <returns>Number of active jobs</returns>
+        int GetActiveJobCount();
+
+        /// <summary>
         /// Event fired when a job is executed
         /// </summary>
         event EventHandler<CronJobExecutedEventArgs> JobExecuted;

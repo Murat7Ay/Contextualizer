@@ -8,28 +8,61 @@
         Style="{DynamicResource Carbon.Window}">
     
     <Window.Resources>
-        <Style TargetType="GroupBox">
+        <!-- Modern Card Style for Settings Sections -->
+        <Style x:Key="SettingsCard" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" Opacity="0.08" BlurRadius="8" ShadowDepth="2"/>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+        <!-- Card Header Style -->
+        <Style x:Key="CardHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
         </Style>
 
+        <!-- Form Field Container -->
+        <Style x:Key="FieldContainer" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <!-- Field Label Style -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <!-- Enhanced TextBox Style -->
+        <Style TargetType="TextBox" BasedOn="{StaticResource Carbon.TextBox}">
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+
+        <!-- Enhanced CheckBox Style -->
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
         </Style>
 
-        <Style TargetType="Label">
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+        <!-- Info Text Style -->
+        <Style x:Key="InfoText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Secondary}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
         </Style>
     </Window.Resources>
 
@@ -41,72 +74,157 @@
 
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <GroupBox Header="File Paths">
-                    <StackPanel Margin="5">
-                        <DockPanel Margin="0,5">
-                            <Label Content="Handlers File:" Width="150"/>
-                            <Button Content="Browse..." 
-                                    DockPanel.Dock="Right" 
-                                    Margin="5,0,0,0" 
-                                    Click="BrowseHandlersFile_Click"
-                                    Style="{DynamicResource Carbon.Button.Secondary}"/>
-                            <TextBox x:Name="HandlersFilePathTextBox" Text="{Binding HandlersFilePath}"/>
-                        </DockPanel>
-                        <DockPanel Margin="0,5">
-                            <Label Content="Plugins Directory:" Width="150"/>
-                            <Button Content="Browse..." 
-                                    DockPanel.Dock="Right" 
-                                    Margin="5,0,0,0" 
-                                    Click="BrowsePluginsDir_Click"
-                                    Style="{DynamicResource Carbon.Button.Secondary}"/>
-                            <TextBox x:Name="PluginsDirTextBox" Text="{Binding PluginsDirectory}"/>
-                        </DockPanel>
-                        <DockPanel Margin="0,5">
-                            <Label Content="Exchange Directory:" Width="150"/>
-                            <Button Content="Browse..." 
-                                    DockPanel.Dock="Right" 
-                                    Margin="5,0,0,0" 
-                                    Click="BrowseExchangeDir_Click"
-                                    Style="{DynamicResource Carbon.Button.Secondary}"/>
-                            <TextBox x:Name="ExchangeDirTextBox" Text="{Binding ExchangeDirectory}"/>
-                        </DockPanel>
+                <!-- File Paths Card -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="File Paths" Style="{StaticResource CardHeader}"/>
+                        
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Handlers File" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="HandlersFilePathTextBox" 
+                                         Text="{Binding HandlersFilePath}"
+                                         Grid.Column="0"/>
+                                <Button Content="Browse..." 
+                                        Grid.Column="1"
+                                        Margin="8,0,0,0" 
+                                        Click="BrowseHandlersFile_Click"
+                                        Style="{DynamicResource Carbon.Button.Secondary}"/>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Plugins Directory" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="PluginsDirTextBox" 
+                                         Text="{Binding PluginsDirectory}"
+                                         Grid.Column="0"/>
+                                <Button Content="Browse..." 
+                                        Grid.Column="1"
+                                        Margin="8,0,0,0" 
+                                        Click="BrowsePluginsDir_Click"
+                                        Style="{DynamicResource Carbon.Button.Secondary}"/>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Exchange Directory" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="ExchangeDirTextBox" 
+                                         Text="{Binding ExchangeDirectory}"
+                                         Grid.Column="0"/>
+                                <Button Content="Browse..." 
+                                        Grid.Column="1"
+                                        Margin="8,0,0,0" 
+                                        Click="BrowseExchangeDir_Click"
+                                        Style="{DynamicResource Carbon.Button.Secondary}"/>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Configure file paths for handlers, plugins, and exchange directory. These paths determine where the application looks for configuration files and extensions."
+                                   Style="{StaticResource InfoText}"/>
                     </StackPanel>
-                </GroupBox>
+                </Border>
 
-                <GroupBox Header="Keyboard Shortcut">
-                    <StackPanel Margin="5">
-                        <DockPanel Margin="0,5">
-                            <Label Content="Modifier Keys:" Width="150"/>
+                <!-- Keyboard Shortcut Card -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="Keyboard Shortcut" Style="{StaticResource CardHeader}"/>
+                        
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Modifier Keys" Style="{StaticResource FieldLabel}"/>
                             <StackPanel Orientation="Horizontal">
                                 <CheckBox Content="Ctrl" IsChecked="{Binding IsCtrlChecked}"/>
                                 <CheckBox Content="Alt" IsChecked="{Binding IsAltChecked}"/>
                                 <CheckBox Content="Shift" IsChecked="{Binding IsShiftChecked}"/>
                                 <CheckBox Content="Win" IsChecked="{Binding IsWinChecked}"/>
                             </StackPanel>
-                        </DockPanel>
-                        <DockPanel Margin="0,5">
-                            <Label Content="Key:" Width="150"/>
-                            <TextBox x:Name="KeyTextBox" Text="{Binding Key}" Width="50" HorizontalAlignment="Left"/>
-                        </DockPanel>
+                        </StackPanel>
+                        
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Key" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="KeyTextBox" 
+                                     Text="{Binding Key}" 
+                                     Width="80" 
+                                     HorizontalAlignment="Left"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Configure the global keyboard shortcut to activate the application. Select modifier keys and specify the main key."
+                                   Style="{StaticResource InfoText}"/>
                     </StackPanel>
-                </GroupBox>
+                </Border>
 
-                <GroupBox Header="Timing Settings">
-                    <StackPanel Margin="5">
-                        <DockPanel Margin="0,5">
-                            <Label Content="Clipboard Wait Timeout (ms):" Width="200"/>
-                            <TextBox x:Name="ClipboardWaitTimeoutTextBox" Text="{Binding ClipboardWaitTimeout}" Width="100" HorizontalAlignment="Left"/>
-                        </DockPanel>
-                        <DockPanel Margin="0,5">
-                            <Label Content="Window Activation Delay (ms):" Width="200"/>
-                            <TextBox x:Name="WindowActivationDelayTextBox" Text="{Binding WindowActivationDelay}" Width="100" HorizontalAlignment="Left"/>
-                        </DockPanel>
-                        <DockPanel Margin="0,5">
-                            <Label Content="Clipboard Clear Delay (ms):" Width="200"/>
-                            <TextBox x:Name="ClipboardClearDelayTextBox" Text="{Binding ClipboardClearDelay}" Width="100" HorizontalAlignment="Left"/>
-                        </DockPanel>
+                <!-- Timing Settings Card -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="Timing Settings" Style="{StaticResource CardHeader}"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Clipboard Wait Timeout -->
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                <TextBlock Text="Clipboard Wait Timeout" Style="{StaticResource FieldLabel}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="ClipboardWaitTimeoutTextBox" 
+                                             Text="{Binding ClipboardWaitTimeout}" 
+                                             Width="80"/>
+                                    <TextBlock Text="ms" 
+                                               VerticalAlignment="Center" 
+                                               Margin="6,0,0,0"
+                                               Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            
+                            <!-- Window Activation Delay -->
+                            <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                <TextBlock Text="Window Activation Delay" Style="{StaticResource FieldLabel}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="WindowActivationDelayTextBox" 
+                                             Text="{Binding WindowActivationDelay}" 
+                                             Width="80"/>
+                                    <TextBlock Text="ms" 
+                                               VerticalAlignment="Center" 
+                                               Margin="6,0,0,0"
+                                               Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            
+                            <!-- Clipboard Clear Delay -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Clipboard Clear Delay" Style="{StaticResource FieldLabel}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="ClipboardClearDelayTextBox" 
+                                             Text="{Binding ClipboardClearDelay}" 
+                                             Width="80"/>
+                                    <TextBlock Text="ms" 
+                                               VerticalAlignment="Center" 
+                                               Margin="6,0,0,0"
+                                               Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <TextBlock Text="Configure timing delays for clipboard operations and window activation. These settings help ensure reliable operation across different system configurations."
+                                   Style="{StaticResource InfoText}"/>
                     </StackPanel>
-                </GroupBox>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 
