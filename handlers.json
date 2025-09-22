@@ -441,6 +441,40 @@
         }
       ],
       "output_format": "Select * from lgx.log_dtl where OID = $(oid) and trxid=$(trxid) and processdate = $(processdate)"
+    },
+    {
+      "name": "Project Documentation",
+      "type": "manual",
+      "screen_id": "markdown2",
+      "title": "📚 Contextualizer Kılavuzu",
+      "description": "Contextualizer projesi için kapsamlı kullanım kılavuzu",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_self"
+        }
+      ],
+      "seeder": {
+        "_self": "project_guide_content"
+      },
+      "output_format": "$file:contextualizer_project_guide.md"
+    },
+    {
+      "name": "Plugin Development Guide", 
+      "type": "manual",
+      "screen_id": "markdown2",
+      "title": "🔧 Plugin Geliştirme Kılavuzu",
+      "description": "Contextualizer için plugin ve handler geliştirme rehberi",
+      "actions": [
+        {
+          "name": "simple_print_key", 
+          "key": "_self"
+        }
+      ],
+      "seeder": {
+        "_self": "plugin_development_content"
+      },
+      "output_format": "$file:plugin_development_guide.md"
     }
   ]
 }
