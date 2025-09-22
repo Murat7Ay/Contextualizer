@@ -355,6 +355,11 @@ namespace Contextualizer.Core.Services
             }
         }
 
+        public int GetActiveJobCount()
+        {
+            return _jobs.Values.Count(job => job.Enabled);
+        }
+
         public void Dispose()
         {
             if (_isRunning)
