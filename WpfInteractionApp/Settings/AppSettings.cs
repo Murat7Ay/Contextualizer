@@ -19,7 +19,7 @@ namespace WpfInteractionApp.Settings
         public KeyboardShortcut KeyboardShortcut { get; set; } = new KeyboardShortcut();
 
         [JsonPropertyName("clipboard_wait_timeout")]
-        public int ClipboardWaitTimeout { get; set; } = 5;
+        public int ClipboardWaitTimeout { get; set; } = 5000;
 
         [JsonPropertyName("window_activation_delay")]
         public int WindowActivationDelay { get; set; } = 100;
@@ -128,7 +128,7 @@ namespace WpfInteractionApp.Settings
         public bool EnableUsageTracking { get; set; } = true;
 
         [JsonPropertyName("local_log_path")]
-        public string LocalLogPath { get; set; } = "";
+        public string LocalLogPath { get; set; } = @"C:\PortableApps\Contextualizer\Data\Logs";
 
         [JsonPropertyName("usage_endpoint_url")]
         public string? UsageEndpointUrl { get; set; } = "http://localhost:5678/webhook/api/usage";
@@ -147,18 +147,7 @@ namespace WpfInteractionApp.Settings
 
         public LoggingConfiguration ToLoggingConfiguration()
         {
-            var defaultPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Contextualizer", "logs");
-            return new LoggingConfiguration
-            {
-                EnableLocalLogging = EnableLocalLogging,
-                EnableUsageTracking = EnableUsageTracking,
-                LocalLogPath = string.IsNullOrEmpty(LocalLogPath) ? defaultPath : LocalLogPath,
-                UsageEndpointUrl = UsageEndpointUrl,
-                MinimumLogLevel = MinimumLogLevel,
-                MaxLogFileSizeMB = MaxLogFileSizeMB,
-                MaxLogFileCount = MaxLogFileCount,
-                EnableDebugMode = EnableDebugMode
-            };
+            return new LoggingConfiguration();
         }
 
         public void FromLoggingConfiguration(LoggingConfiguration config)
