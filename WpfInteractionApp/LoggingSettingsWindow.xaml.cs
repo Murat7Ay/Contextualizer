@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using WpfInteractionApp.Services;
 
 namespace WpfInteractionApp
@@ -204,23 +205,22 @@ namespace WpfInteractionApp
         {
             try
             {
-                var dialog = new Microsoft.Win32.OpenFileDialog
+                using var dialog = new FolderBrowserDialog
                 {
-                    ValidateNames = false,
-                    CheckFileExists = false,
-                    CheckPathExists = true,
-                    FileName = "Select Folder",
-                    Title = "Select Log Directory"
+                    Description = "Select Log Directory",
+                    UseDescriptionForTitle = true,
+                    SelectedPath = Directory.Exists(LocalLogPath) ? LocalLogPath : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    ShowNewFolderButton = true
                 };
 
-                if (dialog.ShowDialog() == true)
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK && !string.IsNullOrEmpty(dialog.SelectedPath))
                 {
-                    LocalLogPath = System.IO.Path.GetDirectoryName(dialog.FileName) ?? LocalLogPath;
+                    LocalLogPath = dialog.SelectedPath;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error selecting folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error selecting folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 _loggingService?.LogError("Failed to open folder browser", ex);
             }
         }
@@ -242,7 +242,7 @@ namespace WpfInteractionApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Could not open log folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Could not open log folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 _loggingService?.LogError("Failed to open log folder", ex);
             }
         }
@@ -251,7 +251,7 @@ namespace WpfInteractionApp
         {
             try
             {
-                var result = MessageBox.Show(
+                var result = System.Windows.MessageBox.Show(
                     "Are you sure you want to delete all old log files? This action cannot be undone.",
                     "Confirm Delete",
                     MessageBoxButton.YesNo,
@@ -277,14 +277,14 @@ namespace WpfInteractionApp
                             }
                         }
 
-                        MessageBox.Show($"Deleted {deletedCount} log files.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        System.Windows.MessageBox.Show($"Deleted {deletedCount} log files.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         RefreshStatistics();
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error clearing logs: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error clearing logs: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 _loggingService?.LogError("Failed to clear old logs", ex);
             }
         }
@@ -303,12 +303,12 @@ namespace WpfInteractionApp
                 _loggingService?.LogInfo("Test info log message");
                 _loggingService?.LogDebug("Test debug log message");
 
-                MessageBox.Show("Test log messages have been written. Check the log files.", "Test Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show("Test log messages have been written. Check the log files.", "Test Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                 RefreshStatistics();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error testing log: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error testing log: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -318,7 +318,7 @@ namespace WpfInteractionApp
             {
                 if (!_config.EnableUsageTracking || string.IsNullOrEmpty(_config.UsageEndpointUrl))
                 {
-                    MessageBox.Show("Usage tracking is disabled or endpoint URL is not set.", "Test Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    System.Windows.MessageBox.Show("Usage tracking is disabled or endpoint URL is not set.", "Test Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -328,11 +328,11 @@ namespace WpfInteractionApp
                     ["timestamp"] = DateTime.UtcNow
                 })!;
 
-                MessageBox.Show("Test usage analytics data has been sent.", "Test Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show("Test usage analytics data has been sent.", "Test Complete", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error testing usage analytics: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error testing usage analytics: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 _loggingService?.LogError("Failed to test usage analytics", ex);
             }
         }
@@ -341,7 +341,7 @@ namespace WpfInteractionApp
         {
             try
             {
-                var dialog = new SaveFileDialog
+                var dialog = new Microsoft.Win32.SaveFileDialog
                 {
                     Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
                     DefaultExt = "json",
@@ -356,12 +356,12 @@ namespace WpfInteractionApp
                     });
 
                     File.WriteAllText(dialog.FileName, json);
-                    MessageBox.Show("Configuration exported successfully.", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show("Configuration exported successfully.", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error exporting configuration: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error exporting configuration: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 _loggingService?.LogError("Failed to export configuration", ex);
             }
         }
@@ -385,13 +385,13 @@ namespace WpfInteractionApp
                     _loggingService?.LogError("Failed to save logging settings to file", settingsEx);
                 }
                 
-                MessageBox.Show("Configuration applied successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show("Configuration applied successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 
                 _loggingService?.LogInfo("Logging configuration updated via settings window");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error applying configuration: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error applying configuration: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 _loggingService?.LogError("Failed to apply logging configuration", ex);
             }
         }
