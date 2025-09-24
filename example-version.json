@@ -1,0 +1,21 @@
+{
+  "Version": "1.1.0",
+  "ExecutableFileName": "Contextualizer.exe",
+  "ReleaseDate": "2025-09-24T15:30:00Z",
+  "IsMandatory": false,
+  "MinimumRequiredVersion": "1.0.0",
+  "Description": "Contextualizer Update with Enhanced Features",
+  "Features": [
+    "Improved configuration system with secrets.ini support",
+    "Enhanced update mechanism for corporate environments",
+    "Better error handling and logging",
+    "Performance optimizations",
+    "UI theme improvements"
+  ],
+  "BugFixes": [
+    "Fixed marketplace template replacement conflicts",
+    "Resolved config pattern processing issues",
+    "Improved clipboard monitoring stability",
+    "Fixed activity log timestamp visibility"
+  ]
+}

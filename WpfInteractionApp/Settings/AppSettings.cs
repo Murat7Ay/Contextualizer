@@ -138,6 +138,15 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("theme")]
         public string Theme { get; set; } = "Dark";
+
+        [JsonPropertyName("skipped_update_version")]
+        public string? SkippedUpdateVersion { get; set; } = null;
+
+        [JsonPropertyName("last_update_check")]
+        public DateTime? LastUpdateCheck { get; set; } = null;
+
+        [JsonPropertyName("network_update_settings")]
+        public NetworkUpdateSettings NetworkUpdateSettings { get; set; } = new NetworkUpdateSettings();
     }
 
     public class LoggingSettings
@@ -182,5 +191,23 @@ namespace WpfInteractionApp.Settings
             MaxLogFileCount = config.MaxLogFileCount;
             EnableDebugMode = config.EnableDebugMode;
         }
+    }
+
+    public class NetworkUpdateSettings
+    {
+        [JsonPropertyName("enable_network_updates")]
+        public bool EnableNetworkUpdates { get; set; } = true;
+
+        [JsonPropertyName("network_update_path")]
+        public string NetworkUpdatePath { get; set; } = @"\\server\share\Contextualizer\Updates";
+
+        [JsonPropertyName("check_interval_hours")]
+        public int CheckIntervalHours { get; set; } = 24;
+
+        [JsonPropertyName("auto_install_non_mandatory")]
+        public bool AutoInstallNonMandatory { get; set; } = false;
+
+        [JsonPropertyName("auto_install_mandatory")]
+        public bool AutoInstallMandatory { get; set; } = true;
     }
 } 

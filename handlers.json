@@ -475,6 +475,27 @@
         "_self": "plugin_development_content"
       },
       "output_format": "$file:plugin_development_guide.md"
+    },
+    {
+      "name": "Test Synthetic Handler",
+      "type": "synthetic",
+      "screen_id": "test_synthetic",
+      "title": "🧪 Test Synthetic",
+      "description": "Test synthetic handler with user input",
+      "reference_handler": "Project Documentation",
+      "synthetic_input": {
+        "title": "Test Input",
+        "description": "Enter test value",
+        "type": "text",
+        "default_value": "Hello from Synthetic!"
+      },
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_self"
+        }
+      ],
+      "output_format": "Synthetic test: $(_self)"
     }
   ]
 }
