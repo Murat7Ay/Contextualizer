@@ -133,6 +133,16 @@ namespace WpfInteractionApp
             }
         }
 
+        public UISettings UISettings
+        {
+            get => _settings.UISettings;
+            set
+            {
+                _settings.UISettings = value;
+                OnPropertyChanged(nameof(UISettings));
+            }
+        }
+
         public int ClipboardWaitTimeout
         {
             get => _settings.ClipboardWaitTimeout;
@@ -271,6 +281,21 @@ namespace WpfInteractionApp
             {
                 _settings.ConfigSystem.SecretsFilePath = dialog.FileName;
                 OnPropertyChanged("ConfigSystem");
+            }
+        }
+
+        private void BrowseNetworkUpdatePathButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Select Network Update Path",
+                SelectedPath = _settings.UISettings.NetworkUpdateSettings.NetworkUpdatePath
+            };
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                _settings.UISettings.NetworkUpdateSettings.NetworkUpdatePath = dialog.SelectedPath;
+                OnPropertyChanged("UISettings");
             }
         }
 
