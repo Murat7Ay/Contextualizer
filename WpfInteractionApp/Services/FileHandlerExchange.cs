@@ -456,8 +456,17 @@ namespace WpfInteractionApp.Services
             if (templateValues == null || !templateValues.Any())
                 return handlerJsonString;
 
-            // Mevcut sistem formatını kullan: $(key)
-            return HandlerContextProcessor.ReplaceDynamicValues(handlerJsonString, templateValues);
+            // Sadece template placeholder'larını replace et: $(key)
+            // $config: pattern'lerini dokunma, onlar runtime'da resolve edilecek
+            string result = handlerJsonString;
+            
+            foreach (var kvp in templateValues)
+            {
+                var placeholder = $"$({kvp.Key})";
+                result = result.Replace(placeholder, kvp.Value);
+            }
+            
+            return result;
         }
     }
 } 

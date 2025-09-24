@@ -12,6 +12,13 @@
   ],
   "template_user_inputs": [
     {
+      "key": "handler_name",
+      "title": "Handler Name",
+      "message": "Enter a custom name for this handler:",
+      "is_required": true,
+      "default_value": "My Email Extractor"
+    },
+    {
       "key": "api_endpoint",
       "title": "API Endpoint",
       "message": "Enter the API endpoint URL where emails will be sent:",
@@ -41,7 +48,7 @@
     }
   ],
   "handlerJson": {
-    "name": "Advanced Email Extractor",
+    "name": "$(handler_name)",
     "type": "regex", 
     "screen_id": "email_screen",
     "title": "Extract and Process Email Addresses",
