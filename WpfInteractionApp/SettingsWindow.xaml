@@ -146,10 +146,25 @@
                         <StackPanel Style="{StaticResource FieldContainer}">
                             <TextBlock Text="Modifier Keys" Style="{StaticResource FieldLabel}"/>
                             <StackPanel Orientation="Horizontal">
-                                <CheckBox Content="Ctrl" IsChecked="{Binding IsCtrlChecked}"/>
-                                <CheckBox Content="Alt" IsChecked="{Binding IsAltChecked}"/>
-                                <CheckBox Content="Shift" IsChecked="{Binding IsShiftChecked}"/>
-                                <CheckBox Content="Win" IsChecked="{Binding IsWinChecked}"/>
+                                <CheckBox Content="Ctrl" 
+                                         IsChecked="{Binding IsCtrlChecked}"
+                                         Style="{DynamicResource Carbon.CheckBox}"
+                                         Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                                         Margin="0,0,16,0"/>
+                                <CheckBox Content="Alt" 
+                                         IsChecked="{Binding IsAltChecked}"
+                                         Style="{DynamicResource Carbon.CheckBox}"
+                                         Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                                         Margin="0,0,16,0"/>
+                                <CheckBox Content="Shift" 
+                                         IsChecked="{Binding IsShiftChecked}"
+                                         Style="{DynamicResource Carbon.CheckBox}"
+                                         Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                                         Margin="0,0,16,0"/>
+                                <CheckBox Content="Win" 
+                                         IsChecked="{Binding IsWinChecked}"
+                                         Style="{DynamicResource Carbon.CheckBox}"
+                                         Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
                             </StackPanel>
                         </StackPanel>
                         
@@ -222,6 +237,74 @@
                         </Grid>
                         
                         <TextBlock Text="Configure timing delays for clipboard operations and window activation. These settings help ensure reliable operation across different system configurations."
+                                   Style="{StaticResource InfoText}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Config System Section -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="Config System" Style="{StaticResource CardHeader}"/>
+                        
+                        <!-- Enable Config System -->
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <CheckBox x:Name="ConfigSystemEnabledCheckBox" 
+                                      Content="Enable Config Files" 
+                                      IsChecked="{Binding ConfigSystem.Enabled}"
+                                      Style="{DynamicResource Carbon.CheckBox}"
+                                      Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        </StackPanel>
+                        
+                        <!-- Config File Path -->
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Config File Path" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="ConfigFilePathTextBox" 
+                                         Text="{Binding ConfigSystem.ConfigFilePath}" 
+                                         Grid.Column="0"
+                                         Margin="0,0,8,0"/>
+                                <Button Content="Browse" 
+                                        Grid.Column="1" 
+                                        Style="{DynamicResource Carbon.Button.Secondary}"
+                                        Click="BrowseConfigFileButton_Click"
+                                        MinWidth="80"/>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <!-- Secrets File Path -->
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Secrets File Path" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="SecretsFilePathTextBox" 
+                                         Text="{Binding ConfigSystem.SecretsFilePath}" 
+                                         Grid.Column="0"
+                                         Margin="0,0,8,0"/>
+                                <Button Content="Browse" 
+                                        Grid.Column="1" 
+                                        Style="{DynamicResource Carbon.Button.Secondary}"
+                                        Click="BrowseSecretsFileButton_Click"
+                                        MinWidth="80"/>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <!-- Auto Create Files -->
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <CheckBox x:Name="AutoCreateFilesCheckBox" 
+                                      Content="Auto-create config files if they don't exist" 
+                                      IsChecked="{Binding ConfigSystem.AutoCreateFiles}"
+                                      Style="{DynamicResource Carbon.CheckBox}"
+                                      Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Configure paths for config.ini and secrets.ini files. Use $config:section.key patterns in handlers (e.g., $config:api_keys.jira_api_key, $config:endpoints.jira_base_url)."
                                    Style="{StaticResource InfoText}"/>
                     </StackPanel>
                 </Border>

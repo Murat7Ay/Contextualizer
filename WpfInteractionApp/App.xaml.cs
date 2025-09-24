@@ -28,6 +28,18 @@ namespace WpfInteractionApp
                 _settingsService = new SettingsService();
                 ServiceLocator.Register<SettingsService>(_settingsService);
 
+                // Initialize configuration service
+                var configSystemSettings = new Contextualizer.PluginContracts.ConfigSystemSettings
+                {
+                    Enabled = _settingsService.Settings.ConfigSystem.Enabled,
+                    ConfigFilePath = _settingsService.Settings.ConfigSystem.ConfigFilePath,
+                    SecretsFilePath = _settingsService.Settings.ConfigSystem.SecretsFilePath,
+                    AutoCreateFiles = _settingsService.Settings.ConfigSystem.AutoCreateFiles,
+                    FileFormat = _settingsService.Settings.ConfigSystem.FileFormat
+                };
+                var configService = new Contextualizer.Core.Services.ConfigurationService(configSystemSettings);
+                ServiceLocator.Register<IConfigurationService>(configService);
+
                 // Initialize and register logging service using settings
                 _loggingService = new LoggingService();
                 var loggingConfig = _settingsService.Settings.LoggingSettings.ToLoggingConfiguration();

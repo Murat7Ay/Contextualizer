@@ -263,7 +263,7 @@
                        Name="TabControl" 
                        Style="{DynamicResource Carbon.TabControl}"
                        Visibility="Visible">
-                <TabControl.ItemContainerStyle>
+                 <TabControl.ItemContainerStyle>
                     <Style TargetType="TabItem" BasedOn="{StaticResource Carbon.TabItem}"/>
                 </TabControl.ItemContainerStyle>
             </TabControl>
@@ -398,7 +398,7 @@
                         <StackPanel Orientation="Horizontal" Margin="0">
                             <TextBlock Text="{Binding Timestamp, StringFormat=HH:mm:ss}" 
                                      Style="{DynamicResource Carbon.TextBlock.Base}"
-                                     Foreground="#666666"
+                                     Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"
                                      FontFamily="Consolas"
                                      FontSize="12"
                                      FontWeight="Normal"

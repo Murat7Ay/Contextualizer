@@ -123,6 +123,16 @@ namespace WpfInteractionApp
             }
         }
 
+        public ConfigSystemSettings ConfigSystem
+        {
+            get => _settings.ConfigSystem;
+            set
+            {
+                _settings.ConfigSystem = value;
+                OnPropertyChanged(nameof(ConfigSystem));
+            }
+        }
+
         public int ClipboardWaitTimeout
         {
             get => _settings.ClipboardWaitTimeout;
@@ -227,6 +237,40 @@ namespace WpfInteractionApp
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 ExchangeDirectory = dialog.SelectedPath;
+            }
+        }
+
+        private void BrowseConfigFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Select Config File",
+                Filter = "INI Files (*.ini)|*.ini|All Files (*.*)|*.*",
+                FileName = Path.GetFileName(_settings.ConfigSystem.ConfigFilePath),
+                InitialDirectory = Path.GetDirectoryName(_settings.ConfigSystem.ConfigFilePath)
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                _settings.ConfigSystem.ConfigFilePath = dialog.FileName;
+                OnPropertyChanged("ConfigSystem");
+            }
+        }
+
+        private void BrowseSecretsFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Select Secrets File",
+                Filter = "INI Files (*.ini)|*.ini|All Files (*.*)|*.*",
+                FileName = Path.GetFileName(_settings.ConfigSystem.SecretsFilePath),
+                InitialDirectory = Path.GetDirectoryName(_settings.ConfigSystem.SecretsFilePath)
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                _settings.ConfigSystem.SecretsFilePath = dialog.FileName;
+                OnPropertyChanged("ConfigSystem");
             }
         }
 

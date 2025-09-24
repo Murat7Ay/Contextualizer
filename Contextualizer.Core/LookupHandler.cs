@@ -21,7 +21,13 @@ namespace Contextualizer.Core
             var data = new Dictionary<string, Dictionary<string, string>>();
             try
             {
-                using var reader = new StreamReader(base.HandlerConfig.Path);
+                // Resolve config patterns in path
+                var resolvedPath = HandlerContextProcessor.ReplaceDynamicValues(
+                    base.HandlerConfig.Path, 
+                    new Dictionary<string, string>() // Empty context for config-only resolution
+                );
+
+                using var reader = new StreamReader(resolvedPath);
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
