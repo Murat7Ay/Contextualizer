@@ -7,6 +7,7 @@ using WpfInteractionApp.Services;
 using System.Linq;
 using Contextualizer.PluginContracts;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace WpfInteractionApp
 {
@@ -74,6 +75,17 @@ namespace WpfInteractionApp
                 // Create WpfUserInteractionService
                 var userInteractionService = new WpfUserInteractionService(_mainWindow);
                 ServiceLocator.Register<IUserInteractionService>(userInteractionService);
+
+                // Initialize network update service
+                var networkUpdateService = new Services.NetworkUpdateService(_settingsService.Settings.UISettings.NetworkUpdateSettings.NetworkUpdatePath);
+                ServiceLocator.Register<Services.NetworkUpdateService>(networkUpdateService);
+                
+                // Check for network updates after UI is loaded (async, non-blocking)
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(3000); // Wait 3 seconds after startup
+                    await CheckForNetworkUpdatesAsync(networkUpdateService, _settingsService);
+                });
 
                 // Initialize and register CronScheduler
                 _cronScheduler = new CronScheduler();
@@ -185,6 +197,113 @@ namespace WpfInteractionApp
                 }
 
                 base.OnExit(e);
+            }
+        }
+
+        private async Task CheckForNetworkUpdatesAsync(Services.NetworkUpdateService networkUpdateService, SettingsService settingsService)
+        {
+            try
+            {
+                var networkSettings = settingsService.Settings.UISettings.NetworkUpdateSettings;
+                
+                // Only check if network updates are enabled
+                if (!networkSettings.EnableNetworkUpdates)
+                {
+                    Debug.WriteLine("Network updates are disabled");
+                    return;
+                }
+                
+                var networkUpdateInfo = await networkUpdateService.CheckForUpdatesAsync();
+                
+                if (networkUpdateInfo?.IsUpdateAvailable == true)
+                {
+                    await ShowNetworkUpdateNotificationAsync(networkUpdateInfo, networkUpdateService, settingsService);
+                }
+                else if (!string.IsNullOrEmpty(networkUpdateInfo?.ErrorMessage))
+                {
+                    Debug.WriteLine($"Network update check failed: {networkUpdateInfo.ErrorMessage}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silent fail for update check - don't bother user
+                Debug.WriteLine($"Network update check failed: {ex.Message}");
+            }
+        }
+
+        private async Task ShowNetworkUpdateNotificationAsync(Services.NetworkUpdateInfo updateInfo, 
+            Services.NetworkUpdateService updateService, SettingsService settingsService)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                // Check if user has skipped this version before (only for non-mandatory)
+                if (!updateInfo.IsMandatory)
+                {
+                    var skippedVersion = GetSkippedVersion();
+                    if (skippedVersion == updateInfo.LatestVersion)
+                        return; // User chose to skip this version
+                }
+
+                var updateWindow = new NetworkUpdateWindow(updateInfo, updateService)
+                {
+                    Owner = _mainWindow
+                };
+
+                var result = updateWindow.ShowDialog();
+                
+                if (updateWindow.Result == NetworkUpdateResult.RemindLater && !updateInfo.IsMandatory)
+                {
+                    // Schedule reminder for next startup
+                    SaveLastUpdateCheck(DateTime.Now);
+                }
+            });
+        }
+
+
+        private string? GetSkippedVersion()
+        {
+            try
+            {
+                var settingsService = ServiceLocator.SafeGet<SettingsService>();
+                return settingsService?.Settings.UISettings.SkippedUpdateVersion;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void SaveSkippedVersion(string version)
+        {
+            try
+            {
+                var settingsService = ServiceLocator.SafeGet<SettingsService>();
+                if (settingsService != null)
+                {
+                    settingsService.Settings.UISettings.SkippedUpdateVersion = version;
+                    settingsService.SaveSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to save skipped version: {ex.Message}");
+            }
+        }
+
+        private void SaveLastUpdateCheck(DateTime checkTime)
+        {
+            try
+            {
+                var settingsService = ServiceLocator.SafeGet<SettingsService>();
+                if (settingsService != null)
+                {
+                    settingsService.Settings.UISettings.LastUpdateCheck = checkTime;
+                    settingsService.SaveSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to save last update check: {ex.Message}");
             }
         }
     }

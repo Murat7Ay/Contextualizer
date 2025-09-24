@@ -198,47 +198,6 @@ namespace Contextualizer.Core
             return _manualHandlers.Select(s => s.HandlerConfig.Name).ToList();
         }
 
-        public void ExecuteManualHandler(string handlerName)
-        {
-            var handler = _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase));
-            if (handler == null)
-            {
-                UserFeedback.ShowWarning($"Handler not found: {handlerName}");
-                return;
-            }
-
-            if (handler is ISyntheticContent syntheticHandler)
-            {
-                var clipboardContent = syntheticHandler.CreateSyntheticContent(handler.HandlerConfig.SyntheticInput);
-
-                if (!clipboardContent.Success)
-                {
-                    UserFeedback.ShowError("Failed to create synthetic content");
-                    return;
-                }
-
-                if(syntheticHandler.GetActualHandler is not null) {
-                    UserFeedback.ShowActivity(LogType.Info, $"Executing handler: {syntheticHandler.GetActualHandler.HandlerConfig.Name}");
-                    syntheticHandler.GetActualHandler.Execute(clipboardContent);
-                    return;
-                }
-
-
-                var referenceHandler = GetHandlerByName(handler.HandlerConfig.ReferenceHandler);
-                if(referenceHandler != null) {
-                    UserFeedback.ShowActivity(LogType.Info, $"Executing reference handler: {referenceHandler.HandlerConfig.Name}");
-                    referenceHandler.Execute(clipboardContent);
-                }
-                else
-                {
-                    UserFeedback.ShowWarning($"Reference handler not found: {handler.HandlerConfig.ReferenceHandler}");
-                }
-                return;
-            }
-
-            var context = new ClipboardContent(); 
-            handler.Execute(context);
-        }
 
         public IHandler? GetHandlerByName(string handlerName)
         {
@@ -315,18 +274,55 @@ namespace Contextualizer.Core
 
         public async Task ExecuteManualHandlerAsync(string handlerName)
         {
-            var handler = _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name == handlerName);
-            if (handler != null)
+            var handler = _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase));
+            if (handler == null)
             {
-                try
+                UserFeedback.ShowWarning($"Handler not found: {handlerName}");
+                return;
+            }
+
+            try
+            {
+                // Handle synthetic content (same logic as sync version)
+                if (handler is ISyntheticContent syntheticHandler)
                 {
-                    await handler.Execute(new ClipboardContent { Text = "", IsText = true });
+                    var clipboardContent = syntheticHandler.CreateSyntheticContent(handler.HandlerConfig.SyntheticInput);
+
+                    if (!clipboardContent.Success)
+                    {
+                        UserFeedback.ShowError("Failed to create synthetic content");
+                        return;
+                    }
+
+                    if (syntheticHandler.GetActualHandler is not null)
+                    {
+                        UserFeedback.ShowActivity(LogType.Info, $"Executing handler: {syntheticHandler.GetActualHandler.HandlerConfig.Name}");
+                        await syntheticHandler.GetActualHandler.Execute(clipboardContent);
+                        return;
+                    }
+
+                    var referenceHandler = GetHandlerByName(handler.HandlerConfig.ReferenceHandler);
+                    if (referenceHandler != null)
+                    {
+                        UserFeedback.ShowActivity(LogType.Info, $"Executing reference handler: {referenceHandler.HandlerConfig.Name}");
+                        await referenceHandler.Execute(clipboardContent);
+                    }
+                    else
+                    {
+                        UserFeedback.ShowWarning($"Reference handler not found: {handler.HandlerConfig.ReferenceHandler}");
+                    }
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    var logger = ServiceLocator.SafeGet<ILoggingService>();
-                    logger?.LogError($"Failed to execute manual handler '{handlerName}': {ex.Message}");
-                }
+
+                // Regular handler execution
+                var context = new ClipboardContent { Text = "", IsText = true };
+                await handler.Execute(context);
+            }
+            catch (Exception ex)
+            {
+                var logger = ServiceLocator.SafeGet<ILoggingService>();
+                logger?.LogError($"Failed to execute manual handler '{handlerName}': {ex.Message}");
+                UserFeedback.ShowError($"Error executing handler '{handlerName}': {ex.Message}");
             }
         }
 
