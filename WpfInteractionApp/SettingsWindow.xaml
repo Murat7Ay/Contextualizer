@@ -308,6 +308,71 @@
                                    Style="{StaticResource InfoText}"/>
                     </StackPanel>
                 </Border>
+
+                <!-- Network Updates Card -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="Network Updates" Style="{StaticResource CardHeader}"/>
+                        
+                        <!-- Enable Network Updates -->
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <CheckBox x:Name="EnableNetworkUpdatesCheckBox" 
+                                      Content="Enable network updates" 
+                                      IsChecked="{Binding UISettings.NetworkUpdateSettings.EnableNetworkUpdates}"
+                                      Style="{DynamicResource Carbon.CheckBox}"
+                                      Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        </StackPanel>
+                        
+                        <!-- Network Update Path -->
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Network Update Path" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="NetworkUpdatePathTextBox" 
+                                         Text="{Binding UISettings.NetworkUpdateSettings.NetworkUpdatePath}" 
+                                         Grid.Column="0"
+                                         Margin="0,0,8,0"/>
+                                <Button Content="Browse" 
+                                        Grid.Column="1" 
+                                        Style="{DynamicResource Carbon.Button.Secondary}"
+                                        Click="BrowseNetworkUpdatePathButton_Click"
+                                        MinWidth="80"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Check Interval -->
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Check Interval (hours)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="CheckIntervalHoursTextBox" 
+                                     Text="{Binding UISettings.NetworkUpdateSettings.CheckIntervalHours}" 
+                                     Width="100"
+                                     HorizontalAlignment="Left"/>
+                        </StackPanel>
+
+                        <!-- Auto Install Options -->
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <CheckBox x:Name="AutoInstallNonMandatoryCheckBox" 
+                                      Content="Auto-install non-mandatory updates" 
+                                      IsChecked="{Binding UISettings.NetworkUpdateSettings.AutoInstallNonMandatory}"
+                                      Style="{DynamicResource Carbon.CheckBox}"
+                                      Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <CheckBox x:Name="AutoInstallMandatoryCheckBox" 
+                                      Content="Auto-install mandatory updates" 
+                                      IsChecked="{Binding UISettings.NetworkUpdateSettings.AutoInstallMandatory}"
+                                      Style="{DynamicResource Carbon.CheckBox}"
+                                      Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Configure automatic updates from a corporate network share. Updates are checked at startup and at specified intervals."
+                                   Style="{StaticResource InfoText}"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 
