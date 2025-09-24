@@ -11,6 +11,7 @@ namespace Contextualizer.Core
     public class HandlerContextProcessor
     {
         private static readonly Regex PlaceholderRegex = new(@"\$\(([^)]+)\)", RegexOptions.Compiled);
+        private static readonly Regex ConfigRegex = new(@"\$config:([^)\s,\]]+)", RegexOptions.Compiled);
 
         public void PromptUserInputsAsync(List<UserInputRequest> userInputs, Dictionary<string, string> context)
         {
@@ -162,6 +163,9 @@ namespace Contextualizer.Core
                     input = fileContent;
                 }
 
+                // NEW: Process config patterns ($config:key)
+                input = ProcessConfigPatterns(input);
+
                 // First process functions ($func: calls) with placeholders intact
                 input = FunctionProcessor.ProcessFunctions(input, context);
 
@@ -185,6 +189,23 @@ namespace Contextualizer.Core
                 UserFeedback.ShowError($"Error replacing dynamic values: {ex.Message}");
                 return input;
             }
+        }
+
+        private static string ProcessConfigPatterns(string input)
+        {
+            var configService = ServiceLocator.SafeGet<IConfigurationService>();
+            if (configService == null || !configService.IsEnabled)
+                return input;
+
+            return ConfigRegex.Replace(input, match =>
+            {
+                var key = match.Groups[1].Value;
+                if (string.IsNullOrEmpty(key))
+                    return match.Value;
+
+                var configValue = configService.GetValue(key);
+                return configValue ?? match.Value;
+            });
         }
     }
 }

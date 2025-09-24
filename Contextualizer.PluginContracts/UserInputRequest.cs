@@ -37,6 +37,9 @@ namespace Contextualizer.PluginContracts
         public string? DependentKey { get; set; } = null;
         [JsonPropertyName("dependent_selection_item_map")]
         public Dictionary<string, DependentSelectionItemMap>? DependentSelectionItemMap { get; set; } = null;
+        
+        [JsonPropertyName("config_target")]
+        public string? ConfigTarget { get; set; } = null;
 
     }
 

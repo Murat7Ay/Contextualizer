@@ -422,7 +422,33 @@ namespace WpfInteractionApp.Services
                 return new Dictionary<string, string>();
             }
 
+            // YENİ: Config dosyalarına yazma
+            var configService = ServiceLocator.SafeGet<IConfigurationService>();
+            if (configService != null && configService.IsEnabled)
+            {
+                foreach (var input in templateUserInputs.Where(i => !string.IsNullOrEmpty(i.ConfigTarget)))
+                {
+                    if (templateValues.TryGetValue(input.Key, out var value))
+                    {
+                        WriteToConfigFile(configService, input.ConfigTarget, value);
+                    }
+                }
+            }
+
             return templateValues;
+        }
+
+        private void WriteToConfigFile(IConfigurationService configService, string configTarget, string value)
+        {
+            // "secrets.api_keys.jira_api_key" → secrets.ini, [api_keys], jira_api_key=value
+            var parts = configTarget.Split('.', 3);
+            if (parts.Length != 3) return;
+            
+            var fileType = parts[0]; // "secrets" or "config"  
+            var section = parts[1];  // "api_keys"
+            var key = parts[2];      // "jira_api_key"
+            
+            configService.SetValue(fileType, section, key, value);
         }
 
         private string ProcessTemplateJson(string handlerJsonString, Dictionary<string, string> templateValues)

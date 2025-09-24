@@ -35,6 +35,27 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("logging_settings")]
         public LoggingSettings LoggingSettings { get; set; } = new LoggingSettings();
+
+        [JsonPropertyName("config_system")]
+        public ConfigSystemSettings ConfigSystem { get; set; } = new ConfigSystemSettings();
+    }
+
+    public class ConfigSystemSettings
+    {
+        [JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = true;
+
+        [JsonPropertyName("config_file_path")]
+        public string ConfigFilePath { get; set; } = @"C:\PortableApps\Contextualizer\Config\config.ini";
+
+        [JsonPropertyName("secrets_file_path")]
+        public string SecretsFilePath { get; set; } = @"C:\PortableApps\Contextualizer\Config\secrets.ini";
+
+        [JsonPropertyName("auto_create_files")]
+        public bool AutoCreateFiles { get; set; } = true;
+
+        [JsonPropertyName("file_format")]
+        public string FileFormat { get; set; } = "ini";
     }
 
     public class KeyboardShortcut

@@ -182,10 +182,16 @@ namespace Contextualizer.Core
 
         private IDbConnection CreateConnection()
         {
+            // Resolve config patterns in connection string
+            var resolvedConnectionString = HandlerContextProcessor.ReplaceDynamicValues(
+                HandlerConfig.ConnectionString, 
+                new Dictionary<string, string>() // Empty context for config-only resolution
+            );
+
             return HandlerConfig.Connector.ToLowerInvariant() switch
             {
-                "mssql" => new SqlConnection(HandlerConfig.ConnectionString),
-                "plsql" => new OracleConnection(HandlerConfig.ConnectionString),
+                "mssql" => new SqlConnection(resolvedConnectionString),
+                "plsql" => new OracleConnection(resolvedConnectionString),
                 _ => throw new NotSupportedException($"Connector type '{HandlerConfig.Connector}' is not supported.")
             };
         }
