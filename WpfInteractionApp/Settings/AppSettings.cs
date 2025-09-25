@@ -177,7 +177,17 @@ namespace WpfInteractionApp.Settings
 
         public LoggingConfiguration ToLoggingConfiguration()
         {
-            return new LoggingConfiguration();
+            return new LoggingConfiguration
+            {
+                EnableLocalLogging = this.EnableLocalLogging,
+                EnableUsageTracking = this.EnableUsageTracking,
+                LocalLogPath = this.LocalLogPath,
+                UsageEndpointUrl = this.UsageEndpointUrl,
+                MinimumLogLevel = this.MinimumLogLevel,
+                MaxLogFileSizeMB = this.MaxLogFileSizeMB,
+                MaxLogFileCount = this.MaxLogFileCount,
+                EnableDebugMode = this.EnableDebugMode
+            };
         }
 
         public void FromLoggingConfiguration(LoggingConfiguration config)
