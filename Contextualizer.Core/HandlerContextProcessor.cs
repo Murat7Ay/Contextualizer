@@ -11,7 +11,7 @@ namespace Contextualizer.Core
     public class HandlerContextProcessor
     {
         private static readonly Regex PlaceholderRegex = new(@"\$\(([^)]+)\)", RegexOptions.Compiled);
-        private static readonly Regex ConfigRegex = new(@"\$config:([^)\s,\]]+)", RegexOptions.Compiled);
+        private static readonly Regex ConfigRegex = new(@"\$config:([^)\s,\];&|<>""]+)", RegexOptions.Compiled);
 
         public void PromptUserInputsAsync(List<UserInputRequest> userInputs, Dictionary<string, string> context)
         {
@@ -195,16 +195,29 @@ namespace Contextualizer.Core
         {
             var configService = ServiceLocator.SafeGet<IConfigurationService>();
             if (configService == null || !configService.IsEnabled)
+            {
+                UserFeedback.ShowWarning("Configuration service is not available or disabled");
                 return input;
+            }
 
             return ConfigRegex.Replace(input, match =>
             {
                 var key = match.Groups[1].Value;
                 if (string.IsNullOrEmpty(key))
+                {
+                    UserFeedback.ShowWarning($"Empty config key found in pattern: {match.Value}");
                     return match.Value;
+                }
 
                 var configValue = configService.GetValue(key);
-                return configValue ?? match.Value;
+                if (configValue == null)
+                {
+                    UserFeedback.ShowWarning($"Config value not found for key: {key}");
+                    return match.Value;
+                }
+
+                UserFeedback.ShowActivity(LogType.Info, $"Config pattern replaced: $config:{key} → {configValue}");
+                return configValue;
             });
         }
     }
