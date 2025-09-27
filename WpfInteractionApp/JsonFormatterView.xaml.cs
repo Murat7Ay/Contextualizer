@@ -22,10 +22,10 @@ namespace WpfInteractionApp
         public void SetScreenInformation(Dictionary<string, string> context)
         {
             JsonTree.Items.Clear();
-            FormattedJsonBoxScroll.Visibility = Visibility.Collapsed;
-            JsonTreeScroll.Visibility = Visibility.Visible;
-            ToggleViewButton.Content = "Formatlı Göster";
-            _showingFormatted = false;
+            FormattedJsonBoxScroll.Visibility = Visibility.Visible;
+            JsonTreeScroll.Visibility = Visibility.Collapsed;
+            ToggleViewButton.Content = "Tree View";
+            _showingFormatted = true;
 
             if (context == null || !context.TryGetValue(ContextKey._body, out var json) || string.IsNullOrWhiteSpace(json))
             {
@@ -36,15 +36,21 @@ namespace WpfInteractionApp
 
             _lastJson = json;
 
+            // Show formatted JSON by default
             try
             {
                 using var doc = JsonDocument.Parse(json);
+                var formatted = JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { WriteIndented = true });
+                FormattedJsonBox.Text = formatted;
+                
+                // Also prepare tree view for later
                 var root = CreateTreeViewItem(doc.RootElement, "root");
                 JsonTree.Items.Add(root);
                 root.IsExpanded = true;
             }
             catch (Exception ex)
             {
+                FormattedJsonBox.Text = $"Invalid JSON: {ex.Message}";
                 JsonTree.Items.Add(new TreeViewItem { Header = $"Invalid JSON: {ex.Message}", Foreground = Brushes.Red });
             }
         }
@@ -82,13 +88,15 @@ namespace WpfInteractionApp
         {
             if (_showingFormatted)
             {
+                // Switch to tree view
                 FormattedJsonBoxScroll.Visibility = Visibility.Collapsed;
                 JsonTreeScroll.Visibility = Visibility.Visible;
-                ToggleViewButton.Content = "Formatlı Göster";
+                ToggleViewButton.Content = "Raw Text";
                 _showingFormatted = false;
             }
             else
             {
+                // Switch to formatted view
                 if (!string.IsNullOrWhiteSpace(_lastJson))
                 {
                     try
@@ -108,7 +116,7 @@ namespace WpfInteractionApp
                 }
                 FormattedJsonBoxScroll.Visibility = Visibility.Visible;
                 JsonTreeScroll.Visibility = Visibility.Collapsed;
-                ToggleViewButton.Content = "Ağaç Göster";
+                ToggleViewButton.Content = "Tree View";
                 _showingFormatted = true;
             }
         }
