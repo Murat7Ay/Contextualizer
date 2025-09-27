@@ -9,7 +9,7 @@ namespace Contextualizer.Plugins
     /// <remarks>This validator checks if the text content of a <see cref="ClipboardContent"/> instance is a
     /// syntactically valid JSON object or array. The validation is performed by attempting to parse the text as JSON.
     /// If the text is null, empty, or not valid JSON, the validation fails.</remarks>
-    public class JsonContentValidator : IContentValidator
+    public class JsonContentValidator : IContextValidator
     {
         public string Name => "jsonvalidator";
 

@@ -10,10 +10,10 @@ namespace Contextualizer.Plugins
     /// <summary>
     /// Provides functionality to validate whether clipboard content contains valid XML.
     /// </summary>
-    /// <remarks>This class implements the <see cref="IContentValidator"/> interface to validate clipboard
+    /// <remarks>This class implements the <see cref="IContextValidator"/> interface to validate clipboard
     /// content. It checks if the content is a well-formed XML string. The validation is performed
     /// asynchronously.</remarks>
-    public class XmlContentValidator : IContentValidator
+    public class XmlContentValidator : IContextValidator
     {
         public string Name => "xmlvalidator";
 

@@ -41,7 +41,7 @@ dotnet build
 - **Cron Scheduling**: Enterprise-grade scheduling system using Quartz.NET for time-based automation
 
 **Contextualizer.PluginContracts** - Interface definitions for extensibility:
-- Core interfaces: `IHandler`, `IAction`, `IContentValidator`, `IContextProvider`
+- Core interfaces: `IHandler`, `IAction`, `IContextValidator`, `IContextProvider`
 - Plugin service access through `IPluginServiceProvider`
 - Handler execution pipeline: `CanHandle()` → `CreateContext()` → `DispatchAction()`
 
