@@ -161,38 +161,45 @@ namespace WpfInteractionApp
 
         public new void Show()
         {
+            // Set position BEFORE showing the window to prevent glitch
+            SetInitialPosition();
+            
             _timer.Start();
             base.Show();
+        }
 
-            // Position the window after it's shown
-            Dispatcher.InvokeAsync(() =>
+        private void SetInitialPosition()
+        {
+            double left, top;
+            
+            try
             {
-                double left, top;
+                var settingsService = ServiceLocator.Get<SettingsService>();
+                left = settingsService.Settings.UISettings.ToastPositionX;
+                top = settingsService.Settings.UISettings.ToastPositionY;
                 
-                try
+                // Use default position if coordinates are 0 (not set) or invalid
+                if (left == 0 && top == 0 || double.IsNaN(left) || double.IsNaN(top) || 
+                    left < 0 || top < 0 || left > SystemParameters.WorkArea.Width || top > SystemParameters.WorkArea.Height)
                 {
-                    var settingsService = ServiceLocator.Get<SettingsService>();
-                    left = settingsService.Settings.UISettings.ToastPositionX;
-                    top = settingsService.Settings.UISettings.ToastPositionY;
-                    
-                    // Use default position if coordinates are 0 (not set) or invalid
-                    if (left == 0 && top == 0 || double.IsNaN(left) || double.IsNaN(top) || 
-                        left < 0 || top < 0 || left > SystemParameters.WorkArea.Width || top > SystemParameters.WorkArea.Height)
-                    {
-                        left = SystemParameters.WorkArea.Width - ActualWidth - 10;
-                        top = SystemParameters.WorkArea.Height - ActualHeight - 10;
-                    }
+                    // Calculate default position (bottom-right corner with margin)
+                    left = SystemParameters.WorkArea.Width - 350 - 10; // Estimated width + margin
+                    top = SystemParameters.WorkArea.Height - 120 - 10; // Estimated height + margin
                 }
-                catch
-                {
-                    // Use default position if settings service is not available
-                    left = SystemParameters.WorkArea.Width - ActualWidth - 10;
-                    top = SystemParameters.WorkArea.Height - ActualHeight - 10;
-                }
-                
-                Left = left;
-                Top = top;
-            }, DispatcherPriority.Loaded);
+            }
+            catch
+            {
+                // Use default position if settings service is not available
+                left = SystemParameters.WorkArea.Width - 350 - 10;
+                top = SystemParameters.WorkArea.Height - 120 - 10;
+            }
+            
+            // Ensure position is within screen bounds
+            left = Math.Max(0, Math.Min(SystemParameters.WorkArea.Width - 100, left)); // Min 100px visible
+            top = Math.Max(0, Math.Min(SystemParameters.WorkArea.Height - 50, top)); // Min 50px visible
+            
+            Left = left;
+            Top = top;
         }
 
         private void SetupNotificationStyle(LogType notificationType)
