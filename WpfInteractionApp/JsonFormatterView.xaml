@@ -9,9 +9,9 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Button x:Name="ToggleViewButton"
-                Content="Formatlı Göster"
+                Content="Tree View"
                 Click="ToggleViewButton_Click"
-                Width="120"
+                Width="140"
                 Height="30"
                 Style="{StaticResource Carbon.Button.Secondary}"
                 HorizontalAlignment="Left"

@@ -22,10 +22,10 @@ namespace WpfInteractionApp
         public void SetScreenInformation(Dictionary<string, string> context)
         {
             XmlTree.Items.Clear();
-            FormattedXmlBoxScroll.Visibility = Visibility.Collapsed;
-            XmlTreeScroll.Visibility = Visibility.Visible;
-            ToggleViewButton.Content = "Formatlı Göster";
-            _showingFormatted = false;
+            FormattedXmlBoxScroll.Visibility = Visibility.Visible;
+            XmlTreeScroll.Visibility = Visibility.Collapsed;
+            ToggleViewButton.Content = "Tree View";
+            _showingFormatted = true;
 
             if (context == null || !context.TryGetValue(ContextKey._input, out var xml) || string.IsNullOrWhiteSpace(xml))
             {
@@ -36,16 +36,24 @@ namespace WpfInteractionApp
 
             _lastXml = xml;
 
+            // Show formatted XML by default
             try
             {
                 var doc = new XmlDocument();
                 doc.LoadXml(xml);
+                var stringWriter = new System.IO.StringWriter();
+                var xmlTextWriter = new XmlTextWriter(stringWriter) { Formatting = Formatting.Indented };
+                doc.WriteTo(xmlTextWriter);
+                FormattedXmlBox.Text = stringWriter.ToString();
+                
+                // Also prepare tree view for later
                 var root = CreateTreeViewItem(doc.DocumentElement, "root");
                 XmlTree.Items.Add(root);
                 root.IsExpanded = true;
             }
             catch (Exception ex)
             {
+                FormattedXmlBox.Text = $"Invalid XML: {ex.Message}";
                 XmlTree.Items.Add(new TreeViewItem { Header = $"Invalid XML: {ex.Message}", Foreground = Brushes.Red });
             }
         }
@@ -88,13 +96,15 @@ namespace WpfInteractionApp
         {
             if (_showingFormatted)
             {
+                // Switch to tree view
                 FormattedXmlBoxScroll.Visibility = Visibility.Collapsed;
                 XmlTreeScroll.Visibility = Visibility.Visible;
-                ToggleViewButton.Content = "Formatlı Göster";
+                ToggleViewButton.Content = "Raw Text";
                 _showingFormatted = false;
             }
             else
             {
+                // Switch to formatted view
                 if (!string.IsNullOrWhiteSpace(_lastXml))
                 {
                     try
@@ -117,7 +127,7 @@ namespace WpfInteractionApp
                 }
                 FormattedXmlBoxScroll.Visibility = Visibility.Visible;
                 XmlTreeScroll.Visibility = Visibility.Collapsed;
-                ToggleViewButton.Content = "Ağaç Göster";
+                ToggleViewButton.Content = "Tree View";
                 _showingFormatted = true;
             }
         }
