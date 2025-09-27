@@ -10,11 +10,12 @@ using System.Threading.Tasks;
 
 namespace Contextualizer.Core
 {
-    public class ApiHandler : Dispatch, IHandler
+    public class ApiHandler : Dispatch, IHandler, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly Regex _urlParameterRegex;
         private readonly HandlerContextProcessor _contextProcessor;
+        private bool _disposed = false;
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
             WriteIndented = true,
@@ -27,20 +28,64 @@ namespace Contextualizer.Core
 
         public ApiHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
-            _httpClient = new HttpClient();
             _urlParameterRegex = new Regex(@"\$\(([^)]+)\)", RegexOptions.Compiled);
             _contextProcessor = new HandlerContextProcessor();
+            
+            // Create HttpClient with optimized settings for long-running applications
+            _httpClient = CreateOptimizedHttpClient(handlerConfig);
+        }
 
+        private HttpClient CreateOptimizedHttpClient(HandlerConfig handlerConfig)
+        {
+            // Create SocketsHttpHandler with optimized settings for long-running applications
+            var handler = new SocketsHttpHandler()
+            {
+                // Connection pooling settings
+                MaxConnectionsPerServer = 10, // Limit concurrent connections per server
+                PooledConnectionLifetime = TimeSpan.FromMinutes(15), // Refresh connections every 15 minutes
+                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5), // Close idle connections after 5 minutes
+            };
+
+            var httpClient = new HttpClient(handler);
+            
+            // Set timeout if configured, otherwise use a reasonable default
+            httpClient.Timeout = handlerConfig.TimeoutSeconds.HasValue 
+                ? TimeSpan.FromSeconds(handlerConfig.TimeoutSeconds.Value)
+                : TimeSpan.FromSeconds(30);
+
+            // Optimize for long-running applications
+            httpClient.DefaultRequestHeaders.ConnectionClose = false; // Keep connections alive
+            
+            // Add Keep-Alive header safely
+            try
+            {
+                httpClient.DefaultRequestHeaders.Add("Keep-Alive", "timeout=300, max=1000"); // 5 min timeout, max 1000 requests
+            }
+            catch
+            {
+                // Keep-Alive header might not be supported in all scenarios
+            }
+
+            // Add custom headers
             if (handlerConfig.Headers != null)
             {
                 foreach (var header in handlerConfig.Headers)
                 {
                     if (!string.IsNullOrEmpty(header.Key))
                     {
-                        _httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                        try
+                        {
+                            httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            UserFeedback.ShowWarning($"Failed to add header {header.Key}: {ex.Message}");
+                        }
                     }
                 }
             }
+
+            return httpClient;
         }
 
         protected override async Task<bool> CanHandleAsync(ClipboardContent clipboardContent)
@@ -88,9 +133,11 @@ namespace Contextualizer.Core
 
                 var request = new HttpRequestMessage(new HttpMethod(HandlerConfig.Method ?? "GET"), url);
 
-                if (!string.IsNullOrWhiteSpace(HandlerConfig.RequestBody))
+                if (HandlerConfig.RequestBody.HasValue)
                 {
-                    string body = HandlerContextProcessor.ReplaceDynamicValues(HandlerConfig.RequestBody, context);
+                    // Get JSON as string and replace dynamic values
+                    string jsonString = HandlerConfig.RequestBody.Value.GetRawText();
+                    string body = HandlerContextProcessor.ReplaceDynamicValues(jsonString, context);
                     request.Content = new StringContent(body, Encoding.UTF8, HandlerConfig.ContentType ?? "application/json");
                 }
 
@@ -169,6 +216,29 @@ namespace Contextualizer.Core
         async Task<bool> IHandler.CanHandle(ClipboardContent clipboardContent)
         {
             return await CanHandleAsync(clipboardContent);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _httpClient?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+
+        ~ApiHandler()
+        {
+            Dispose(false);
         }
     }
 }
