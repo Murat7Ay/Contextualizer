@@ -292,7 +292,7 @@ namespace Contextualizer.Core
 
             try
             {
-                // Handle synthetic content (same logic as sync version)
+                // Handle synthetic content creation if needed
                 if (handler is ISyntheticContent syntheticHandler)
                 {
                     var clipboardContent = syntheticHandler.CreateSyntheticContent(handler.HandlerConfig.SyntheticInput);
@@ -303,23 +303,9 @@ namespace Contextualizer.Core
                         return;
                     }
 
-                    if (syntheticHandler.GetActualHandler is not null)
-                    {
-                        UserFeedback.ShowActivity(LogType.Info, $"Executing handler: {syntheticHandler.GetActualHandler.HandlerConfig.Name}");
-                        await syntheticHandler.GetActualHandler.Execute(clipboardContent);
-                        return;
-                    }
-
-                    var referenceHandler = GetHandlerByName(handler.HandlerConfig.ReferenceHandler);
-                    if (referenceHandler != null)
-                    {
-                        UserFeedback.ShowActivity(LogType.Info, $"Executing reference handler: {referenceHandler.HandlerConfig.Name}");
-                        await referenceHandler.Execute(clipboardContent);
-                    }
-                    else
-                    {
-                        UserFeedback.ShowWarning($"Reference handler not found: {handler.HandlerConfig.ReferenceHandler}");
-                    }
+                    // ✅ Simplified: Let SyntheticHandler handle its own ActualType/ReferenceHandler logic
+                    UserFeedback.ShowActivity(LogType.Info, $"Executing synthetic handler: {handler.HandlerConfig.Name}");
+                    await handler.Execute(clipboardContent);
                     return;
                 }
 
