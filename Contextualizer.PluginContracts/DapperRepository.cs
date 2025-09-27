@@ -16,11 +16,15 @@ namespace Contextualizer.PluginContracts
         public string ConnectionString { get; }
         public string Connector { get; }
 
+        // Constructor for standalone usage (without HandlerConfig)
         public DapperRepository(string connectionString, string connector)
         {
             ConnectionString = connectionString;
             Connector = connector;
+            HandlerConfig = null;
         }
+
+        // Constructor for handler usage (with HandlerConfig for optimization)
         public DapperRepository(HandlerConfig handlerConfig)
         {
             HandlerConfig = handlerConfig ?? throw new ArgumentNullException(nameof(handlerConfig));
@@ -30,13 +34,10 @@ namespace Contextualizer.PluginContracts
 
         protected IDbConnection CreateConnection()
         {
-            return Connector.ToLowerInvariant() switch
-            {
-                "mssql" => new SqlConnection(ConnectionString),
-                "plsql" => new OracleConnection(ConnectionString),
-                _ => throw new NotSupportedException($"Connector type '{Connector}' is not supported.")
-            };
+            // Always use ConnectionManager for proper connection pooling across handlers
+            return ConnectionManager.CreateConnection(ConnectionString, Connector, HandlerConfig);
         }
+
 
         public DynamicParameters CreateDynamicPameters(IEnumerable<string> keys, Dictionary<string, string> context)
         {
@@ -65,25 +66,27 @@ namespace Contextualizer.PluginContracts
             return await action(conn);
         }
 
+        private int GetCommandTimeout() => HandlerConfig?.CommandTimeoutSeconds ?? 30;
+
         public Task<T?> GetAsync<T>(string sql, DynamicParameters? parameters = null) =>
-            WithConnectionAsync(conn => conn.QueryFirstOrDefaultAsync<T>(sql, parameters));
+            WithConnectionAsync(conn => conn.QueryFirstOrDefaultAsync<T>(sql, parameters, commandTimeout: GetCommandTimeout()));
 
         public Task<IEnumerable<T>> GetAllAsync<T>(string sql, DynamicParameters? parameters = null) =>
-            WithConnectionAsync(conn => conn.QueryAsync<T>(sql, parameters));
+            WithConnectionAsync(conn => conn.QueryAsync<T>(sql, parameters, commandTimeout: GetCommandTimeout()));
 
         public Task<int> ExecuteAsync(string sql, DynamicParameters? parameters = null) =>
-            WithConnectionAsync(conn => conn.ExecuteAsync(sql, parameters));
+            WithConnectionAsync(conn => conn.ExecuteAsync(sql, parameters, commandTimeout: GetCommandTimeout()));
 
         public Task<T?> ExecuteScalarAsync<T>(string sql, DynamicParameters? parameters = null) =>
-            WithConnectionAsync(conn => conn.ExecuteScalarAsync<T>(sql, parameters));
+            WithConnectionAsync(conn => conn.ExecuteScalarAsync<T>(sql, parameters, commandTimeout: GetCommandTimeout()));
 
         public Task<dynamic?> GetAsync(string sql, DynamicParameters? parameters = null) =>
-            WithConnectionAsync(conn => conn.QueryFirstOrDefaultAsync(sql, parameters));
+            WithConnectionAsync(conn => conn.QueryFirstOrDefaultAsync(sql, parameters, commandTimeout: GetCommandTimeout()));
 
         public Task<IEnumerable<dynamic>> GetAllAsync(string sql, DynamicParameters? parameters = null) =>
-            WithConnectionAsync(conn => conn.QueryAsync(sql, parameters));
+            WithConnectionAsync(conn => conn.QueryAsync(sql, parameters, commandTimeout: GetCommandTimeout()));
 
         public Task<object?> ExecuteScalarAsync(string sql, DynamicParameters? parameters = null) =>
-            WithConnectionAsync(conn => conn.ExecuteScalarAsync(sql, parameters));
+            WithConnectionAsync(conn => conn.ExecuteScalarAsync(sql, parameters, commandTimeout: GetCommandTimeout()));
     }
 }

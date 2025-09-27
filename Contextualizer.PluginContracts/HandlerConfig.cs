@@ -84,6 +84,22 @@ namespace Contextualizer.PluginContracts
         [JsonPropertyName("timeout_seconds")]
         public int? TimeoutSeconds { get; set; }
 
+        // Database Handler Properties
+        [JsonPropertyName("command_timeout_seconds")]
+        public int? CommandTimeoutSeconds { get; set; }
+
+        [JsonPropertyName("connection_timeout_seconds")]
+        public int? ConnectionTimeoutSeconds { get; set; }
+
+        [JsonPropertyName("max_pool_size")]
+        public int? MaxPoolSize { get; set; }
+
+        [JsonPropertyName("min_pool_size")]
+        public int? MinPoolSize { get; set; }
+
+        [JsonPropertyName("disable_pooling")]
+        public bool? DisablePooling { get; set; }
+
         // Synthetic handler property
         [JsonPropertyName("reference_handler")]
         public string? ReferenceHandler { get; set; }
