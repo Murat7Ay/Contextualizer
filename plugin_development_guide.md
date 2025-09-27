@@ -606,7 +606,7 @@ using Contextualizer.PluginContracts;
 
 namespace MyPlugin.Validators
 {
-    public class EmailContentValidator : IContentValidator
+    public class EmailContentValidator : IContextValidator
     {
         public string Name => "email_validator";
 
@@ -677,7 +677,7 @@ namespace MyPlugin.Validators
 
 ### 2. 📞 Phone Number Validator
 ```csharp
-public class PhoneNumberValidator : IContentValidator
+public class PhoneNumberValidator : IContextValidator
 {
     public string Name => "phone_validator";
     

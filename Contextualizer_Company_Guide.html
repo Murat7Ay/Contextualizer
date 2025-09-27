@@ -308,7 +308,7 @@
                 <tr>
                     <td><strong>Contextualizer.PluginContracts</strong></td>
                     <td>Interface definitions for extensibility</td>
-                    <td>IHandler, IAction, IContentValidator, IContextProvider</td>
+                    <td>IHandler, IAction, IContextValidator, IContextProvider</td>
                 </tr>
                 <tr>
                     <td><strong>Contextualizer.Plugins</strong></td>
@@ -493,8 +493,8 @@ dotnet clean && dotnet build</code></pre>
     Task Action(ConfigAction action, ContextWrapper context);
 }</code></pre>
 
-        <h4>IContentValidator Interface</h4>
-        <pre><code>public interface IContentValidator
+        <h4>IContextValidator Interface</h4>
+        <pre><code>public interface IContextValidator
 {
     string Name { get; }
     Task&lt;bool&gt; Validate(ClipboardContent clipboardContent);
