@@ -14,6 +14,7 @@ namespace Contextualizer.Core
     {
         private readonly HttpClient _httpClient;
         private readonly Regex _urlParameterRegex;
+        private readonly Regex? _optionalRegex;
         private readonly HandlerContextProcessor _contextProcessor;
         private bool _disposed = false;
         private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -30,6 +31,29 @@ namespace Contextualizer.Core
         {
             _urlParameterRegex = new Regex(@"\$\(([^)]+)\)", RegexOptions.Compiled);
             _contextProcessor = new HandlerContextProcessor();
+            
+            // Initialize optional regex if configured
+            if (!string.IsNullOrWhiteSpace(handlerConfig.Regex))
+            {
+                try
+                {
+                    _optionalRegex = new Regex(
+                        handlerConfig.Regex,
+                        RegexOptions.Compiled | RegexOptions.CultureInvariant,
+                        TimeSpan.FromSeconds(5) // ReDoS protection
+                    );
+                }
+                catch (ArgumentException ex)
+                {
+                    UserFeedback.ShowError($"ApiHandler '{handlerConfig.Name}': Invalid regex pattern - {ex.Message}");
+                    throw new InvalidOperationException($"Invalid regex pattern in ApiHandler '{handlerConfig.Name}': {handlerConfig.Regex}", ex);
+                }
+                catch (RegexMatchTimeoutException ex)
+                {
+                    UserFeedback.ShowError($"ApiHandler '{handlerConfig.Name}': Regex compilation timeout - {ex.Message}");
+                    throw new InvalidOperationException($"Regex compilation timeout in ApiHandler '{handlerConfig.Name}': {handlerConfig.Regex}", ex);
+                }
+            }
             
             // Create HttpClient with optimized settings for long-running applications
             _httpClient = CreateOptimizedHttpClient(handlerConfig);
@@ -93,10 +117,24 @@ namespace Contextualizer.Core
             if (!clipboardContent.IsText || string.IsNullOrWhiteSpace(clipboardContent.Text))
                 return false;
 
-            if (!string.IsNullOrWhiteSpace(HandlerConfig.Regex))
+            // Use compiled regex if configured
+            if (_optionalRegex != null)
             {
-                var regex = new Regex(HandlerConfig.Regex);
-                return regex.IsMatch(clipboardContent.Text);
+                try
+                {
+                    return _optionalRegex.IsMatch(clipboardContent.Text);
+                }
+                catch (RegexMatchTimeoutException ex)
+                {
+                    UserFeedback.ShowWarning($"ApiHandler '{HandlerConfig.Name}': Regex match timeout for input length {clipboardContent.Text.Length}");
+                    System.Diagnostics.Debug.WriteLine($"ApiHandler: Regex match timeout - {ex.Message}");
+                    return false;
+                }
+                catch (ArgumentException ex)
+                {
+                    UserFeedback.ShowError($"ApiHandler '{HandlerConfig.Name}': Invalid input for regex matching - {ex.Message}");
+                    return false;
+                }
             }
 
             return true;
@@ -107,19 +145,66 @@ namespace Contextualizer.Core
             var context = new Dictionary<string, string>();
             context[ContextKey._input] = clipboardContent.Text;
 
-            if (!string.IsNullOrWhiteSpace(HandlerConfig.Regex))
+            // Process regex groups if configured
+            if (_optionalRegex != null)
             {
-                var regex = new Regex(HandlerConfig.Regex);
-                var match = regex.Match(clipboardContent.Text);
-
-                if (match.Success && HandlerConfig.Groups != null)
+                try
                 {
-                    for (int i = 0; i < HandlerConfig.Groups.Count; i++)
+                    var match = _optionalRegex.Match(clipboardContent.Text);
+
+                    if (match.Success)
                     {
-                        // Groups[0] is always the full match, actual capturing groups start from index 1
-                        var groupValue = match.Groups.Count > i + 1 ? match.Groups[i + 1].Value : match.Groups[0].Value;
-                        context[HandlerConfig.Groups[i]] = groupValue;
+                        // Add full match
+                        context[ContextKey._match] = match.Value;
+                        
+                        // Process configured groups
+                        if (HandlerConfig.Groups != null && HandlerConfig.Groups.Count > 0)
+                        {
+                            for (int i = 0; i < HandlerConfig.Groups.Count; i++)
+                            {
+                                var groupName = HandlerConfig.Groups[i];
+                                string groupValue;
+
+                                // Try to get named group first, then fall back to indexed group
+                                var namedGroup = match.Groups[groupName];
+                                if (namedGroup.Success)
+                                {
+                                    groupValue = namedGroup.Value;
+                                }
+                                else
+                                {
+                                    // Groups[0] is always the full match, actual capturing groups start from index 1
+                                    var groupIndex = i + 1;
+                                    groupValue = match.Groups.Count > groupIndex ? match.Groups[groupIndex].Value : string.Empty;
+                                }
+
+                                context[groupName] = groupValue;
+                            }
+                        }
+                        else
+                        {
+                            // If no groups configured, add all captured groups with numeric keys
+                            for (int i = 1; i < match.Groups.Count; i++)
+                            {
+                                context[$"group_{i}"] = match.Groups[i].Value;
+                            }
+                        }
                     }
+                    else
+                    {
+                        UserFeedback.ShowWarning($"ApiHandler '{HandlerConfig.Name}': Regex pattern did not match input");
+                    }
+                }
+                catch (RegexMatchTimeoutException ex)
+                {
+                    context[ContextKey._error] = $"Regex match timeout: {ex.Message}";
+                    UserFeedback.ShowError($"ApiHandler '{HandlerConfig.Name}': Regex match timeout");
+                    System.Diagnostics.Debug.WriteLine($"ApiHandler: Regex match timeout - {ex.Message}");
+                }
+                catch (ArgumentException ex)
+                {
+                    context[ContextKey._error] = $"Invalid regex operation: {ex.Message}";
+                    UserFeedback.ShowError($"ApiHandler '{HandlerConfig.Name}': Invalid regex operation - {ex.Message}");
                 }
             }
 
