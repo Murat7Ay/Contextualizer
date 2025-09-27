@@ -10,22 +10,47 @@ using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Contextualizer.Core
 {
     public class DatabaseHandler : Dispatch, IHandler
     {
-        private System.Text.RegularExpressions.Regex? regex;
+        private readonly Regex? _optionalRegex;
         private Dictionary<string, string> parameters;
         private Dictionary<string, string> resultSet;
         public static string TypeName => "Database";
+        
+        // Constants for safe parameter limits
+        private const int MAX_AUTO_GROUPS = 20; // Limit auto-discovered groups
+        private const int MAX_PARAMETER_LENGTH = 4000; // SQL varchar limit
+        
         public DatabaseHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
+            // Initialize optional regex if configured
             if (!string.IsNullOrEmpty(handlerConfig.Regex))
             {
-                regex = new System.Text.RegularExpressions.Regex(handlerConfig.Regex);
+                try
+                {
+                    _optionalRegex = new Regex(
+                        handlerConfig.Regex,
+                        RegexOptions.Compiled | RegexOptions.CultureInvariant,
+                        TimeSpan.FromSeconds(5) // ReDoS protection
+                    );
+                }
+                catch (ArgumentException ex)
+                {
+                    UserFeedback.ShowError($"DatabaseHandler '{handlerConfig.Name}': Invalid regex pattern - {ex.Message}");
+                    throw new InvalidOperationException($"Invalid regex pattern in DatabaseHandler '{handlerConfig.Name}': {handlerConfig.Regex}", ex);
+                }
+                catch (RegexMatchTimeoutException ex)
+                {
+                    UserFeedback.ShowError($"DatabaseHandler '{handlerConfig.Name}': Regex compilation timeout - {ex.Message}");
+                    throw new InvalidOperationException($"Regex compilation timeout in DatabaseHandler '{handlerConfig.Name}': {handlerConfig.Regex}", ex);
+                }
             }
+            
             resultSet = new Dictionary<string, string>();
             parameters = new Dictionary<string, string>();
         }
@@ -44,27 +69,116 @@ namespace Contextualizer.Core
                 return false;
             }
 
-            // Regex varsa ve eşleşmiyorsa false dön
-            if (regex is not null)
+            // Process regex if configured
+            if (_optionalRegex != null)
             {
-                if (!regex.IsMatch(clipboardContent.Text))
-                    return false;
-
-                string input = clipboardContent.Text;
-                var match = regex.Match(input);
-                parameters["p_input"] = input;
-
-                if (match.Success)
+                try
                 {
-                    for (int i = 1; i <= base.HandlerConfig.Groups?.Count; i++)
+                    if (!_optionalRegex.IsMatch(clipboardContent.Text))
+                        return false;
+
+                    string input = clipboardContent.Text;
+                    var match = _optionalRegex.Match(input);
+                    
+                    // Truncate input if too long for SQL parameter
+                    string safeInput = input.Length > MAX_PARAMETER_LENGTH 
+                        ? input.Substring(0, MAX_PARAMETER_LENGTH) 
+                        : input;
+                    if (input.Length > MAX_PARAMETER_LENGTH)
                     {
-                        parameters[base.HandlerConfig.Groups[i - 1]] = match.Groups[i].Value;
+                        UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Input truncated to {MAX_PARAMETER_LENGTH} characters");
                     }
+                    parameters["p_input"] = safeInput;
+
+                    if (match.Success)
+                    {
+                        // Add full match
+                        string matchValue = match.Value;
+                        if (matchValue.Length > MAX_PARAMETER_LENGTH)
+                        {
+                            matchValue = matchValue.Substring(0, MAX_PARAMETER_LENGTH);
+                            UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Match value truncated to {MAX_PARAMETER_LENGTH} characters");
+                        }
+                        parameters["p_match"] = matchValue;
+                        
+                        // Process configured groups
+                        if (base.HandlerConfig.Groups != null && base.HandlerConfig.Groups.Count > 0)
+                        {
+                            for (int i = 0; i < base.HandlerConfig.Groups.Count; i++)
+                            {
+                                var groupName = base.HandlerConfig.Groups[i];
+                                string groupValue;
+
+                                // Try to get named group first, then fall back to indexed group
+                                var namedGroup = match.Groups[groupName];
+                                if (namedGroup.Success)
+                                {
+                                    groupValue = namedGroup.Value;
+                                }
+                                else
+                                {
+                                    // Groups[0] is always the full match, actual capturing groups start from index 1
+                                    var groupIndex = i + 1;
+                                    groupValue = match.Groups.Count > groupIndex ? match.Groups[groupIndex].Value : string.Empty;
+                                }
+
+                                // Truncate configured group values if too long
+                                if (groupValue.Length > MAX_PARAMETER_LENGTH)
+                                {
+                                    groupValue = groupValue.Substring(0, MAX_PARAMETER_LENGTH);
+                                    UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Group '{groupName}' value truncated to {MAX_PARAMETER_LENGTH} characters");
+                                }
+                                parameters[groupName] = groupValue;
+                            }
+                        }
+                        else
+                        {
+                            // If no groups configured, add captured groups with safe limits
+                            int maxGroups = Math.Min(match.Groups.Count - 1, MAX_AUTO_GROUPS);
+                            for (int i = 1; i <= maxGroups; i++)
+                            {
+                                var groupValue = match.Groups[i].Value;
+                                // Truncate long values to prevent SQL parameter issues
+                                if (groupValue.Length > MAX_PARAMETER_LENGTH)
+                                {
+                                    groupValue = groupValue.Substring(0, MAX_PARAMETER_LENGTH);
+                                    UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Group {i} value truncated to {MAX_PARAMETER_LENGTH} characters");
+                                }
+                                parameters[$"p_group_{i}"] = groupValue;
+                            }
+                            
+                            // Warn if we hit the limit
+                            if (match.Groups.Count - 1 > MAX_AUTO_GROUPS)
+                            {
+                                UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Only first {MAX_AUTO_GROUPS} groups added. Total groups: {match.Groups.Count - 1}");
+                            }
+                        }
+                    }
+                }
+                catch (RegexMatchTimeoutException ex)
+                {
+                    UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Regex match timeout for input length {clipboardContent.Text.Length}");
+                    System.Diagnostics.Debug.WriteLine($"DatabaseHandler: Regex match timeout - {ex.Message}");
+                    return false;
+                }
+                catch (ArgumentException ex)
+                {
+                    UserFeedback.ShowError($"DatabaseHandler '{HandlerConfig.Name}': Invalid input for regex matching - {ex.Message}");
+                    return false;
                 }
             }
             else
             {
-                parameters["p_input"] = clipboardContent.Text;
+                // Safe input parameter when no regex
+                string input = clipboardContent.Text;
+                string safeInput = input.Length > MAX_PARAMETER_LENGTH 
+                    ? input.Substring(0, MAX_PARAMETER_LENGTH) 
+                    : input;
+                if (input.Length > MAX_PARAMETER_LENGTH)
+                {
+                    UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Input truncated to {MAX_PARAMETER_LENGTH} characters");
+                }
+                parameters["p_input"] = safeInput;
             }
             return true;
         }
