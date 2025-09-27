@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -75,10 +76,13 @@ namespace Contextualizer.PluginContracts
         public Dictionary<string, string>? Headers { get; set; }
 
         [JsonPropertyName("request_body")]
-        public string? RequestBody { get; set; }
+        public JsonElement? RequestBody { get; set; }
 
         [JsonPropertyName("content_type")]
         public string? ContentType { get; set; }
+
+        [JsonPropertyName("timeout_seconds")]
+        public int? TimeoutSeconds { get; set; }
 
         // Synthetic handler property
         [JsonPropertyName("reference_handler")]

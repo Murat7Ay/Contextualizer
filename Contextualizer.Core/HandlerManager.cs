@@ -215,10 +215,11 @@ namespace Contextualizer.Core
         /// <returns>Result description</returns>
         public async Task<string> ExecuteHandlerConfig(HandlerConfig handlerConfig)
         {
+            IHandler? handler = null;
             try
             {
                 // Create a temporary handler from the configuration
-                var handler = HandlerFactory.Create(handlerConfig);
+                handler = HandlerFactory.Create(handlerConfig);
                 if (handler == null)
                 {
                     var error = $"Failed to create handler of type: {handlerConfig.Type}";
@@ -263,6 +264,14 @@ namespace Contextualizer.Core
                 var error = $"Error executing cron job {handlerConfig.Name}: {ex.Message}";
                 UserFeedback.ShowError(error);
                 return error;
+            }
+            finally
+            {
+                // ✅ CRITICAL: Dispose temporary handler to prevent memory leaks
+                if (handler is IDisposable disposableHandler)
+                {
+                    disposableHandler.Dispose();
+                }
             }
         }
 
@@ -331,6 +340,17 @@ namespace Contextualizer.Core
             _hook.TextCaptured -= OnTextCaptured;
             _hook.LogMessage -= OnLogMessage;
             _hook.Dispose();
+            
+            // Dispose all handlers that implement IDisposable
+            foreach (var handler in _handlers.OfType<IDisposable>())
+            {
+                handler.Dispose();
+            }
+            
+            foreach (var handler in _manualHandlers.OfType<IDisposable>())
+            {
+                handler.Dispose();
+            }
         }
     }
 }
