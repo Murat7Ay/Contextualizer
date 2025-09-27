@@ -75,7 +75,10 @@ namespace Contextualizer.Core
 
             using IDbConnection connection = CreateConnection();
             DynamicParameters dynamicParameters = CreateDynamicParameters();
-            var queryResults = await connection.QueryAsync(HandlerConfig.Query, dynamicParameters, commandTimeout: 3);
+            
+            // Use configurable command timeout, default to 30 seconds instead of 3
+            int commandTimeout = HandlerConfig.CommandTimeoutSeconds ?? 30;
+            var queryResults = await connection.QueryAsync(HandlerConfig.Query, dynamicParameters, commandTimeout: commandTimeout);
             int rowCount = queryResults.Count();
 
             if (rowCount == 0)
@@ -183,18 +186,15 @@ namespace Contextualizer.Core
         private IDbConnection CreateConnection()
         {
             // Resolve config patterns in connection string
-            var resolvedConnectionString = HandlerContextProcessor.ReplaceDynamicValues(
+            var baseConnectionString = HandlerContextProcessor.ReplaceDynamicValues(
                 HandlerConfig.ConnectionString, 
                 new Dictionary<string, string>() // Empty context for config-only resolution
             );
 
-            return HandlerConfig.Connector.ToLowerInvariant() switch
-            {
-                "mssql" => new SqlConnection(resolvedConnectionString),
-                "plsql" => new OracleConnection(resolvedConnectionString),
-                _ => throw new NotSupportedException($"Connector type '{HandlerConfig.Connector}' is not supported.")
-            };
+            // Use ConnectionManager to ensure proper connection pooling across handlers
+            return Contextualizer.PluginContracts.ConnectionManager.CreateConnection(baseConnectionString, HandlerConfig.Connector, HandlerConfig);
         }
+
 
         private string GetParameterAlias()
         {
