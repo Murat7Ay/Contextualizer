@@ -163,3 +163,33 @@ When images are needed, we will use temporary placeholders and you can replace t
   - Replace with: Screenshot of `LoggingSettingsWindow` (local logging, analytics, log stats).
 
 Note: We will only insert these placeholders into `index.html` when/if we add a visual for the relevant section. Until then, this list tracks what to provide.
+
+---
+
+## 🔄 Refresh Start (2025-10-05)
+
+- Docs consolidated into single `index.html`; visual sections added:
+  - Execution Pipeline with detailed Dispatch flow (confirmation, inputs, seeders, multi-pass resolution, action conditions/inner_actions, output_format)
+  - Dynamic Value Resolution (`$(key)`, `$config:`, `$func:`, `$file:`) and resolution order
+  - Function tree, Condition operator grid, User Input flow + Toast demos
+- Installation and Quick Start updated to Exchange flow and portable structure
+- Configuration corrected (`handlers.json` top-level `{ handlers: [...] }`, `appsettings.json` aligned with `AppSettings.cs`)
+- Placeholder convention enforced: `$(key)` (e.g., `$(token)`)
+- Branch: `docs/single-index-docs`
+
+Next: Build Handlers section with concrete handler types and code references.
+- Action: enumerate `IHandler` implementations and document each handler type with example JSON and behavior
+- Warning hook: if new handlers or plugins are added, revisit Function/Condition docs and Execution Pipeline notes
+ 
+### 🎛 UI Controls Focus (2025-10-05)
+- Add UI Controls deep-dive under `#ui-controls` in `docs/index.html` covering:
+  - IDynamicScreen pattern and dynamic screen discovery via reflection
+  - Screens implementing `IDynamicScreen`: `MarkdownViewer2` (markdown → HTML), `UrlViewer` (WebView2), `PlSqlEditor` (WebView2 + ACE editor), `JsonFormatterView`, `XmlFormatterView`
+  - WebView2 usage: `EnsureCoreWebView2Async`, `WebMessageReceived`, virtual host mapping for local assets (e.g., `SetVirtualHostNameToFolderMapping("local", Assets/ace, Allow)`)
+  - Markdown rendering: Markdig pipeline with advanced extensions; theming-aware HTML CSS injected
+  - Theme system: Carbon design tokens + `ThemeManager`; `IThemeAware.OnThemeChanged` propagation from `MainWindow`
+  - Exchange UI (`HandlerExchangeWindow`): list/filter/sort/install/update/remove handlers; window position persistence
+  - Cron Manager (`CronManagerWindow`): list/filter/enable/disable/trigger; Carbon status styling
+
+### ⚠ Notes & Warnings
+- "shared_view_folder" term not found in codebase. If we plan a shared HTML view folder for WebView2 screens, we can adopt the same technique used by `PlSqlEditor` (virtual host mapping) to serve local static assets and templates. If you confirm, we will add a small section in docs and wire a constant like `shared_webview_profile`/`shared_view_folder` into context and settings.
