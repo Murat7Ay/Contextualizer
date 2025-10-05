@@ -1367,6 +1367,85 @@ body {
     color: var(--primary-color);
 }
 
+/* UI Controls Enhancements */
+.ui-card {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    margin: 1rem 0;
+    box-shadow: var(--shadow-light);
+}
+
+.ui-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0;
+}
+
+.section-illustration {
+    margin-top: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.section-illustration img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Color Palette */
+.color-palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.palette-group {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.palette-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.swatch-row {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0;
+}
+
+.swatch {
+    width: 56px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+.swatch-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+}
+
+.swatch-name {
+    font-weight: 600;
+}
+
+.swatch-hex {
+    color: var(--text-muted);
+}
+
 /* Responsive Enhancements */
 @media (max-width: 768px) {
     .flow-diagram {
