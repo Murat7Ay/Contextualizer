@@ -191,6 +191,76 @@
                         <p style="margin-top:12px"><strong>Dispatch:</strong> CanHandle → Context → UserInputs → Seeder → Actions</p>
                     </div>
 
+                    <div class="dispatch-flow">
+                        <h2>Dispatch Execution Flow (Detailed)</h2>
+                        <div class="df-step">
+                            <div class="df-num">1</div>
+                            <div class="df-body">
+                                <div class="df-title">CanHandle</div>
+                                <div class="df-text">Each handler checks if it can process the captured content (regex match, type checks, etc.). Non-matching handlers exit early.</div>
+                            </div>
+                        </div>
+                        <div class="df-step">
+                            <div class="df-num">2</div>
+                            <div class="df-body">
+                                <div class="df-title">Confirmation (optional)</div>
+                                <div class="df-text">If <code>requires_confirmation</code> = true, the user is prompted. Cancel stops execution.</div>
+                            </div>
+                        </div>
+                        <div class="df-step">
+                            <div class="df-num">3</div>
+                            <div class="df-body">
+                                <div class="df-title">User Inputs (wizard)</div>
+                                <div class="df-text">Collect inputs with Next/Back/Cancel; supports dependent selection lists and validation. Merged into context by input <code>key</code>.</div>
+                            </div>
+                        </div>
+                        <div class="df-step">
+                            <div class="df-num">4</div>
+                            <div class="df-body">
+                                <div class="df-title">Seed Context</div>
+                                <div class="df-text"><strong>constant_seeder</strong> merged first (raw). Then <strong>seeder</strong> is resolved and merged.</div>
+                            </div>
+                        </div>
+                        <div class="df-step">
+                            <div class="df-num">5</div>
+                            <div class="df-body">
+                                <div class="df-title">Dynamic Resolution (multi-pass)</div>
+                                <ul class="df-list">
+                                    <li><code>$file:path</code> → read file content</li>
+                                    <li><code>$config:section.key</code> → load from config/secret files</li>
+                                    <li><code>$func:</code> → evaluate function pipeline (regular + pipe)</li>
+                                    <li><code>$(key)</code> → final placeholder replacement from context</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="df-step">
+                            <div class="df-num">6</div>
+                            <div class="df-body">
+                                <div class="df-title">Ensure Output</div>
+                                <div class="df-text">Set <code>_self</code> (context JSON) if missing. Render <code>_formatted_output</code> from <code>output_format</code> if provided; else fallback to <code>_self</code>.</div>
+                            </div>
+                        </div>
+                        <div class="df-step">
+                            <div class="df-num">7</div>
+                            <div class="df-body">
+                                <div class="df-title">Action Loop</div>
+                                <ul class="df-list">
+                                    <li><strong>Action Conditions</strong>: evaluate <code>conditions</code> (and/or, equals/contains/regex…) against current context; skip if false.</li>
+                                    <li><strong>Action-level Seeding</strong> (if provided): merge action <code>constant_seeder</code>, resolve and merge action <code>seeder</code> (same multi-pass), without mutating base context.</li>
+                                    <li><strong>Execute</strong>: run plugin (e.g., <code>show_notification</code>, <code>show_window</code>, <code>copy_to_clipboard</code>, <code>open_file</code>), respecting <code>auto_focus_tab</code> and <code>bring_window_to_front</code>.</li>
+                                    <li><strong>inner_actions</strong>: execute nested actions after parent with the updated action context.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="df-step">
+                            <div class="df-num">8</div>
+                            <div class="df-body">
+                                <div class="df-title">Parallelism & Logging</div>
+                                <div class="df-text">Handlers run in parallel; execution and errors are logged. User sees real-time feedback via activity log and toasts.</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="resolution-section">
                         <h2>Dynamic Value Resolution</h2>
                         <div class="info-cards">

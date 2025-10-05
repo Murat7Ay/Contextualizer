@@ -797,6 +797,54 @@ body {
     color: var(--text-secondary);
 }
 
+/* Dispatch Flow */
+.dispatch-flow {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.df-step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.df-step:last-child {
+    border-bottom: none;
+}
+
+.df-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    background: var(--primary-color);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.df-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.df-text {
+    color: var(--text-secondary);
+}
+
+.df-list {
+    margin: 0.25rem 0 0.5rem 1rem;
+    color: var(--text-secondary);
+}
+
 /* Feature Lists */
 .feature-list {
     list-style: none;
