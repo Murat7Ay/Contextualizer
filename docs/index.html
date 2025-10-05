@@ -32,15 +32,7 @@
                     <h3>Core Features</h3>
                     <ul>
                         <li><a href="#clipboard-monitoring" class="nav-link">Clipboard Monitoring</a></li>
-                        <li>
-                            <a href="#execution-pipeline" class="nav-link">Execution Pipeline</a>
-                            <ul>
-                                <li><a href="#dispatch-sub" class="nav-link">Dispatch</a></li>
-                                <li><a href="#conditions-sub" class="nav-link">Condition Evaluator</a></li>
-                                <li><a href="#functions-sub" class="nav-link">Function Processor</a></li>
-                                <li><a href="#user-inputs-sub" class="nav-link">User Input Navigation</a></li>
-                            </ul>
-                        </li>
+                        <li><a href="#execution-pipeline" class="nav-link">Execution Pipeline</a></li>
                         <li><a href="#handlers" class="nav-link">Handlers</a></li>
                         <li><a href="#actions" class="nav-link">Actions</a></li>
                         <li><a href="#ui-controls" class="nav-link">UI Controls</a></li>
@@ -247,23 +239,91 @@
                     <div class="functions-deep-dive">
                         <h2 id="functions-sub">Function Processor</h2>
                         <p>Supports regular (<code>$func:name(args)</code>) and pipeline (<code>$func:{{ value | fn(args) | fn2() }}</code>) functions with chaining.</p>
-                        <ul>
-                            <li><strong>Families</strong>: <code>url.*</code> (encode/decode/domain/path/query/combine), <code>web.*</code> (get/post/put/delete), <code>ip.*</code> (local/public/isPrivate/isPublic), <code>json.*</code> (get/length/first/last/create), <code>string.*</code> (upper/lower/trim/replace/substring/contains/startsWith/endsWith/split/length), <code>math.*</code> (add/subtract/multiply/divide/round/floor/ceil/min/max/abs), <code>array.*</code> (get/length/join).</li>
-                            <li><strong>Base</strong>: <code>today</code>, <code>now</code>, <code>yesterday</code>, <code>tomorrow</code>, <code>guid</code>, <code>random</code>, <code>base64encode</code>, <code>base64decode</code>, <code>env</code>, <code>username</code>, <code>computername</code>.</li>
-                            <li><strong>Order with context</strong>: functions are processed before final <code>$(key)</code> replacement; placeholders inside parameters are resolved.</li>
-                        </ul>
+                        <div class="function-tree">
+                            <div class="function-node">
+                                <div class="node-header">Base</div>
+                                <div class="node-body"><code>today</code>, <code>now</code>, <code>yesterday</code>, <code>tomorrow</code>, <code>guid</code>, <code>random</code>, <code>base64encode</code>, <code>base64decode</code>, <code>env</code>, <code>username</code>, <code>computername</code></div>
+                            </div>
+                            <div class="function-node">
+                                <div class="node-header">url.*</div>
+                                <div class="node-body"><code>encode</code>, <code>decode</code>, <code>domain</code>, <code>path</code>, <code>query</code>, <code>combine</code></div>
+                            </div>
+                            <div class="function-node">
+                                <div class="node-header">web.*</div>
+                                <div class="node-body"><code>get</code>, <code>post</code>, <code>put</code>, <code>delete</code></div>
+                            </div>
+                            <div class="function-node">
+                                <div class="node-header">ip.*</div>
+                                <div class="node-body"><code>local</code>, <code>public</code>, <code>isPrivate</code>, <code>isPublic</code></div>
+                            </div>
+                            <div class="function-node">
+                                <div class="node-header">json.*</div>
+                                <div class="node-body"><code>get</code>, <code>length</code>, <code>first</code>, <code>last</code>, <code>create</code></div>
+                            </div>
+                            <div class="function-node">
+                                <div class="node-header">string.*</div>
+                                <div class="node-body"><code>upper</code>, <code>lower</code>, <code>trim</code>, <code>replace</code>, <code>substring</code>, <code>contains</code>, <code>startsWith</code>, <code>endsWith</code>, <code>split</code>, <code>length</code></div>
+                            </div>
+                            <div class="function-node">
+                                <div class="node-header">math.*</div>
+                                <div class="node-body"><code>add</code>, <code>subtract</code>, <code>multiply</code>, <code>divide</code>, <code>round</code>, <code>floor</code>, <code>ceil</code>, <code>min</code>, <code>max</code>, <code>abs</code></div>
+                            </div>
+                            <div class="function-node">
+                                <div class="node-header">array.*</div>
+                                <div class="node-body"><code>get</code>, <code>length</code>, <code>join</code></div>
+                            </div>
+                        </div>
+                        <div class="function-notes">
+                            <p><strong>Order with context:</strong> functions are processed before final <code>$(key)</code> replacement; placeholders inside parameters are resolved. Supports <code>$file:</code> include and <code>$config:</code> lookups.</p>
+                        </div>
+                    </div>
+
+                    <div class="conditions-deep-dive">
+                        <h2 id="conditions-sub">Condition Evaluator</h2>
+                        <div class="conditions-grid">
+                            <div class="condition-card">
+                                <div class="card-title">Logical</div>
+                                <div class="card-body"><code>and</code>, <code>or</code> with nested conditions</div>
+                            </div>
+                            <div class="condition-card">
+                                <div class="card-title">Comparisons</div>
+                                <div class="card-body"><code>equals</code>, <code>not_equals</code>, <code>greater_than</code>, <code>less_than</code></div>
+                            </div>
+                            <div class="condition-card">
+                                <div class="card-title">Text</div>
+                                <div class="card-body"><code>contains</code>, <code>starts_with</code>, <code>ends_with</code>, <code>matches_regex</code></div>
+                            </div>
+                            <div class="condition-card">
+                                <div class="card-title">Null/Empty</div>
+                                <div class="card-body"><code>is_empty</code>, <code>is_not_empty</code></div>
+                            </div>
+                        </div>
+                        <p class="note">Values can reference context via <code>$(key)</code>, resolved before comparison.</p>
                     </div>
 
                     <div class="user-inputs-deep-dive">
                         <h2 id="user-inputs-sub">User Input Navigation</h2>
-                        <p>Step-based dialog with <strong>Next/Back/Cancel</strong>, driven by <code>HandlerContextProcessor.PromptUserInputsWithNavigation</code> and implemented in <code>UserInputDialog.xaml.cs</code>.</p>
-                        <ul>
-                            <li><strong>Controls</strong>: text, password, file picker, single select (ComboBox), multi-select (ListBox), multiline text.</li>
-                            <li><strong>Validation</strong>: required fields, regex validation (real-time and on submit).</li>
-                            <li><strong>Dependent lists</strong>: <code>dependent_key</code> and <code>dependent_selection_item_map</code> dynamically override options and defaults.</li>
-                            <li><strong>Context defaults</strong>: values can pre-fill from existing context by <code>key</code>.</li>
-                            <li><strong>Navigation result</strong>: returns value(s) and navigation action; cancel aborts the entire handler.</li>
-                        </ul>
+                        <div class="user-input-flow">
+                            <div class="flow-card">
+                                <div class="flow-step-title">Define Requests</div>
+                                <div class="flow-step-body"><code>UserInputRequest</code>: keys, titles, messages, validation, selection lists, file picker, password, multi-line</div>
+                            </div>
+                            <div class="flow-arrow-vert">↓</div>
+                            <div class="flow-card">
+                                <div class="flow-step-title">Navigation</div>
+                                <div class="flow-step-body">Next / Back / Cancel with progress; dependent lists via <code>dependent_key</code></div>
+                            </div>
+                            <div class="flow-arrow-vert">↓</div>
+                            <div class="flow-card">
+                                <div class="flow-step-title">Dialogs</div>
+                                <div class="flow-step-body"><code>UserInputDialog.xaml.cs</code> handles UI, real-time regex validation and defaults from context</div>
+                            </div>
+                            <div class="flow-arrow-vert">↓</div>
+                            <div class="flow-card">
+                                <div class="flow-step-title">Completion</div>
+                                <div class="flow-step-body">Collected values merged into context; <code>ToastNotification</code> presents actions and feedback</div>
+                            </div>
+                        </div>
                     </div>
                 </section>
                 
