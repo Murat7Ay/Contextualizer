@@ -735,3 +735,128 @@ All major features, APIs, configuration options, troubleshooting guides, and bes
 - Carbon Theme → WebView2 (CSS injection on theme change)
 
 **UI Controls section now matches the depth and quality of Handlers, Execution Pipeline, and Clipboard Monitoring sections!**
+
+---
+
+## Session Update (2025-10-05) - Presentation Guide Created
+
+### ✅ PRESENTATION_GUIDE.md Oluşturuldu
+
+**Dosya**: `docs/PRESENTATION_GUIDE.md` (464 satır)
+
+**Amaç**: Yazılım ve Analist ekiplerine Contextualizer'ı tanıtmak için 60 dakikalık WebEx toplantı rehberi
+
+### 📋 Rehber İçeriği
+
+#### 1. **Toplantı Ajandası (60 dakika)**
+```
+[0-5 dk]   🎬 Açılış - Hook & Problem Statement
+[5-20 dk]  💡 Live Demo - "Sihirli Göster"
+[20-30 dk] 🧠 Nasıl Çalışıyor - Temel Konseptler
+[30-45 dk] 🛠️ Hands-On - "Siz Deneyin"
+[45-55 dk] 💼 Use Case Workshop - "Sizin İşinizde Nerede?"
+[55-60 dk] 📚 Kaynaklar & Next Steps
+```
+
+#### 2. **Live Demo Senaryoları (4 Demo)**
+- **Demo #1**: Regex Handler - ORDER12345 kopyala → 5 saniyede rapor
+- **Demo #2**: File Handler - Dosya yolu → 25+ özellik
+- **Demo #3**: Database Handler - Müşteri ID → SQL otomatik
+- **Demo #4**: API Handler - REST endpoint → JSON parse
+
+#### 3. **Temel Mimari Anlatımı**
+- Clipboard Monitoring → Handler Matching → Context Creation → Actions → UI
+- 4 kilit kavram: Handler, Context, Actions, Dynamic Values
+
+#### 4. **Hands-On Adımları**
+- Kurulum (network share'den kopyala)
+- Exchange'den handler yükleme
+- Test etme
+- JSON düzenleme (isteğe bağlı)
+
+#### 5. **Use Case Workshop**
+- Whiteboard session: "Sizin işinizde nerede kullanılır?"
+- Repetitive task'ları topla
+- Handler tipi ile eşleştir
+- "Bunu sizin için yazabiliriz"
+
+#### 6. **Audience-Specific Stratejiler**
+
+**Analistler İçin:**
+- "JSON öğrenmenize gerek yok - hazır şablonlar var"
+- Pratik örnekler: IBAN, sipariş no, dosya yolu
+- "Ne istediğinizi söyleyin, biz yazarız"
+
+**Yazılımcılar İçin:**
+- "Plugin sistemi var - C# ile extend edebilirsiniz"
+- Teknik detay: IAction, IContextValidator, IContextProvider
+- Performance: Connection pooling, regex compilation, caching
+
+#### 7. **Sunum İpuçları**
+```
+✅ YAP (Analistler):
+- Kullanım odaklı anlat
+- Exchange'den yükleme göster
+- Pratik örnekler
+
+❌ YAPMA:
+- Teknik detay verme
+- "JSON öğrenmeniz gerekir" deme
+```
+
+#### 8. **Cheat Sheet (Ekiple Paylaş)**
+- Temel kısayollar (Win+Shift+C)
+- İlk handler nasıl yazılır (5 adım)
+- Handler tipleri hızlı referans
+- Örnek handler JSON (kopya-yapıştır)
+
+#### 9. **Bonus: Quick Win Örnekleri**
+- URL Kısaltıcı (API handler)
+- JSON Validator (regex + json_formatter)
+- File Hasher (file handler + functions)
+
+#### 10. **Follow-Up Planı**
+```
+📧 1. Gün: Demo video + docs linki
+💬 1. Hafta: Teams/Slack #contextualizer kanalı
+🎯 2. Hafta: 1-on-1 sessions (handler yazalım)
+📊 1. Ay: Metrics (kaç kişi kullanıyor?)
+```
+
+### 🎯 Stratejik Yaklaşım
+
+1. **Demo-First**: İlk 5 dakika "WOW" yaratmak kritik
+2. **Value Proposition**: "Günde 50 kere × 1-3 dk = 1-2.5 saat kayıp" → Contextualizer: 5 saniye
+3. **Hands-On**: Herkes test etsin, deneyimlesin
+4. **Community Building**: Teams/Slack kanalı, 1-on-1 sessions, viral growth
+
+### 📊 Rehber İçeriği İstatistikleri
+
+- **Satır sayısı**: 464
+- **Demo senaryoları**: 4 adet (Regex, File, Database, API)
+- **Hands-on adımları**: 4 step-by-step
+- **Örnek handler'lar**: 3 bonus (URL shortener, JSON validator, File hasher)
+- **Audience type'ları**: 2 (Analist, Yazılımcı)
+- **Follow-up timeline**: 1 aylık plan
+
+### 🎤 Sunum Hazırlığı Önerileri
+
+**Workshop Öncesi Hazırlık:**
+- ☐ 3-5 demo handler hazırla (ekibin işine yarayacak)
+- ☐ Exchange'e koy (pre-built, test edilmiş)
+- ☐ Cheat sheet PDF hazırla (1 sayfa)
+- ☐ 5 dakikalık video çek (workshop'a gelemeyenler için)
+
+**İkna Stratejisi (Muhtemel İtirazlar):**
+- "Zaten makrom var" → "Makro tek uygulama, Contextualizer tüm sistem"
+- "Karmaşık görünüyor" → "3 tık - indir, test et, kullan"
+- "Güvenlik riski?" → "Portable, local, kendi kontrol edin"
+- "Öğrenme eğrisi?" → "Kullanıcı: 5 dk, Handler yazan: 30 dk"
+
+### ✅ Delivery
+
+- **Dosya lokasyonu**: `docs/PRESENTATION_GUIDE.md`
+- **Erişilebilirlik**: Markdown format, kolayca kopyalanabilir
+- **Kullanım**: WebEx toplantısında rehber olarak kullan, ekran paylaşımı sırasında açık tut
+
+**READY FOR PRESENTATION! 🚀**
