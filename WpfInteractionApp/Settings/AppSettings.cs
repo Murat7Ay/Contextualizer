@@ -61,7 +61,7 @@ namespace WpfInteractionApp.Settings
     public class KeyboardShortcut
     {
         [JsonPropertyName("modifier_keys")]
-        public string[] ModifierKeys { get; set; } = new[] { "Ctrl" };
+        public string[] ModifierKeys { get; set; } = new[] { "Win" };
 
         [JsonPropertyName("key")]
         public string Key { get; set; } = "W";

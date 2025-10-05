@@ -2,6 +2,7 @@ using Contextualizer.PluginContracts;
 using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -68,11 +69,18 @@ namespace WpfInteractionApp
 
             try
             {
-                // URL'yi doğrula ve düzelt
-                if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+                if (!url.StartsWith("http://") && !url.StartsWith("https://") && !url.StartsWith("file://"))
                 {
-                    url = "https://" + url;
+                    if (File.Exists(url))
+                    {
+                        url = "file:///" + url.Replace("\\", "/");
+                    }
+                    else
+                    {
+                        url = "https://" + url;
+                    }
                 }
+
 
                 WebView.Source = new Uri(url);
             }
