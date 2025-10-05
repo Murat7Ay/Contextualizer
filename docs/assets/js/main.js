@@ -20,7 +20,9 @@ class DocsApp {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetId = link.getAttribute('href').substring(1);
-                this.showSection(targetId);
+                const { sectionId, anchorId } = this.resolveSectionForAnchor(targetId);
+
+                this.showSection(sectionId);
                 this.setActiveNavLink(link);
                 
                 // Close mobile menu if open
@@ -28,14 +30,32 @@ class DocsApp {
                 
                 // Update URL without scrolling
                 history.pushState(null, null, `#${targetId}`);
+
+                // Smooth scroll to sub-anchor if applicable
+                if (anchorId && anchorId !== sectionId) {
+                    const anchorEl = document.getElementById(anchorId);
+                    if (anchorEl) {
+                        anchorEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                } else {
+                    // Scroll to top of content for top-level sections
+                    document.querySelector('.content-body').scrollTop = 0;
+                }
             });
         });
 
         // Handle browser back/forward
         window.addEventListener('popstate', () => {
-            const hash = window.location.hash.substring(1) || 'overview';
-            this.showSection(hash);
-            this.setActiveNavLinkById(hash);
+            const raw = window.location.hash.substring(1) || 'overview';
+            const { sectionId, anchorId } = this.resolveSectionForAnchor(raw);
+            this.showSection(sectionId);
+            this.setActiveNavLinkById(raw);
+            if (anchorId && anchorId !== sectionId) {
+                const anchorEl = document.getElementById(anchorId);
+                if (anchorEl) {
+                    anchorEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
         });
     }
 
@@ -220,9 +240,16 @@ class DocsApp {
     }
 
     loadInitialSection() {
-        const hash = window.location.hash.substring(1) || 'overview';
-        this.showSection(hash);
-        this.setActiveNavLinkById(hash);
+        const raw = window.location.hash.substring(1) || 'overview';
+        const { sectionId, anchorId } = this.resolveSectionForAnchor(raw);
+        this.showSection(sectionId);
+        this.setActiveNavLinkById(raw);
+        if (anchorId && anchorId !== sectionId) {
+            const anchorEl = document.getElementById(anchorId);
+            if (anchorEl) {
+                anchorEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
     }
 
     showSection(sectionId) {
@@ -234,8 +261,7 @@ class DocsApp {
         const targetSection = document.getElementById(sectionId);
         if (targetSection) {
             targetSection.classList.add('active');
-            // Scroll to top of content
-            document.querySelector('.content-body').scrollTop = 0;
+            // Do not force scroll here; caller decides whether to scroll to top or sub-anchor
         }
     }
 
@@ -250,6 +276,26 @@ class DocsApp {
         if (activeLink) {
             this.setActiveNavLink(activeLink);
         }
+    }
+
+    // Resolve which top-level content section should be shown for a given anchor id
+    resolveSectionForAnchor(anchorId) {
+        const el = document.getElementById(anchorId);
+        if (!el) {
+            // Fallback: assume anchor is a top-level section id
+            return { sectionId: anchorId, anchorId };
+        }
+        // If the element itself is a content-section, use it directly
+        if (el.classList && el.classList.contains('content-section')) {
+            return { sectionId: anchorId, anchorId };
+        }
+        // Otherwise find the closest parent content-section
+        const parentSection = el.closest('.content-section');
+        if (parentSection && parentSection.id) {
+            return { sectionId: parentSection.id, anchorId };
+        }
+        // Default fallback
+        return { sectionId: anchorId, anchorId };
     }
 }
 

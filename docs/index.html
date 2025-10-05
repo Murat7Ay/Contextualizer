@@ -32,6 +32,15 @@
                     <h3>Core Features</h3>
                     <ul>
                         <li><a href="#clipboard-monitoring" class="nav-link">Clipboard Monitoring</a></li>
+                        <li>
+                            <a href="#execution-pipeline" class="nav-link">Execution Pipeline</a>
+                            <ul>
+                                <li><a href="#dispatch-sub" class="nav-link">Dispatch</a></li>
+                                <li><a href="#conditions-sub" class="nav-link">Condition Evaluator</a></li>
+                                <li><a href="#functions-sub" class="nav-link">Function Processor</a></li>
+                                <li><a href="#user-inputs-sub" class="nav-link">User Input Navigation</a></li>
+                            </ul>
+                        </li>
                         <li><a href="#handlers" class="nav-link">Handlers</a></li>
                         <li><a href="#actions" class="nav-link">Actions</a></li>
                         <li><a href="#ui-controls" class="nav-link">UI Controls</a></li>
@@ -96,8 +105,8 @@
                             <div class="feature-icon">
                                 <i class="fas fa-clipboard"></i>
                             </div>
-                            <h3>Clipboard Monitoring</h3>
-                            <p>Real-time clipboard content monitoring with intelligent processing</p>
+                            <h3>Clipboard Capture</h3>
+                            <p>Global hotkey capture of selected text/files with intelligent processing</p>
                         </div>
                         
                         <div class="feature-card">
@@ -145,6 +154,116 @@
                         <h2>Ready to get started?</h2>
                         <p>Follow our quick start guide to set up Contextualizer in minutes.</p>
                         <a href="#quick-start" class="btn btn-primary">Get Started <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </section>
+
+                <!-- Execution Pipeline Section -->
+                <section id="execution-pipeline" class="content-section">
+                    <div class="section-header">
+                        <h1>Execution Pipeline</h1>
+                        <p>From application startup to handler action execution</p>
+                    </div>
+
+                    <div class="pipeline-overview">
+                        <div class="flow-diagram">
+                            <div class="flow-step">
+                                <div class="flow-icon"><i class="fas fa-power-off"></i></div>
+                                <h3>Startup (App.xaml.cs)</h3>
+                                <p>Settings, Configuration, Logging, Theme, Network Updates, Cron</p>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon"><i class="fas fa-sitemap"></i></div>
+                                <h3>HandlerManager</h3>
+                                <p>Loads handlers, wires KeyboardHook, registers services</p>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon"><i class="fas fa-keyboard"></i></div>
+                                <h3>KeyboardHook</h3>
+                                <p>Captures selection via global shortcut (Ctrl/Alt/Shift/Win + Key)</p>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon"><i class="fas fa-cogs"></i></div>
+                                <h3>HandlerLoader</h3>
+                                <p>Reads handlers.json → creates handlers via HandlerFactory</p>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon"><i class="fas fa-stream"></i></div>
+                                <h3>Dispatch</h3>
+                                <p>CanHandle → Context → UserInputs → Seeder → Actions</p>
+                            </div>
+                        </div>
+                        <p style="margin-top:12px"><strong>Dispatch:</strong> CanHandle → Context → UserInputs → Seeder → Actions</p>
+                    </div>
+
+                    <div class="pipeline-details">
+                        <h2>Key Components</h2>
+                        <ul>
+                            <li><code>App.xaml.cs</code>: Initializes <code>SettingsService</code>, <code>ConfigurationService</code>, <code>LoggingService</code>, theme, network updates, cron scheduler, and <code>MainWindow</code>.</li>
+                            <li><code>DynamicAssemblyLoader</code>: Loads all <code>.dll</code> files from <code>Plugins</code> directory at startup — supports built‑in plugins and any external/custom plugins you drop in.</li>
+                            <li><code>HandlerManager</code>: Loads handlers from <code>handlers.json</code>, wires <code>KeyboardHook</code>, executes handlers in parallel, aggregates results and telemetry.</li>
+                            <li><code>KeyboardHook</code>: Global keyboard hook; composes shortcut from settings; captures selected text/file via hotkey and raises <code>TextCaptured</code>.</li>
+                            <li><code>HandlerLoader</code>: Parses <code>handlers.json</code> (top‑level <code>{"handlers": [...]}</code>) into <code>HandlerConfig</code> objects and creates instances via <code>HandlerFactory</code>.</li>
+                            <li><code>Dispatch</code>: Core pipeline: confirmation ➝ user inputs ➝ context build/seeding ➝ function/placeholder processing ➝ condition checks ➝ output formatting ➝ action dispatch.</li>
+                            <li><code>Plugins</code> (<code>Contextualizer.Plugins</code> + custom): Provide concrete actions like <code>show_notification</code>, <code>show_window</code>, <code>copy_to_clipboard</code>, <code>open_file</code>.</li>
+                        </ul>
+                    </div>
+
+                    <div class="dispatch-deep-dive">
+                        <h2 id="dispatch-sub">Dispatch Deep Dive</h2>
+
+                        <h3>1) Confirmation Gate</h3>
+                        <p>If <code>requires_confirmation</code> is true, a confirmation dialog is shown via <code>IUserInteractionService.ShowConfirmationAsync</code>. Canceling stops execution.</p>
+
+                        <h3>2) User Input Navigation</h3>
+                        <p><code>HandlerContextProcessor.PromptUserInputsWithNavigation</code> presents inputs with Next/Back/Cancel flow. Supports dependencies via <code>dependent_key</code> and dynamic selection lists. Collected values are merged into context by input <code>key</code>.</p>
+
+                        <h3>3) Context Build & Seeding</h3>
+                        <ul>
+                            <li><code>constant_seeder</code> merged first; <code>seeder</code> resolved then merged.</li>
+                            <li><code>ReplaceDynamicValues</code> order: <code>$file:</code> include → <code>$config:section.key</code> lookup → <code>$func:</code> function processing → <code>$(key)</code> placeholders.</li>
+                            <li>Seeds <code>_self</code> (full context JSON) and ensures <code>_formatted_output</code> using handler <code>output_format</code> or defaults.</li>
+                        </ul>
+
+                        <h3>4) Function Evaluation (<code>$func:</code>)</h3>
+                        <p><code>FunctionProcessor</code> supports regular and pipeline functions with chaining. Families include: <code>url.*</code>, <code>web.*</code>, <code>ip.*</code>, <code>json.*</code>, <code>string.*</code>, <code>math.*</code>, <code>array.*</code>, and base functions (<code>today</code>, <code>now</code>, <code>guid</code>, <code>random</code>, <code>base64encode/decode</code>, <code>env</code>, <code>username</code>, <code>computername</code>).</p>
+
+                        <h3 id="conditions-sub">5) Condition Evaluation</h3>
+                        <p><code>ConditionEvaluator</code> supports nested <code>and</code>/<code>or</code> and operators: <code>equals</code>, <code>not_equals</code>, <code>greater_than</code>, <code>less_than</code>, <code>contains</code>, <code>starts_with</code>, <code>ends_with</code>, <code>matches_regex</code>, <code>is_empty</code>, <code>is_not_empty</code>. Values can reference context via <code>$(key)</code>.</p>
+
+                        <h3>6) Output Formatting</h3>
+                        <p>Formats <code>_formatted_output</code> with <code>output_format</code> and the current context (supports <code>$(key)</code> and <code>$func:</code>). Falls back to <code>_self</code> when no template provided.</p>
+
+                        <h3>7) Action Dispatch</h3>
+                        <p>Iterates actions and dispatches via <code>Dispatcher</code> using registered plugins: notifications, windows/tabs, clipboard operations, file/URL opening, etc.</p>
+
+                        <h3>8) Parallel Execution & Logging</h3>
+                        <p><code>HandlerManager</code> evaluates handlers in parallel and logs timing, results, and errors. User feedback is surfaced via the activity log and toasts.</p>
+                    </div>
+
+                    <div class="functions-deep-dive">
+                        <h2 id="functions-sub">Function Processor</h2>
+                        <p>Supports regular (<code>$func:name(args)</code>) and pipeline (<code>$func:{{ value | fn(args) | fn2() }}</code>) functions with chaining.</p>
+                        <ul>
+                            <li><strong>Families</strong>: <code>url.*</code> (encode/decode/domain/path/query/combine), <code>web.*</code> (get/post/put/delete), <code>ip.*</code> (local/public/isPrivate/isPublic), <code>json.*</code> (get/length/first/last/create), <code>string.*</code> (upper/lower/trim/replace/substring/contains/startsWith/endsWith/split/length), <code>math.*</code> (add/subtract/multiply/divide/round/floor/ceil/min/max/abs), <code>array.*</code> (get/length/join).</li>
+                            <li><strong>Base</strong>: <code>today</code>, <code>now</code>, <code>yesterday</code>, <code>tomorrow</code>, <code>guid</code>, <code>random</code>, <code>base64encode</code>, <code>base64decode</code>, <code>env</code>, <code>username</code>, <code>computername</code>.</li>
+                            <li><strong>Order with context</strong>: functions are processed before final <code>$(key)</code> replacement; placeholders inside parameters are resolved.</li>
+                        </ul>
+                    </div>
+
+                    <div class="user-inputs-deep-dive">
+                        <h2 id="user-inputs-sub">User Input Navigation</h2>
+                        <p>Step-based dialog with <strong>Next/Back/Cancel</strong>, driven by <code>HandlerContextProcessor.PromptUserInputsWithNavigation</code> and implemented in <code>UserInputDialog.xaml.cs</code>.</p>
+                        <ul>
+                            <li><strong>Controls</strong>: text, password, file picker, single select (ComboBox), multi-select (ListBox), multiline text.</li>
+                            <li><strong>Validation</strong>: required fields, regex validation (real-time and on submit).</li>
+                            <li><strong>Dependent lists</strong>: <code>dependent_key</code> and <code>dependent_selection_item_map</code> dynamically override options and defaults.</li>
+                            <li><strong>Context defaults</strong>: values can pre-fill from existing context by <code>key</code>.</li>
+                            <li><strong>Navigation result</strong>: returns value(s) and navigation action; cancel aborts the entire handler.</li>
+                        </ul>
                     </div>
                 </section>
                 
@@ -714,26 +833,26 @@ dotnet run --project WpfInteractionApp</code></pre>
                         <div class="flow-diagram">
                             <div class="flow-step">
                                 <div class="flow-icon"><i class="fas fa-clipboard"></i></div>
-                                <h3>Clipboard Change</h3>
-                                <p>User copies content to clipboard</p>
+                                <h3>Global Hotkey</h3>
+                                <p>User presses configured shortcut (e.g., Win+W) to capture selection</p>
                             </div>
                             <div class="flow-arrow">→</div>
                             <div class="flow-step">
                                 <div class="flow-icon"><i class="fas fa-search"></i></div>
-                                <h3>Content Analysis</h3>
-                                <p>Contextualizer analyzes the content</p>
+                                <h3>HandlerManager</h3>
+                                <p>Parallel handler checks determine if content can be processed</p>
                             </div>
                             <div class="flow-arrow">→</div>
                             <div class="flow-step">
                                 <div class="flow-icon"><i class="fas fa-filter"></i></div>
-                                <h3>Handler Matching</h3>
-                                <p>Finds matching handlers for the content</p>
+                                <h3>Context Build</h3>
+                                <p>Dispatch builds context (seeding, defaults, formatting)</p>
                             </div>
                             <div class="flow-arrow">→</div>
                             <div class="flow-step">
                                 <div class="flow-icon"><i class="fas fa-play"></i></div>
                                 <h3>Action Execution</h3>
-                                <p>Executes configured actions</p>
+                                <p>Dispatcher runs actions (UI notifications, windows, clipboard, etc.)</p>
                             </div>
                         </div>
                         
