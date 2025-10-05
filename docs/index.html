@@ -789,88 +789,7 @@ dotnet run --project WpfInteractionApp</code></pre>
                             </table>
                         </div>
 
-                        <h3>API Handler</h3>
-                        <!-- anchor kept under Handlers section only -->
-
-                        <h3>Database Handler</h3>
-                        <a id="database-handlers"></a>
-                        <div class="ui-card" id="database-example">
-                            <h4>Database Handler — Example</h4>
-                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
-                            <div class="code-block"><pre><code class="language-json">{
-  
-}</code></pre></div>
-                        </div>
-
-                        <h3>File Handler</h3>
-                        <a id="file-handlers"></a>
-                        <div class="ui-card" id="file-example">
-                            <h4>File Handler — Example</h4>
-                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
-                            <div class="code-block"><pre><code class="language-json">{
-  
-}</code></pre></div>
-                        </div>
-
-                        <h3>Lookup Handler</h3>
-                        <a id="lookup-handlers"></a>
-                        <div class="ui-card" id="lookup-example">
-                            <h4>Lookup Handler — Example</h4>
-                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
-                            <div class="code-block"><pre><code class="language-json">{
-  
-}</code></pre></div>
-                        </div>
-
-                        <h3>Regex Handler</h3>
-                        <a id="regex-handlers"></a>
-                        <div class="ui-card" id="regex-example">
-                            <h4>Regex Handler — Example</h4>
-                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
-                            <div class="code-block"><pre><code class="language-json">{
-  
-}</code></pre></div>
-                        </div>
-
-                        <h3>Custom Handler</h3>
-                        <a id="custom-handlers"></a>
-                        <div class="ui-card" id="custom-example">
-                            <h4>Custom Handler — Example</h4>
-                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
-                            <div class="code-block"><pre><code class="language-json">{
-  
-}</code></pre></div>
-                        </div>
-
-                        <h3>Synthetic Handler</h3>
-                        <a id="synthetic-handlers"></a>
-                        <div class="ui-card" id="synthetic-example">
-                            <h4>Synthetic Handler — Example</h4>
-                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
-                            <div class="code-block"><pre><code class="language-json">{
-  
-}</code></pre></div>
-                        </div>
-
-                        <h3>Cron Handler</h3>
-                        <a id="cron-handlers"></a>
-                        <div class="ui-card" id="cron-example">
-                            <h4>Cron Handler — Example</h4>
-                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
-                            <div class="code-block"><pre><code class="language-json">{
-  
-}</code></pre></div>
-                        </div>
-
-                        <h3>Manual Handler</h3>
-                        <a id="manual-handlers"></a>
-                        <div class="ui-card" id="manual-example">
-                            <h4>Manual Handler — Example</h4>
-                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
-                            <div class="code-block"><pre><code class="language-json">{
-  
-}</code></pre></div>
-                        </div>
+                       
                     </div>
 
                     <div class="app-settings-details">
@@ -1113,7 +1032,7 @@ dotnet run --project WpfInteractionApp</code></pre>
 
                     <div class="handler-details">
                         <h2>Handler Type Details</h2>
-
+                        <a id="api-example"></a>
                         <h3>API Handler</h3>
                         <p>Matches optional <code>regex</code>, builds request from <code>url</code>, <code>method</code>, <code>headers</code>, and optional <code>request_body</code>. Flattens JSON responses into context.</p>
                         <div class="properties-table">
@@ -1129,7 +1048,7 @@ dotnet run --project WpfInteractionApp</code></pre>
                         </div>
 
                         <h3>Database Handler</h3>
-                        <a id="database-handlers"></a>
+                        <a id="database-example"></a>
                         <p>Executes read-only SQL with parameterized inputs; builds a tabular context and renders markdown by default.</p>
                         <div class="properties-table">
                             <table>
@@ -1144,7 +1063,7 @@ dotnet run --project WpfInteractionApp</code></pre>
                         </div>
 
                         <h3>File Handler</h3>
-                        <a id="file-handlers"></a>
+                        <a id="file-example"></a>
                         <p>Processes file clipboard content; validates extensions; exposes rich file metadata for each file.</p>
                         <div class="properties-table">
                             <table>
@@ -1159,18 +1078,18 @@ dotnet run --project WpfInteractionApp</code></pre>
                         </div>
 
                         <h3>Lookup Handler</h3>
-                        <a id="lookup-handlers"></a>
+                        <a id="lookup-example"></a>
                         <p>Loads key-value data from a delimited file; resolves <code>path</code> via config, supports comments and {{NEWLINE}} replacement.</p>
                         <div class="properties-table">
-                            <table>
-                                <thead><tr><th>Behavior</th><th>Details</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Load</td><td>Resolves <code>path</code> with config; reads file; splits by <code>delimiter</code></td></tr>
-                                    <tr><td>Schema</td><td><code>key_names</code> choose dictionary keys; <code>value_names</code> create value fields</td></tr>
-                                    <tr><td>Match</td><td><code>CanHandle</code> true if clipboard text matches a loaded key</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                             <table>
+                                 <thead><tr><th>Behavior</th><th>Details</th></tr></thead>
+                                 <tbody>
+                                     <tr><td>Load</td><td>Resolves <code>path</code> with config; reads file; splits by <code>delimiter</code></td></tr>
+                                     <tr><td>Schema</td><td><code>key_names</code> choose dictionary keys; <code>value_names</code> create value fields</td></tr>
+                                     <tr><td>Match</td><td><code>CanHandle</code> true if clipboard text matches a loaded key</td></tr>
+                                 </tbody>
+                             </table>
+                         </div>
                         <div class="ui-card">
                             <h4>Example JSON</h4>
                             <div class="code-block"><pre><code class="language-json">{
