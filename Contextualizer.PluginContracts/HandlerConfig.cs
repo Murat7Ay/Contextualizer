@@ -117,6 +117,12 @@ namespace Contextualizer.PluginContracts
         public string? CronTimezone { get; set; }
         [JsonPropertyName("cron_enabled")]
         public bool CronEnabled { get; set; } = true;
+
+        // UI behavior properties
+        [JsonPropertyName("auto_focus_tab")]
+        public bool AutoFocusTab { get; set; } = false;
+        [JsonPropertyName("bring_window_to_front")]
+        public bool BringWindowToFront { get; set; } = false;
     }
 
 }

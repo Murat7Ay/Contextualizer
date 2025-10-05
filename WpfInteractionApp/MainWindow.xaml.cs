@@ -19,6 +19,8 @@ namespace WpfInteractionApp
         private readonly ObservableCollection<LogEntry> _filteredLogs = new ObservableCollection<LogEntry>();
         private readonly Dictionary<string, TabItem> _tabs = new Dictionary<string, TabItem>();
         private HandlerManager? _handlerManager;
+        
+        // BringToFront optimization - no throttling needed with smart state checking
 
         // ✨ Dashboard Properties
         public int ActiveHandlerCount => _handlerManager?.GetHandlerCount() ?? 0;
@@ -141,13 +143,16 @@ namespace WpfInteractionApp
             FilterLogs();
         }
 
-        public void AddOrUpdateTab(string screenId, string title, UIElement content)
+        public void AddOrUpdateTab(string screenId, string title, UIElement content, bool autoFocus = false)
         {
             string key = $"{screenId}_{title}";
             if (_tabs.ContainsKey(key))
             {
                 _tabs[key].Content = content;
-                _tabs[key].IsSelected = true;
+                if (autoFocus)
+                {
+                    _tabs[key].IsSelected = true;
+                }
             }
             else
             {
@@ -157,7 +162,7 @@ namespace WpfInteractionApp
                     {
                         Children = { content }
                     },
-                    IsSelected = true,
+                    IsSelected = autoFocus,
                 };
 
                 // Header için StackPanel oluştur
@@ -178,6 +183,11 @@ namespace WpfInteractionApp
                 closeButton.Click += CloseTab_Click;
                 headerPanel.Children.Add(closeButton);
 
+                // Middle mouse button (wheel click) to close tab - Chrome-like behavior
+                headerPanel.Tag = tabItem;
+                headerPanel.MouseDown += TabHeader_MouseDown;
+                headerPanel.ToolTip = "Middle-click to close tab";
+
                 tabItem.Header = headerPanel;
 
                 TabControl.Items.Add(tabItem);
@@ -192,15 +202,37 @@ namespace WpfInteractionApp
         {
             if (sender is Button button && button.Tag is TabItem tabItem)
             {
-                string key = _tabs.FirstOrDefault(x => x.Value == tabItem).Key;
-                if (!string.IsNullOrEmpty(key))
+                CloseTabItem(tabItem);
+            }
+        }
+
+        private void TabHeader_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            // Middle mouse button (wheel click) to close tab - Chrome-like behavior
+            if (e.ChangedButton == System.Windows.Input.MouseButton.Middle && sender is StackPanel panel && panel.Tag is TabItem tabItem)
+            {
+                CloseTabItem(tabItem);
+                e.Handled = true; // Prevent other mouse events
+            }
+        }
+
+        private void CloseTabItem(TabItem tabItem)
+        {
+            string key = _tabs.FirstOrDefault(x => x.Value == tabItem).Key;
+            if (!string.IsNullOrEmpty(key))
+            {
+                _tabs.Remove(key);
+                TabControl.Items.Remove(tabItem);
+                
+                // ✅ Update dashboard visibility when tabs change
+                UpdateDashboard();
+                
+                AddLog(new LogEntry
                 {
-                    _tabs.Remove(key);
-                    TabControl.Items.Remove(tabItem);
-                    
-                    // ✅ Update dashboard visibility when tabs change
-                    UpdateDashboard();
-                }
+                    Type = LogType.Debug,
+                    Message = $"Tab closed: {key}",
+                    Timestamp = DateTime.Now
+                });
             }
         }
 
@@ -565,6 +597,64 @@ namespace WpfInteractionApp
             contextMenu.PlacementTarget = sender as Button;
             contextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
             contextMenu.IsOpen = true;
+        }
+
+        /// <summary>
+        /// Brings the main window to the front and activates it - only if needed (smart state checking)
+        /// </summary>
+        public void BringToFront()
+        {
+            try
+            {
+                // Smart check: If window is already active and not minimized, do nothing
+                if (this.IsActive && this.WindowState != WindowState.Minimized)
+                {
+                    AddLog(new LogEntry
+                    {
+                        Type = LogType.Debug,
+                        Message = "Window is already active and visible - no action needed",
+                        Timestamp = DateTime.Now
+                    });
+                    return;
+                }
+
+                // If window is minimized, restore it
+                if (this.WindowState == WindowState.Minimized)
+                {
+                    this.WindowState = WindowState.Normal;
+                    AddLog(new LogEntry
+                    {
+                        Type = LogType.Debug,
+                        Message = "Window restored from minimized state",
+                        Timestamp = DateTime.Now
+                    });
+                }
+
+                // Bring window to front only if not already active
+                if (!this.IsActive)
+                {
+                    this.Activate();
+                    this.Topmost = true;  // Temporarily set topmost
+                    this.Topmost = false; // Then remove topmost to allow normal behavior
+                    this.Focus();
+                    
+                    AddLog(new LogEntry
+                    {
+                        Type = LogType.Debug,
+                        Message = "Window brought to front successfully",
+                        Timestamp = DateTime.Now
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog(new LogEntry
+                {
+                    Type = LogType.Warning,
+                    Message = $"Could not bring window to front: {ex.Message}",
+                    Timestamp = DateTime.Now
+                });
+            }
         }
 
         protected override void OnClosed(EventArgs e)

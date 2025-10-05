@@ -23,7 +23,7 @@ namespace Contextualizer.PluginContracts
         [Obsolete("Use ShowActivityFeedback instead for clarity")]
         public void Log(LogType notificationType, string message, DateTime? timestamp = null, string? additionalInfo = null);
 
-        public void ShowWindow(string screenId, string title, Dictionary<string, string> context, List<KeyValuePair<string,Action<Dictionary<string,string>>>>? actions = null);
+        public void ShowWindow(string screenId, string title, Dictionary<string, string> context, List<KeyValuePair<string,Action<Dictionary<string,string>>>>? actions = null, bool autoFocus = false, bool bringToFront = false);
 
         public void ShowToastMessage(string message, int duration = 3);
 

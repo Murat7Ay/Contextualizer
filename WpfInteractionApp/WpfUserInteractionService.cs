@@ -42,7 +42,7 @@ namespace WpfInteractionApp
             return null;
         }
 
-        public void ShowWindow(string screenId, string title, Dictionary<string, string> context, List<KeyValuePair<string, Action<Dictionary<string, string>>>>? actions = null)
+        public void ShowWindow(string screenId, string title, Dictionary<string, string> context, List<KeyValuePair<string, Action<Dictionary<string, string>>>>? actions = null, bool autoFocus = false, bool bringToFront = false)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -83,17 +83,29 @@ namespace WpfInteractionApp
                                 buttonPanel.Children.Add(button);
                             }
                             grid.Children.Add(buttonPanel);
-                            _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, grid);
+                            _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, grid, autoFocus);
                         }
                         else
                         {
-                            _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, content);
+                            _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, content, autoFocus);
+                        }
+                        
+                        // Bring window to front if requested
+                        if (bringToFront)
+                        {
+                            _mainWindow.BringToFront();
                         }
                         return;
                     }
 
                     var fallback = new TextBlock { Text = $"Ekran bulunamadı: {screenId}" };
-                    _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, fallback);
+                    _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, fallback, autoFocus);
+                    
+                    // Bring window to front if requested
+                    if (bringToFront)
+                    {
+                        _mainWindow.BringToFront();
+                    }
                 }
                 catch (Exception ex)
                 {

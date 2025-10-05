@@ -22,7 +22,13 @@ namespace Contextualizer.Plugins
         {
             context[ContextKey._body] = context[action.Key];
 
-            pluginServiceProvider.GetService<IUserInteractionService>().ShowWindow(context._handlerConfig.ScreenId, context._handlerConfig.Title, context, new());
+            pluginServiceProvider.GetService<IUserInteractionService>().ShowWindow(
+                context._handlerConfig.ScreenId, 
+                context._handlerConfig.Title, 
+                context, 
+                new(), 
+                context._handlerConfig.AutoFocusTab,
+                context._handlerConfig.BringWindowToFront);
             return Task.CompletedTask;
         }
 

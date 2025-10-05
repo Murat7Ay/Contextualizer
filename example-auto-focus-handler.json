@@ -1,0 +1,53 @@
+[
+  {
+    "name": "Silent Tab Example (Varsayılan Davranış)",
+    "description": "Bu handler tab'ı sessizce arka planda açar - yeni varsayılan davranış",
+    "type": "regex",
+    "regex": "silent-tab-test",
+    "screen_id": "markdown",
+    "title": "Silent Tab",
+    "auto_focus_tab": false,
+    "bring_window_to_front": false,
+    "actions": [
+      {
+        "name": "show_window",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "# Silent Tab Test (Varsayılan)\n\nBu tab sessizce arka planda açıldı. Bu artık varsayılan davranıştır.\n\n## Özellikler\n- Tab otomatik olarak öne gelmez (varsayılan: false)\n- Uygulama penceresi öne gelmez (varsayılan: false)\n- Kullanıcı dikkatini dağıtmaz\n- Arka planda sessizce çalışır\n- Performans dostu"
+  },
+  {
+    "name": "Auto Focus Tab Example", 
+    "description": "Bu handler tab'ı otomatik olarak öne getirir (açık şekilde belirtilmiş)",
+    "type": "regex",
+    "regex": "auto-focus-test",
+    "screen_id": "markdown",
+    "title": "Auto Focus Tab",
+    "auto_focus_tab": true,
+    "bring_window_to_front": false,
+    "actions": [
+      {
+        "name": "show_window",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "# Auto Focus Tab Test\n\nBu tab otomatik olarak öne geldi ve aktif hale getirildi.\n\n## Özellikler\n- Tab otomatik olarak aktif hale gelir (açık şekilde true)\n- Uygulama penceresi öne gelmez\n- Kullanıcının dikkatini çeker\n- Anında görünür olur"
+  },
+  {
+    "name": "Bring Window to Front Example (Smart)",
+    "description": "Bu handler hem tab'ı aktif eder hem de tüm uygulamayı öne getirir - akıllı kontrol ile korunmuş",
+    "type": "regex",
+    "regex": "bring-to-front-test",
+    "screen_id": "markdown",
+    "title": "Window to Front",
+    "auto_focus_tab": true,
+    "bring_window_to_front": true,
+    "actions": [
+      {
+        "name": "show_window",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "# Bring Window to Front Test (Smart)\n\nBu handler hem tab'ı aktif etti hem de tüm uygulamayı öne getirdi.\n\n## Özellikler\n- Tab otomatik olarak aktif hale gelir\n- Tüm uygulama penceresi öne gelir\n- Minimize edilmişse restore olur\n- Akıllı state kontrolü ile korunmuş (performans)\n- Kullanıcının tam dikkatini çeker\n\n## Akıllı Performans Koruması\n- Pencere zaten öndeyse hiçbir işlem yapmaz\n- Sadece gerektiğinde activate eder\n- Aynı anda 10+ handler çalışsa bile performans sorunu yaşatmaz"
+  }
+]
