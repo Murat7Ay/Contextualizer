@@ -770,6 +770,33 @@ body {
 .toast-btn.secondary { background: var(--surface-color); color: var(--text-secondary); border: 1px solid var(--border-color); }
 .toast-btn.danger { background: #EF4444; color: white; }
 
+/* Info Cards */
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 2rem;
+}
+
+.info-card {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+}
+
+.info-card .card-title {
+    background: var(--surface-color);
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.info-card .card-body {
+    padding: 0.75rem 1rem;
+    color: var(--text-secondary);
+}
+
 /* Feature Lists */
 .feature-list {
     list-style: none;

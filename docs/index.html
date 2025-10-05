@@ -191,6 +191,54 @@
                         <p style="margin-top:12px"><strong>Dispatch:</strong> CanHandle → Context → UserInputs → Seeder → Actions</p>
                     </div>
 
+                    <div class="resolution-section">
+                        <h2>Dynamic Value Resolution</h2>
+                        <div class="info-cards">
+                            <div class="info-card">
+                                <div class="card-title">$(key)</div>
+                                <div class="card-body">Replaced with the value from current context. Example: <code>$(customer_id)</code> → <em>12345</em>.</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="card-title">$config:section.key</div>
+                                <div class="card-body">Reads from config file defined in settings (<code>ConfigSystem.ConfigFilePath</code>/<code>SecretsFilePath</code>). Example: <code>$config:api_keys.jira_token</code>.</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="card-title">$func:</div>
+                                <div class="card-body">Evaluated by the function pipeline (regular and <code>$func:{{ ... | ... }}</code>). Supports <code>url.*</code>, <code>web.*</code>, <code>ip.*</code>, <code>json.*</code>, <code>string.*</code>, <code>math.*</code>, <code>array.*</code> and base functions.</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="card-title">$file:path</div>
+                                <div class="card-body">Loads file content and then proceeds with function/placeholder resolution on the loaded text.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dispatch-details">
+                        <h2>Dispatch Details</h2>
+                        <div class="info-cards">
+                            <div class="info-card">
+                                <div class="card-title">Resolution Order</div>
+                                <div class="card-body"><code>$file:</code> include → <code>$config:</code> lookup → <code>$func:</code> evaluation → <code>$(key)</code> placeholders.</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="card-title">constant_seeder vs seeder</div>
+                                <div class="card-body"><strong>constant_seeder</strong> merges raw constants first; <strong>seeder</strong> is resolved (functions/placeholders) and then merged.</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="card-title">Action Conditions</div>
+                                <div class="card-body">Each action can have <code>conditions</code>. They are evaluated (and/or, equals, contains, regex, etc.) against the current context; failing actions are skipped.</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="card-title">inner_actions</div>
+                                <div class="card-body">Actions can contain <code>inner_actions</code>. They execute after the parent action with the same context (including newly seeded values).</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="card-title">Output Formatting</div>
+                                <div class="card-body">If <code>output_format</code> is set, <code>_formatted_output</code> is rendered from context; otherwise falls back to <code>_self</code> (context JSON).</div>
+                            </div>
+                        </div>
+                    </div>
+
                     
 
                     <div class="functions-deep-dive">
