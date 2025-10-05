@@ -193,38 +193,6 @@
 
                     
 
-                    <div class="dispatch-deep-dive">
-                        <h2 id="dispatch-sub">Dispatch Deep Dive</h2>
-
-                        <h3>1) Confirmation Gate</h3>
-                        <p>If <code>requires_confirmation</code> is true, a confirmation dialog is shown via <code>IUserInteractionService.ShowConfirmationAsync</code>. Canceling stops execution.</p>
-
-                        <h3>2) User Input Navigation</h3>
-                        <p><code>HandlerContextProcessor.PromptUserInputsWithNavigation</code> presents inputs with Next/Back/Cancel flow. Supports dependencies via <code>dependent_key</code> and dynamic selection lists. Collected values are merged into context by input <code>key</code>.</p>
-
-                        <h3>3) Context Build & Seeding</h3>
-                        <ul>
-                            <li><code>constant_seeder</code> merged first; <code>seeder</code> resolved then merged.</li>
-                            <li><code>ReplaceDynamicValues</code> order: <code>$file:</code> include → <code>$config:section.key</code> lookup → <code>$func:</code> function processing → <code>$(key)</code> placeholders.</li>
-                            <li>Seeds <code>_self</code> (full context JSON) and ensures <code>_formatted_output</code> using handler <code>output_format</code> or defaults.</li>
-                        </ul>
-
-                        <h3>4) Function Evaluation (<code>$func:</code>)</h3>
-                        <p><code>FunctionProcessor</code> supports regular and pipeline functions with chaining. Families include: <code>url.*</code>, <code>web.*</code>, <code>ip.*</code>, <code>json.*</code>, <code>string.*</code>, <code>math.*</code>, <code>array.*</code>, and base functions (<code>today</code>, <code>now</code>, <code>guid</code>, <code>random</code>, <code>base64encode/decode</code>, <code>env</code>, <code>username</code>, <code>computername</code>).</p>
-
-                        <h3 id="conditions-sub">5) Condition Evaluation</h3>
-                        <p><code>ConditionEvaluator</code> supports nested <code>and</code>/<code>or</code> and operators: <code>equals</code>, <code>not_equals</code>, <code>greater_than</code>, <code>less_than</code>, <code>contains</code>, <code>starts_with</code>, <code>ends_with</code>, <code>matches_regex</code>, <code>is_empty</code>, <code>is_not_empty</code>. Values can reference context via <code>$(key)</code>.</p>
-
-                        <h3>6) Output Formatting</h3>
-                        <p>Formats <code>_formatted_output</code> with <code>output_format</code> and the current context (supports <code>$(key)</code> and <code>$func:</code>). Falls back to <code>_self</code> when no template provided.</p>
-
-                        <h3>7) Action Dispatch</h3>
-                        <p>Iterates actions and dispatches via <code>Dispatcher</code> using registered plugins: notifications, windows/tabs, clipboard operations, file/URL opening, etc.</p>
-
-                        <h3>8) Parallel Execution & Logging</h3>
-                        <p><code>HandlerManager</code> evaluates handlers in parallel and logs timing, results, and errors. User feedback is surfaced via the activity log and toasts.</p>
-                    </div>
-
                     <div class="functions-deep-dive">
                         <h2 id="functions-sub">Function Processor</h2>
                         <p>Supports regular (<code>$func:name(args)</code>) and pipeline (<code>$func:{{ value | fn(args) | fn2() }}</code>) functions with chaining.</p>
