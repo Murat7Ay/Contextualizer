@@ -138,3 +138,28 @@ docs/
 ### 📌 Next Suggestions (pending user direction)
 - Consolidate remaining HTML (handlers/examples) into single `index.html` sections.
 - Add screenshots and minimal UI wiring docs for `SettingsWindow` and `LoggingSettingsWindow` references.
+
+### 🖼 Image Placeholders & Replacement Notes
+When images are needed, we will use temporary placeholders and you can replace them later:
+
+- Installation structure screenshot
+  - Placeholder: `https://placehold.co/800x400?text=Installation+Structure`
+  - Target file to replace: `docs/assets/img/installation-structure.png`
+  - Replace with: Screenshot of `C:\\PortableApps\\Contextualizer` folder structure (showing `Config`, `Data/Exchange`, `Data/Installed`, `Data/Logs`, `Plugins`, `Temp`).
+
+- Exchange flow (Quick Start) diagram/screenshot
+  - Placeholder: `https://placehold.co/1000x450?text=Exchange+Flow`
+  - Target file to replace: `docs/assets/img/exchange-flow.png`
+  - Replace with: Visual of seeding `sample-regex-handler.json` and running the Hello handler.
+
+- Settings window
+  - Placeholder: `https://placehold.co/900x600?text=SettingsWindow`
+  - Target file to replace: `docs/assets/img/settings-window.png`
+  - Replace with: Screenshot of `SettingsWindow` (paths, shortcut, timing, config system, network updates).
+
+- Logging settings window
+  - Placeholder: `https://placehold.co/900x600?text=LoggingSettingsWindow`
+  - Target file to replace: `docs/assets/img/logging-settings-window.png`
+  - Replace with: Screenshot of `LoggingSettingsWindow` (local logging, analytics, log stats).
+
+Note: We will only insert these placeholders into `index.html` when/if we add a visual for the relevant section. Until then, this list tracks what to provide.
