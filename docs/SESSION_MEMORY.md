@@ -193,3 +193,8 @@ Next: Build Handlers section with concrete handler types and code references.
 
 ### ⚠ Notes & Warnings
 - "shared_view_folder" term not found in codebase. If we plan a shared HTML view folder for WebView2 screens, we can adopt the same technique used by `PlSqlEditor` (virtual host mapping) to serve local static assets and templates. If you confirm, we will add a small section in docs and wire a constant like `shared_webview_profile`/`shared_view_folder` into context and settings.
+
+## 🗓 Session Update (User Cleanup)
+- User manually removed handler example cards from Configuration; examples now live only under Handlers → Handler Type Details.
+- Overview links updated to point to per-type example anchors (e.g., #regex-example).
+- Pausing further edits; awaiting session restart as requested.
