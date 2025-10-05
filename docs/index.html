@@ -1344,338 +1344,612 @@ using (logger?.BeginScope("ClipboardProcessing", metadata))
                 <!-- Handlers Section -->
                 <section id="handlers" class="content-section">
                     <div class="section-header">
-                        <h1>İşleyiciler</h1>
-                        <p>Handler oluşturma ve yapılandırma için kapsamlı kılavuz</p>
+                        <h1>İşleyiciler (Handler Mimarisi)</h1>
+                        <p>Handler'ların teknik mimarisi, çalışma prensipleri ve implementasyon detayları</p>
                     </div>
-                    
-                    <div class="handler-types">
-                        <h2>İşleyici Tipleri Genel Bakış</h2>
-                        <div class="handler-grid">
-                            <div class="handler-card">
-                                <div class="handler-icon"><i class="fas fa-search"></i></div>
-                                <h3>Regex İşleyiciler</h3>
-                                <p>Regular expression kullanarak içeriği eşleştir</p>
-                                <a href="#regex-example" class="handler-link">Daha Fazla →</a>
-                            </div>
-                            
-                            <div class="handler-card">
-                                <div class="handler-icon"><i class="fas fa-globe"></i></div>
-                                <h3>API İşleyiciler</h3>
-                                <p>Harici API'lara içerik gönder</p>
-                                <a href="#api-example" class="handler-link">Daha Fazla →</a>
-                            </div>
-                            
-                            <div class="handler-card">
-                                <div class="handler-icon"><i class="fas fa-database"></i></div>
-                                <h3>Veritabanı İşleyiciler</h3>
-                                <p>Veritabanlarında veri sorgula ve sakla</p>
-                                <a href="#database-example" class="handler-link">Daha Fazla →</a>
-                            </div>
-                            
-                            <div class="handler-card">
-                                <div class="handler-icon"><i class="fas fa-file"></i></div>
-                                <h3>Dosya İşleyiciler</h3>
-                                <p>Dosya yollarını ve içeriğini işle</p>
-                                <a href="#file-example" class="handler-link">Daha Fazla →</a>
-                            </div>
-                            
-                            <div class="handler-card">
-                                <div class="handler-icon"><i class="fas fa-clock"></i></div>
-                                <h3>Zamanlı İşleyiciler</h3>
-                                <p>Otomatik görevleri zamanla</p>
-                                <a href="#cron-example" class="handler-link">Daha Fazla →</a>
-                            </div>
-                            
-                            <div class="handler-card">
-                                <div class="handler-icon"><i class="fas fa-code"></i></div>
-                                <h3>Özel İşleyiciler</h3>
-                                <p>Kendi handler mantığınızı oluşturun</p>
-                                <a href="#custom-example" class="handler-link">Daha Fazla →</a>
-                            </div>
-                            <div class="handler-card">
-                                <div class="handler-icon"><i class="fas fa-list"></i></div>
-                                <h3>Arama İşleyiciler</h3>
-                                <p>Girişleri dosyalardan değerlere eşle</p>
-                                <a href="#lookup-example" class="handler-link">Daha Fazla →</a>
-                            </div>
-                            <div class="handler-card">
-                                <div class="handler-icon"><i class="fas fa-project-diagram"></i></div>
-                                <h3>Sentetik İşleyiciler</h3>
-                                <p>Diğer handler'ları orkestre et veya referans ver</p>
-                                <a href="#synthetic-example" class="handler-link">Daha Fazla →</a>
-                            </div>
-                            <div class="handler-card">
-                                <div class="handler-icon"><i class="fas fa-hand-pointer"></i></div>
-                                <h3>Manuel İşleyiciler</h3>
-                                <p>Eşleştirme olmadan talep üzerine tetikle</p>
-                                <a href="#manual-example" class="handler-link">Daha Fazla →</a>
-                            </div>
+
+                    <div class="architecture-overview">
+                        <h2>Mimari Genel Bakış</h2>
+                        <p>Tüm handler'lar <code>IHandler</code> interface'ini implement eder ve <code>Dispatch</code> abstract base class'ından türer. Handler'lar <code>HandlerFactory</code> tarafından oluşturulur, <code>HandlerManager</code> tarafından yönetilir ve <code>Dispatcher</code> tarafından execute edilir.</p>
+                        
+                        <div class="info-box">
+                            <h3><i class="fas fa-code"></i> Core Interfaces & Base Class</h3>
+                            <ul class="feature-list">
+                                <li><strong>IHandler:</strong> <code>CanHandle(ClipboardContent)</code>, <code>Execute(ClipboardContent)</code>, <code>HandlerConfig</code> property</li>
+                                <li><strong>Dispatch (Abstract Base):</strong> Template method pattern; <code>CanHandleAsync</code>, <code>CreateContextAsync</code>, <code>GetActions</code> abstract metodları</li>
+                                <li><strong>ITriggerableHandler:</strong> Manuel tetiklenebilir handler'lar için marker interface (Manual, Synthetic, Cron)</li>
+                                <li><strong>ISyntheticContent:</strong> Synthetic handler'lar için kullanıcı input'u ile clipboard content oluşturma</li>
+                                <li><strong>IDisposable:</strong> Resource cleanup için (ApiHandler, SyntheticHandler, CronHandler)</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-box">
+                            <h3><i class="fas fa-cogs"></i> Handler Lifecycle</h3>
+                            <p><strong>1. Oluşturma:</strong> HandlerFactory.Create() → Constructor (config parsing, regex compilation, connection init)</p>
+                            <p><strong>2. Kayıt:</strong> HandlerManager._handlers listesine eklenir (Manual handler'lar ayrı _manualHandlers listesinde)</p>
+                            <p><strong>3. Eşleştirme:</strong> Dispatcher.ExecuteHandlers() → foreach handler → CanHandle() → true ise Execute()</p>
+                            <p><strong>4. Çalıştırma:</strong> Dispatch.Execute() → CreateContext → MergeSeeder → Conditions → RequiresConfirmation → UserInputs → ActionService.ExecuteActions</p>
+                            <p><strong>5. Temizlik:</strong> IDisposable handler'lar dispose edilir (app shutdown veya handler reload)</p>
                         </div>
                     </div>
-                    
                     <div class="common-properties">
-                        <h2>Ortak Handler Özellikleri</h2>
+                        <h2>Ortak Handler Özellikleri (HandlerConfig)</h2>
+                        <p>Tüm handler'ların kullandığı temel JSON configuration properties:</p>
                         <div class="properties-table">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Özellik</th>
+                                        <th>Property</th>
                                         <th>Tip</th>
                                         <th>Gerekli</th>
                                         <th>Açıklama</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td><code>name</code></td>
-                                        <td>string</td>
-                                        <td>✅</td>
-                                        <td>Handler için benzersiz tanımlayıcı</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>description</code></td>
-                                        <td>string</td>
-                                        <td>❌</td>
-                                        <td>İnsan tarafından okunabilir açıklama</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>type</code></td>
-                                        <td>string</td>
-                                        <td>✅</td>
-                                        <td>Handler tipi (regex, api, database, vb.)</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>actions</code></td>
-                                        <td>array</td>
-                                        <td>✅</td>
-                                        <td>Handler eşleştiğinde çalıştırılacak aksiyonlar</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>auto_focus_tab</code></td>
-                                        <td>boolean</td>
-                                        <td>❌</td>
-                                        <td>Yeni sekmelere odaklan (varsayılan: false)</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>bring_window_to_front</code></td>
-                                        <td>boolean</td>
-                                        <td>❌</td>
-                                        <td>Pencereyi ön plana getir (varsayılan: false)</td>
-                                    </tr>
+                                    <tr><td><code>name</code></td><td>string</td><td>✅</td><td>Handler için benzersiz identifier; HandlerManager.GetHandlerByName() ile erişim</td></tr>
+                                    <tr><td><code>type</code></td><td>string</td><td>✅</td><td>Handler tipi: "regex", "api", "database", "file", "lookup", "custom", "synthetic", "cron", "manual"</td></tr>
+                                    <tr><td><code>description</code></td><td>string</td><td>❌</td><td>İnsan tarafından okunabilir açıklama; UI'da gösterilir</td></tr>
+                                    <tr><td><code>title</code></td><td>string</td><td>❌</td><td>Sekme/pencere başlığı; dynamic value resolution destekler</td></tr>
+                                    <tr><td><code>actions</code></td><td>array</td><td>✅</td><td>ConfigAction listesi; ActionService.ExecuteActions() ile çalıştırılır</td></tr>
+                                    <tr><td><code>screen_id</code></td><td>string</td><td>❌</td><td>IDynamicScreen implementasyonu: "markdown2", "url_viewer", "plsql_editor", "json_formatter", "xml_formatter"</td></tr>
+                                    <tr><td><code>output_format</code></td><td>string</td><td>❌</td><td>Output template; <code>$(key)</code> placeholders context'ten çözümlenir; <code>_formatted_output</code> context key'ine yazılır</td></tr>
+                                    <tr><td><code>auto_focus_tab</code></td><td>bool</td><td>❌</td><td>Yeni sekmeyi aktif yap (default: false); false ise arka planda sessiz açılır (önerilen)</td></tr>
+                                    <tr><td><code>bring_window_to_front</code></td><td>bool</td><td>❌</td><td>MainWindow'u ön plana getir (default: false); dikkatli kullanın, workflow kesintisi yaratır</td></tr>
+                                    <tr><td><code>requires_confirmation</code></td><td>bool</td><td>❌</td><td>Action execution öncesi kullanıcı onayı iste (default: false); IUserInteractionService.ShowConfirmation()</td></tr>
+                                    <tr><td><code>seeder</code></td><td>object</td><td>❌</td><td>Dynamic value'lar içerebilir (<code>$func:</code>, <code>$file:</code>, <code>$config:</code>); HandlerContextProcessor ile çözümlenir, context'e merge edilir</td></tr>
+                                    <tr><td><code>constant_seeder</code></td><td>object</td><td>❌</td><td>Static key-value pairs; direkt context'e eklenir (no processing); Manual handler için kritik</td></tr>
+                                    <tr><td><code>user_inputs</code></td><td>array</td><td>❌</td><td>UserInputRequest listesi; context'ten sonra, action'lardan önce çalıştırılır; kullanıcıdan additional data ister</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
+                    
+                    <div class="handler-types">
+                        <h2>İşleyici Tipleri Hızlı Erişim</h2>
+                        <div class="handler-grid">
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-search"></i></div>
+                                <h3><a href="#regex-handler">Regex Handler</a></h3>
+                                <p>Text pattern matching; en temel handler</p>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-globe"></i></div>
+                                <h3><a href="#api-handler">API Handler</a></h3>
+                                <p>HTTP/HTTPS requests; JSON response flattening</p>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-database"></i></div>
+                                <h3><a href="#database-handler">Database Handler</a></h3>
+                                <p>SQL queries; MSSQL/Oracle support</p>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-file"></i></div>
+                                <h3><a href="#file-handler">File Handler</a></h3>
+                                <p>File metadata extraction; 25+ properties</p>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-list"></i></div>
+                                <h3><a href="#lookup-handler">Lookup Handler</a></h3>
+                                <p>Key-value mapping; delimiter-separated files</p>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-code"></i></div>
+                                <h3><a href="#custom-handler">Custom Handler</a></h3>
+                                <p>Plugin-based validation & context creation</p>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-project-diagram"></i></div>
+                                <h3><a href="#synthetic-handler">Synthetic Handler</a></h3>
+                                <p>Meta-handler; wraps/references other handlers</p>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-clock"></i></div>
+                                <h3><a href="#cron-handler">Cron Handler</a></h3>
+                                <p>Scheduled tasks; cron expressions</p>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-hand-pointer"></i></div>
+                                <h3><a href="#manual-handler">Manual Handler</a></h3>
+                                <p>Always triggerable; no clipboard matching</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="handler-details">
-                        <h2>İşleyici Tipi Detayları</h2>
-                        <a id="api-example"></a>
-                        <h3>API Handler</h3>
-                        <p>HTTP/HTTPS API çağrıları yapan handler. İsteğe bağlı regex eşleştirmesi, dinamik URL/header/body çözümlemesi ve JSON yanıt düzlendirme desteği sunar.</p>
-                        <div class="properties-table">
-                            <table>
-                                <thead><tr><th>Davranış</th><th>Detaylar</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Base Class</td><td>Dispatch sınıfından türer, IHandler ve IDisposable implement eder</td></tr>
-                                    <tr><td>Regex (Optional)</td><td>Compile edilir (5s timeout, ReDoS koruması); named ve indexed group desteği; <code>_match</code> ve <code>group_*</code> context'e eklenir</td></tr>
-                                    <tr><td>HttpClient</td><td>SocketsHttpHandler ile optimize edilmiş: MaxConnectionsPerServer=10, PooledConnectionLifetime=15dk, PooledConnectionIdleTimeout=5dk, Keep-Alive destekli</td></tr>
-                                    <tr><td>Request Build</td><td><code>url</code> dinamik çözümlemeden sonra kullanılır; <code>method</code> varsayılan GET; <code>headers</code> eklenir; <code>request_body</code> (JsonElement) placeholder/function ile çözümlenir</td></tr>
-                                    <tr><td>Response Processing</td><td><code>StatusCode</code>, <code>IsSuccessful</code>, <code>RawResponse</code> eklenir; JSON yanıtlar recursive olarak flatten edilir (örn: <code>data.items[0].id</code>)</td></tr>
-                                    <tr><td>Timeouts</td><td><code>timeout_seconds</code> (default 30s); regex match timeout 5s</td></tr>
-                                    <tr><td>Error Handling</td><td>Regex timeout, invalid input ve HTTP request hataları yakalanır; errors context'e eklenir</td></tr>
-                                    <tr><td>Performance</td><td>Regex compiled ve cached; connection pooling; JSON streaming parse</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="ui-card">
-                            <h4>Example JSON</h4>
-                            <div class="code-block"><pre><code class="language-json">{
-  "name": "GitHub User Info",
-  "type": "api",
-  "description": "Fetches GitHub user information by username",
-  "regex": "^[a-zA-Z0-9-]{1,39}$",
-  "url": "https://api.github.com/users/$(_match)",
-  "method": "GET",
-  "headers": {
-    "Accept": "application/vnd.github+json",
-    "User-Agent": "Contextualizer"
-  },
-  "timeout_seconds": 10,
-  "screen_id": "markdown2",
-  "actions": [
-    { "name": "show_window", "key": "_formatted_output" }
-  ],
-  "output_format": "# $(login)\\n\\n**Name:** $(name)\\n**Bio:** $(bio)\\n**Public Repos:** $(public_repos)"
-}</code></pre></div>
-                        </div>
+                        <h2>Handler Detaylı İncelemeler</h2>
+                        <p>Her handler'ın teknik mimarisi, implementation detayları ve kullanım örnekleri.</p>
 
-                        <h3>Database Handler</h3>
-                        <a id="database-example"></a>
-                        <p>SQL veritabanlarına güvenli, sadece-okuma sorguları çalıştıran handler. Parametrik sorgu desteği, regex eşleştirme ve otomatik markdown tablo oluşturma sunar.</p>
-                        <div class="properties-table">
-                            <table>
-                                <thead><tr><th>Davranış</th><th>Detaylar</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Base Class</td><td>Dispatch sınıfından türer, IHandler implement eder</td></tr>
-                                    <tr><td>Safety First</td><td>Sadece <code>SELECT</code> sorgularına izin verilir; <code>INSERT/UPDATE/DELETE/DROP/ALTER/EXEC</code> ve <code>xp_/sp_</code> yasaklı; SQL injection koruması için parametre uzunluğu 4000 karakter ile sınırlı</td></tr>
-                                    <tr><td>Regex Parameters</td><td>İsteğe bağlı regex (5s timeout); <code>p_input</code> (ham giriş), <code>p_match</code> (eşleşme), grup isimleri veya <code>p_group_i</code> parametreleri oluşturur; MAX_AUTO_GROUPS=20 sınırı</td></tr>
-                                    <tr><td>Database Connectors</td><td><code>connector</code>: "mssql" (Microsoft SQL Server, @ parametreleri) veya "plsql" (Oracle, : parametreleri); ConnectionManager üzerinden connection pooling</td></tr>
-                                    <tr><td>Query Execution</td><td>Dapper ile async query; <code>command_timeout_seconds</code> (default 30s); DynamicParameters ile güvenli parametre binding</td></tr>
-                                    <tr><td>Result Processing</td><td><code>_count</code> (satır sayısı) ve <code>ColumnName#RowNumber</code> formatında context keys; boş sonuç uyarı gösterir</td></tr>
-                                    <tr><td>Output Format</td><td><code>output_format</code> varsa kullanılır; yoksa <code>GenerateMarkdownTable</code> ile otomatik markdown tablo oluşturulur</td></tr>
-                                    <tr><td>Connection String</td><td>Dynamic value resolution destekler (<code>$config:</code> ile secrets okunabilir)</td></tr>
-                                    <tr><td>Error Handling</td><td>Regex timeout, invalid SQL, connection errors yakalanır; verbose hata mesajları</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="ui-card">
-                            <h4>Example JSON</h4>
-                            <div class="code-block"><pre><code class="language-json">{
-  "name": "Customer Lookup by ID",
-  "type": "database",
-  "description": "Queries customer information by ID from SQL Server",
-  "regex": "^\\d{1,10}$",
-  "connector": "mssql",
-  "connection_string": "$config:database.customer_db",
-  "query": "SELECT CustomerID, FirstName, LastName, Email, Phone FROM Customers WHERE CustomerID = @p_match",
-  "command_timeout_seconds": 15,
-  "screen_id": "markdown2",
-  "actions": [
-    { "name": "show_window", "key": "_formatted_output" }
-  ],
-  "output_format": "# Customer: $(FirstName#1) $(LastName#1)\\n\\n**Email:** $(Email#1)\\n**Phone:** $(Phone#1)"
-}</code></pre></div>
-                        </div>
+                        <!-- REGEX HANDLER -->
+                        <a id="regex-handler"></a>
+                        <div class="handler-detail-section">
+                            <h3><i class="fas fa-search"></i> Regex Handler</h3>
+                            <p class="handler-description">En temel handler türü. Regex pattern ile clipboard text'i eşleştirir, named/indexed group'ları yakalar ve context'e ekler.</p>
+                            
+                            <div class="info-box">
+                                <h4>📐 Teknik Mimari</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Base:</strong> <code>Dispatch</code> abstract class</li>
+                                    <li><strong>Interfaces:</strong> <code>IHandler</code></li>
+                                    <li><strong>Constructor:</strong> <code>new Regex(pattern, RegexOptions.Compiled | CultureInvariant, TimeSpan.FromSeconds(5))</code> ile regex compile edilir</li>
+                                    <li><strong>CanHandle:</strong> <code>_compiledRegex.IsMatch(clipboardContent.Text)</code> → boolean</li>
+                                    <li><strong>CreateContext:</strong> <code>_compiledRegex.Match()</code> → full match + groups extraction</li>
+                                </ul>
+                            </div>
 
-                        <h3>File Handler</h3>
-                        <a id="file-example"></a>
-                        <p>Dosya yollarını panoda yakalayan ve kapsamlı dosya metadatası sağlayan handler. Uzantı filtreleme ve çoklu dosya desteği sunar.</p>
-                        <div class="properties-table">
-                            <table>
-                                <thead><tr><th>Davranış</th><th>Detaylar</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Base Class</td><td>Dispatch sınıfından türer, IHandler implement eder</td></tr>
-                                    <tr><td>File Detection</td><td><code>ClipboardContent.IsFile</code> ve <code>Files</code> array kontrolü; pre-validation tüm dosyalar için yapılır</td></tr>
-                                    <tr><td>Extension Filtering</td><td><code>file_extensions</code> listesi ile izin verilen uzantılar; case-insensitive karşılaştırma; tüm dosyalar geçerli uzantıya sahip olmalı</td></tr>
-                                    <tr><td>File Properties (25+ property)</td><td>Her dosya için index suffix ile (<code>FileName0</code>, <code>FullPath0</code>, ...); FileInfo.Exists kontrolü ve hata yönetimi</td></tr>
-                                    <tr><td>Basic Info</td><td><code>FileName#</code>, <code>FullPath#</code>, <code>Extension#</code>, <code>SizeBytes#</code>, <code>DirectoryPath#</code>, <code>DirectoryObject#</code></td></tr>
-                                    <tr><td>Timestamps</td><td><code>CreationDate#</code>, <code>CreationDateUtc#</code>, <code>LastAccess#</code>, <code>LastAccessUtc#</code>, <code>LastWrite#</code>, <code>LastWriteUtc#</code></td></tr>
-                                    <tr><td>File Attributes</td><td><code>ReadOnly#</code>, <code>Hidden#</code>, <code>System#</code>, <code>Archive#</code>, <code>Compressed#</code>, <code>Temporary#</code>, <code>Offline#</code>, <code>Encrypted#</code>, <code>DirectoryOnly#</code>, <code>ReparsePoint#</code>, <code>Sparse#</code>, <code>Device#</code>, <code>Normal#</code></td></tr>
-                                    <tr><td>Context Keys</td><td><code>_count</code> (dosya sayısı); <code>_error</code> (hata durumunda)</td></tr>
-                                    <tr><td>Multi-file Support</td><td>Tüm dosyalar tek context'te işlenir; capacity pre-allocated (performance)</td></tr>
-                                    <tr><td>Error Handling</td><td>File not found, access denied ve diğer IO errors yakalanır; her dosya için ayrı error tracking</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="ui-card">
-                            <h4>Example JSON</h4>
-                            <div class="code-block"><pre><code class="language-json">{
-  "name": "PDF File Info",
-  "type": "file",
-  "description": "Shows detailed information about PDF files",
-  "file_extensions": [".pdf", ".PDF"],
-  "screen_id": "markdown2",
-  "actions": [
-    { "name": "show_window", "key": "_formatted_output" }
-  ],
-  "output_format": "# File Information\\n\\n**Name:** $(FileName0)\\n**Size:** $(SizeBytes0) bytes\\n**Path:** $(FullPath0)\\n**Created:** $(CreationDate0)\\n**Modified:** $(LastWrite0)\\n**Read-Only:** $(ReadOnly0)"
-}</code></pre></div>
-                        </div>
+                            <div class="info-box">
+                                <h4>⚙️ İşleyiş Detayları</h4>
+                                <p><strong>1. İnitializasyon (Constructor):</strong></p>
+                                <ul class="feature-list">
+                                    <li>Regex pattern compile edilir → <code>_compiledRegex</code> field'ına atanır</li>
+                                    <li><code>RegexOptions.Compiled</code>: İlk çalışmada IL'e dönüştürülür, sonraki kullanımlar hızlıdır</li>
+                                    <li><code>TimeSpan.FromSeconds(5)</code>: ReDoS (Regular Expression Denial of Service) saldırılarına karşı koruma</li>
+                                    <li>Invalid regex → <code>ArgumentException</code> throw edilir, UserFeedback.ShowError() ile loglenir</li>
+                                </ul>
 
-                        <h3>Lookup Handler</h3>
-                        <a id="lookup-example"></a>
-                        <p>Delimiter ile ayrılmış dosyalardan key-value data yükleyen ve clipboard içeriğini key olarak eşleştiren handler. CSV, TSV gibi basit lookup tablolarını destekler.</p>
-                        <div class="properties-table">
-                             <table>
-                                 <thead><tr><th>Davranış</th><th>Detaylar</th></tr></thead>
-                                 <tbody>
-                                     <tr><td>Base Class</td><td>Dispatch sınıfından türer, IHandler implement eder</td></tr>
-                                     <tr><td>File Loading</td><td>Constructor'da <code>LoadData()</code> ile dosya okunur; <code>path</code> dynamic value resolution ile çözümlenir (<code>$config:</code> destekli); ReadOnlyDictionary ile thread-safe storage</td></tr>
-                                     <tr><td>Line Processing</td><td>Satırlar <code>delimiter</code> ile split edilir; comment satırları (#) ve boş satırlar atlanır; <code>{{NEWLINE}}</code> → <code>Environment.NewLine</code> dönüşümü</td></tr>
-                                     <tr><td>Schema Definition</td><td><code>key_names</code>: Dictionary key olarak kullanılacak sütunlar; <code>value_names</code>: Tüm sütun isimleri (values dictionary'ye eklenir)</td></tr>
-                                     <tr><td>Dictionary Structure</td><td><code>Dictionary&lt;string, IReadOnlyDictionary&lt;string, string&gt;&gt;</code>; her key için tüm value fields saklanır</td></tr>
-                                     <tr><td>Matching Logic</td><td><code>CanHandle</code>: Clipboard text dictionary key'lerinde varsa true; <code>CreateContext</code>: Eşleşen satırın tüm değerleri context'e kopyalanır</td></tr>
-                                     <tr><td>Error Handling</td><td>File not found, access denied, invalid line format hataları yakalanır; detaylı logging (processed/skipped line counts)</td></tr>
-                                     <tr><td>Performance</td><td>Data constructor'da yüklenir ve cache'lenir; O(1) key lookup; ReadOnlyDictionary ile immutable</td></tr>
-                                 </tbody>
-                             </table>
-                         </div>
-                        <div class="ui-card">
-                            <h4>Example JSON</h4>
-                            <div class="code-block"><pre><code class="language-json">{
-  "name": "Country Code Lookup",
-  "type": "lookup",
-  "description": "Maps country codes to full country names",
-  "path": "$config:data.country_codes_file",
-  "delimiter": ",",
-  "key_names": ["code"],
-  "value_names": ["code", "name", "capital", "currency"],
-  "screen_id": "markdown2",
-  "actions": [
-    { "name": "show_window", "key": "_formatted_output" }
-  ],
-  "output_format": "# $(name)\\n\\n**Code:** $(code)\\n**Capital:** $(capital)\\n**Currency:** $(currency)"
-}</code></pre></div>
-                        </div>
+                                <p><strong>2. CanHandle Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>clipboardContent?.Text == null</code> check → false</li>
+                                    <li><code>_compiledRegex.IsMatch(text)</code> → hızlı boolean check (full match gerekmez)</li>
+                                    <li><code>RegexMatchTimeoutException</code> yakalanır → false döner, warning log</li>
+                                </ul>
 
-                        <h3>Regex Handler</h3>
-                        <a id="regex-example"></a>
-                        <p>Regex pattern'i ile clipboard text'i eşleştiren en temel handler. Named ve indexed group yakalama, ReDoS koruması ve performans optimizasyonu içerir.</p>
-                        <div class="properties-table">
-                            <table>
-                                <thead><tr><th>Davranış</th><th>Detaylar</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Base Class</td><td>Dispatch sınıfından türer, IHandler implement eder</td></tr>
-                                    <tr><td>Regex Compilation</td><td>Constructor'da compile edilir; <code>RegexOptions.Compiled | RegexOptions.CultureInvariant</code>; 5 saniyelik timeout (ReDoS saldırılarına karşı koruma)</td></tr>
-                                    <tr><td>Matching</td><td><code>CanHandle</code>: <code>_compiledRegex.IsMatch()</code> ile hızlı check; <code>CreateContext</code>: <code>Match</code> objesi ile full match ve groups</td></tr>
-                                    <tr><td>Context Keys</td><td><code>_input</code>: Ham clipboard text; <code>_match</code>: Full match value; <code>_error</code>: Hata mesajı (eşleşme yoksa)</td></tr>
-                                    <tr><td>Named Groups</td><td><code>HandlerConfig.Groups</code> varsa: İlk önce named group aranır, yoksa indexed group kullanılır; custom group names context'e eklenir</td></tr>
-                                    <tr><td>Indexed Groups</td><td><code>Groups</code> yoksa: Otomatik <code>group_1</code>, <code>group_2</code>, ... keys oluşturulur; Group[0] (full match) atlanır</td></tr>
-                                    <tr><td>Error Handling</td><td>Invalid regex pattern (constructor'da throw), regex match timeout, argument exceptions yakalanır; verbose error messages</td></tr>
-                                    <tr><td>Performance</td><td>Regex compiled ve cached; timeout prevents infinite loops; early return on CanHandle failure</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="ui-card">
-                            <h4>Example JSON</h4>
-                            <div class="code-block"><pre><code class="language-json">{
-  "name": "Email Extractor",
+                                <p><strong>3. CreateContext Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>_input</code> key'i clipboard text ile doldurulur</li>
+                                    <li><code>var match = _compiledRegex.Match(input)</code> → Match objesi elde edilir</li>
+                                    <li><code>match.Success</code> ise: <code>_match</code> key'i full match value ile doldurulur</li>
+                                    <li><strong>Named Groups:</strong> <code>HandlerConfig.Groups</code> varsa → ilk önce named group aranır (<code>match.Groups[groupName].Success</code>), yoksa indexed group kullanılır (<code>match.Groups[i+1]</code>)</li>
+                                    <li><strong>Indexed Groups:</strong> <code>Groups</code> yoksa → otomatik <code>group_1</code>, <code>group_2</code>, ... keys oluşturulur (<code>Groups[0]</code> full match olduğu için atlanır)</li>
+                                    <li><code>match.Success == false</code> → <code>_error</code> key'i "Regex pattern did not match the input" ile doldurulur</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🚀 Performans & Optimizasyon</h4>
+                                <ul class="feature-list">
+                                    <li><code>Regex.Compiled</code>: IL code generation → 10-20x hız artışı</li>
+                                    <li>Regex instance tek sefer oluşturulur, her kullanımda reuse edilir</li>
+                                    <li>5s timeout: Infinite loop (catastrophic backtracking) önlenir</li>
+                                    <li>Early return: <code>CanHandle</code> false ise <code>CreateContext</code> çağrılmaz</li>
+                                </ul>
+                            </div>
+
+                            <div class="ui-card">
+                                <h4>💻 JSON Örneği: Email Parser</h4>
+                                <div class="code-block"><pre><code class="language-json">{
+  "name": "Email Parser",
   "type": "regex",
-  "description": "Extracts email addresses with named groups",
+  "description": "Extracts username, domain and TLD from email addresses",
   "regex": "(?&lt;username&gt;[a-zA-Z0-9._%+-]+)@(?&lt;domain&gt;[a-zA-Z0-9.-]+)\\.(?&lt;tld&gt;[a-zA-Z]{2,})",
   "groups": ["username", "domain", "tld"],
   "screen_id": "markdown2",
   "actions": [
     { "name": "show_window", "key": "_formatted_output" }
   ],
-  "output_format": "# Email Found\\n\\n**Username:** $(username)\\n**Domain:** $(domain).$(tld)\\n**Full:** $(_match)"
+  "output_format": "# Email Analizi\\n\\n**Kullanıcı Adı:** $(username)\\n**Domain:** $(domain)\\n**TLD:** $(tld)\\n**Tam Email:** $(_match)"
 }</code></pre></div>
+                            </div>
                         </div>
 
-                        <h3>Custom Handler</h3>
-                        <a id="custom-example"></a>
-                        <p>Validation ve context oluşturmayı plugin'lere devreden handler. Özel iş mantığı için IContextValidator ve IContextProvider implementasyonları kullanır.</p>
-                        <div class="properties-table">
-                            <table>
-                                <thead><tr><th>Davranış</th><th>Detaylar</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Base Class</td><td>Dispatch sınıfından türer, IHandler implement eder</td></tr>
-                                    <tr><td>Plugin Architecture</td><td>Constructor'da <code>IActionService</code> üzerinden validator ve context provider plugin'leri yüklenir ve cache'lenir (performance)</td></tr>
-                                    <tr><td>Validator Plugin</td><td><code>IContextValidator.Validate(ClipboardContent, HandlerConfig)</code> metodu <code>CanHandle</code> logic'i için kullanılır; <code>validator</code> config key'i ile plugin ismi belirtilir</td></tr>
-                                    <tr><td>Context Provider Plugin</td><td><code>IContextProvider.CreateContext(ClipboardContent, HandlerConfig)</code> metodu context dictionary oluşturmak için kullanılır; <code>context_provider</code> config key'i ile plugin ismi belirtilir</td></tr>
-                                    <tr><td>Validation Chain</td><td>Early return pattern ile performans: clipboard content check → validator configured check → validator available check → validator execute</td></tr>
-                                    <tr><td>Error Handling</td><td>Plugin not found errors constructor'da ve runtime'da yakalanır; missing/null plugins için detaylı hata mesajları</td></tr>
-                                    <tr><td>Plugin Discovery</td><td>ActionService plugin'leri Plugins directory'den dinamik olarak yükler; ServiceLocator pattern kullanır</td></tr>
-                                    <tr><td>Use Cases</td><td>XML/JSON validation, binary content parsing, complex business rules, external system integration</td></tr>
-                                </tbody>
-                            </table>
+                        <!-- DATABASE HANDLER -->
+                        <a id="database-handler"></a>
+                        <div class="handler-detail-section">
+                            <h3><i class="fas fa-database"></i> Database Handler</h3>
+                            <p class="handler-description">SQL veritabanlarına güvenli, read-only sorguları çalıştıran handler. MSSQL ve Oracle desteği, parametrik sorgular ve otomatik markdown tablo oluşturma.</p>
+                            
+                            <div class="info-box">
+                                <h4>📐 Teknik Mimari</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Base:</strong> <code>Dispatch</code> abstract class</li>
+                                    <li><strong>Interfaces:</strong> <code>IHandler</code></li>
+                                    <li><strong>Constructor:</strong> İsteğe bağlı regex compile edilir (ReDoS protection), parameters/resultSet dictionaries initialize edilir</li>
+                                    <li><strong>CanHandle:</strong> Safety check (SELECT only) + Regex match + Parameter extraction</li>
+                                    <li><strong>CreateContext:</strong> Database connection → Dapper QueryAsync → Result flattening → Dictionary[ColumnName#RowNumber]</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>⚙️ İşleyiş Detayları</h4>
+                                <p><strong>1. İnitializasyon (Constructor):</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>HandlerConfig.Regex</code> varsa → <code>_optionalRegex</code> compile edilir (5s timeout, ReDoS protection)</li>
+                                    <li><code>parameters</code> ve <code>resultSet</code> dictionaries boş olarak oluşturulur</li>
+                                </ul>
+
+                                <p><strong>2. CanHandle Logic (Multi-step Validation):</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>!clipboardContent.IsText</code> → false</li>
+                                    <li><code>string.IsNullOrEmpty(Query/ConnectionString/Connector)</code> → false</li>
+                                    <li><strong>SQL Safety Check:</strong> <code>IsSafeSqlQuery()</code> → query must start with "SELECT", forbidden keywords: INSERT, UPDATE, DELETE, DROP, ALTER, EXEC, TRUNCATE, MERGE, GRANT, REVOKE, SHUTDOWN, --, /*, xp_, sp_, semicolon</li>
+                                    <li><strong>Regex Processing (if configured):</strong>
+                                        <ul>
+                                            <li><code>_optionalRegex.IsMatch()</code> → false ise return false</li>
+                                            <li><code>var match = _optionalRegex.Match(input)</code></li>
+                                            <li><code>parameters["p_input"]</code> = truncated input (MAX_PARAMETER_LENGTH = 4000 char, SQL varchar limit)</li>
+                                            <li><code>parameters["p_match"]</code> = full match value (truncated if > 4000)</li>
+                                            <li><strong>Named Groups:</strong> <code>HandlerConfig.Groups</code> varsa → named/indexed group extraction → <code>parameters[groupName]</code></li>
+                                            <li><strong>Auto Groups:</strong> <code>Groups</code> yoksa → <code>parameters["p_group_1"]</code>, ... (MAX_AUTO_GROUPS = 20 limit)</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>No Regex:</strong> Sadece <code>parameters["p_input"]</code> = clipboard text (truncated)</li>
+                                </ul>
+
+                                <p><strong>3. CreateContext Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><strong>Connection Creation:</strong> <code>CreateConnection()</code> → <code>ConnectionManager.CreateConnection()</code> → Connection pooling managed</li>
+                                    <li><strong>Dynamic Connection String:</strong> <code>HandlerContextProcessor.ReplaceDynamicValues()</code> → <code>$config:</code> patterns çözümlenir (secrets.ini'den okunabilir)</li>
+                                    <li><strong>Parameter Building:</strong> <code>CreateDynamicParameters()</code> → <code>GetParameterAlias()</code> (mssql: "@", plsql: ":") → DynamicParameters objesi oluşturulur</li>
+                                    <li><strong>Query Execution:</strong> <code>await connection.QueryAsync(query, dynamicParameters, commandTimeout)</code> → Dapper ile async execution</li>
+                                    <li><strong>Command Timeout:</strong> <code>HandlerConfig.CommandTimeoutSeconds ?? 30</code> (default 30s)</li>
+                                    <li><strong>Result Processing:</strong>
+                                        <ul>
+                                            <li><code>resultSet[ContextKey._count]</code> = row count</li>
+                                            <li>Her satır için: <code>resultSet["ColumnName#RowNumber"]</code> = value</li>
+                                            <li>Row numbering: 1-based (RowNumber = 1, 2, 3, ...)</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>Empty Result:</strong> <code>rowCount == 0</code> → UserFeedback.ShowWarning() ile parametreler JSON olarak gösterilir</li>
+                                </ul>
+
+                                <p><strong>4. Output Format:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>output_format</code> belirtilmişse → <code>Dispatch.Execute()</code> tarafından kullanılır</li>
+                                    <li><code>output_format</code> yoksa → <code>GenerateMarkdownTable(resultSet)</code> otomatik markdown tablo oluşturur</li>
+                                    <li>Markdown table: headers, separator, rows formatında → <code>_formatted_output</code> key'ine yazılır</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🔒 Güvenlik</h4>
+                                <ul class="feature-list">
+                                    <li><strong>SQL Injection Koruması:</strong> Dapper ile parametrik sorgular, manuel string concatenation yok</li>
+                                    <li><strong>Read-Only:</strong> Sadece SELECT sorgularına izin verilir, destructive operations yasaklı</li>
+                                    <li><strong>Parameter Length Limit:</strong> 4000 char (SQL varchar limit), truncation ile SQL errors önlenir</li>
+                                    <li><strong>Connection Pooling:</strong> ConnectionManager ile managed, connection leak önlenir</li>
+                                </ul>
+                            </div>
+
+                            <div class="ui-card">
+                                <h4>💻 JSON Örneği: Employee Lookup</h4>
+                                <div class="code-block"><pre><code class="language-json">{
+  "name": "Employee Lookup by ID",
+  "type": "database",
+  "description": "Queries employee information from HR database",
+  "regex": "^EMP\\d{6}$",
+  "groups": ["emp_id"],
+  "connector": "mssql",
+  "connection_string": "$config:database.hr_connection",
+  "query": "SELECT EmployeeID, FirstName, LastName, Department, Email, Phone FROM Employees WHERE EmployeeID = @p_match",
+  "command_timeout_seconds": 15,
+  "screen_id": "markdown2",
+  "actions": [
+    { "name": "show_window", "key": "_formatted_output" }
+  ],
+  "output_format": "# Employee: $(FirstName#1) $(LastName#1)\\n\\n**ID:** $(EmployeeID#1)\\n**Department:** $(Department#1)\\n**Email:** $(Email#1)\\n**Phone:** $(Phone#1)"
+}</code></pre></div>
+                            </div>
                         </div>
-                        <div class="ui-card">
-                            <h4>Example JSON</h4>
-                            <div class="code-block"><pre><code class="language-json">{
+
+                        <!-- FILE HANDLER -->
+                        <a id="file-handler"></a>
+                        <div class="handler-detail-section">
+                            <h3><i class="fas fa-file"></i> File Handler</h3>
+                            <p class="handler-description">Clipboard'a kopyalanan dosya yollarını yakalayan ve 25+ metadata property sunan handler. Multi-file support, extension filtering ve comprehensive file info extraction.</p>
+                            
+                            <div class="info-box">
+                                <h4>📐 Teknik Mimari</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Base:</strong> <code>Dispatch</code> abstract class</li>
+                                    <li><strong>Interfaces:</strong> <code>IHandler</code></li>
+                                    <li><strong>Constructor:</strong> Minimal initialization (no heavy operations)</li>
+                                    <li><strong>CanHandle:</strong> <code>ClipboardContent.IsFile</code> check → Pre-validation all files → Extension matching</li>
+                                    <li><strong>CreateContext:</strong> Foreach file → <code>GetFullFileInfoDictionary()</code> → FileInfo properties extraction → Index-based keys</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>⚙️ İşleyiş Detayları</h4>
+                                <p><strong>1. CanHandle Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>!clipboardContent.IsFile || !clipboardContent.Files.Any()</code> → false</li>
+                                    <li><strong>Pre-validation Loop:</strong> Tüm dosyalar için <code>GetFullFileInfoDictionary()</code> çağrılır
+                                        <ul>
+                                            <li>File not found check → <code>NotFound</code> key varsa return false</li>
+                                            <li>Extension check → <code>FileExtensions</code> listesinde case-insensitive arama</li>
+                                            <li><strong>Tüm dosyalar geçerli olmalı:</strong> Bir dosya bile uymazsa handler çalışmaz</li>
+                                        </ul>
+                                    </li>
+                                    <li>Exception handling → false döner, debug log yazılır</li>
+                                </ul>
+
+                                <p><strong>2. CreateContext Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><strong>Capacity Pre-allocation:</strong> <code>new Dictionary(files.Length * 25 + 1)</code> → Performance optimization, reallocation önlenir</li>
+                                    <li><strong>File Processing Loop:</strong>
+                                        <ul>
+                                            <li>Her dosya için: <code>GetFullFileInfoDictionary(filePath, fileIndex)</code></li>
+                                            <li>Index: 0-based (first file = 0, second = 1, ...)</li>
+                                            <li>Tüm properties context'e eklenir (25+ keys per file)</li>
+                                        </ul>
+                                    </li>
+                                    <li><code>context[ContextKey._count]</code> = total file count</li>
+                                    <li>Exception handling → <code>_error</code> key ile empty context döner</li>
+                                </ul>
+
+                                <p><strong>3. GetFullFileInfoDictionary() Details:</strong></p>
+                                <ul class="feature-list">
+                                    <li><strong>File.Exists Check:</strong> Yoksa <code>NotFound</code> key ile return</li>
+                                    <li><strong>FileInfo Object:</strong> <code>new FileInfo(filePath)</code> → metadata extraction</li>
+                                    <li><strong>Basic Info (6 keys):</strong> FileName#, FullPath#, Extension#, SizeBytes#, DirectoryPath#, DirectoryObject#</li>
+                                    <li><strong>Timestamps (6 keys):</strong> CreationDate#, CreationDateUtc#, LastAccess#, LastAccessUtc#, LastWrite#, LastWriteUtc#</li>
+                                    <li><strong>File Attributes (13 keys):</strong> ReadOnly#, Exists#, Hidden#, System#, Archive#, Compressed#, Temporary#, Offline#, Encrypted#, DirectoryOnly#, ReparsePoint#, Sparse#, Device#, Normal#</li>
+                                    <li><strong>Attribute Check:</strong> <code>fileInfo.Attributes.HasFlag(FileAttributes.XXX)</code> → boolean string</li>
+                                    <li>Exception handling → <code>NotFound</code> + <code>_error</code> keys ile return</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🚀 Performans</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Dictionary Capacity:</strong> Pre-allocated ile memory reallocation önlenir</li>
+                                    <li><strong>Single FileInfo Object:</strong> Her dosya için tek bir FileInfo instance, multiple property access cached</li>
+                                    <li><strong>Early Return:</strong> CanHandle'da ilk invalid file'da return, gereksiz processing önlenir</li>
+                                    <li><strong>Multi-file Batching:</strong> Tüm dosyalar tek context'te, multiple handler execution yok</li>
+                                </ul>
+                            </div>
+
+                            <div class="ui-card">
+                                <h4>💻 JSON Örneği: Document File Info</h4>
+                                <div class="code-block"><pre><code class="language-json">{
+  "name": "Document File Info",
+  "type": "file",
+  "description": "Shows detailed information about document files",
+  "file_extensions": [".pdf", ".docx", ".xlsx", ".pptx"],
+  "screen_id": "markdown2",
+  "actions": [
+    { "name": "show_window", "key": "_formatted_output" }
+  ],
+  "output_format": "# Dosya Bilgisi\\n\\n**Ad:** $(FileName0)\\n**Boyut:** $(SizeBytes0) bytes\\n**Yol:** $(FullPath0)\\n**Oluşturulma:** $(CreationDate0)\\n**Son Değişiklik:** $(LastWrite0)\\n**Salt Okunur:** $(ReadOnly0)\\n**Gizli:** $(Hidden0)"
+}</code></pre></div>
+                            </div>
+                        </div>
+
+                        <!-- LOOKUP HANDLER -->
+                        <a id="lookup-handler"></a>
+                        <div class="handler-detail-section">
+                            <h3><i class="fas fa-list"></i> Lookup Handler</h3>
+                            <p class="handler-description">Delimiter-separated file'lardan key-value data yükleyip O(1) lookup yapan handler. CSV/TSV benzeri data files için ideal. Thread-safe, immutable data structure.</p>
+                            
+                            <div class="info-box">
+                                <h4>📐 Teknik Mimari</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Base:</strong> <code>Dispatch</code> abstract class</li>
+                                    <li><strong>Interfaces:</strong> <code>IHandler</code></li>
+                                    <li><strong>Constructor:</strong> <code>LoadData()</code> → File read → Line parsing → <code>ReadOnlyDictionary&lt;string, IReadOnlyDictionary&lt;string, string&gt;&gt;</code></li>
+                                    <li><strong>CanHandle:</strong> <code>_data.ContainsKey(clipboardContent.Text)</code> → O(1) lookup</li>
+                                    <li><strong>CreateContext:</strong> <code>_data[key]</code> → Matched row's all values copied to context</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>⚙️ İşleyiş Detayları</h4>
+                                <p><strong>1. LoadData() - Constructor'da Çağrılır:</strong></p>
+                                <ul class="feature-list">
+                                    <li><strong>Path Resolution:</strong> <code>HandlerContextProcessor.ReplaceDynamicValues(path)</code> → <code>$config:</code> patterns çözümlenir</li>
+                                    <li><strong>File.Exists Check:</strong> Yoksa empty ReadOnlyDictionary döner, UserFeedback.ShowError()</li>
+                                    <li><strong>StreamReader:</strong> Line-by-line okuma (memory efficient)</li>
+                                    <li><strong>Line Filtering:</strong> Empty lines ve # ile başlayan comment lines atlanır</li>
+                                    <li><strong>ProcessLine():</strong> Her geçerli satır için çağrılır</li>
+                                    <li><strong>Statistics:</strong> processedLines ve skippedLines sayıları UserFeedback.ShowActivity() ile loglan</li>
+                                    <li><strong>Thread Safety:</strong> <code>ReadOnlyDictionary</code> wrapper → immutable, multi-threaded access safe</li>
+                                </ul>
+
+                                <p><strong>2. ProcessLine() Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>line.Split(delimiter, StringSplitOptions.None)</code> → parts array</li>
+                                    <li><strong>Column Count Check:</strong> <code>parts.Length != value_names.Count</code> → return false (invalid format)</li>
+                                    <li><strong>Newline Replacement:</strong> <code>{{NEWLINE}}</code> → <code>Environment.NewLine</code> (multi-line values için)</li>
+                                    <li><strong>Values Dictionary:</strong> <code>value_names[i]</code> → <code>parts[i]</code> mapping</li>
+                                    <li><strong>Multiple Keys:</strong> <code>key_names</code> listesindeki her key için <code>data[keyValue] = values</code></li>
+                                    <li>Aynı satır birden fazla key ile erişilebilir (örn: TR ve TUR → same country data)</li>
+                                </ul>
+
+                                <p><strong>3. CanHandle & CreateContext:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>CanHandle</code>: <code>_data.ContainsKey(clipboardText)</code> → O(1) hash lookup</li>
+                                    <li><code>CreateContext</code>: <code>_data.TryGetValue()</code> → matched row dictionary</li>
+                                    <li>Matched row'un tüm value fields context'e kopyalanır</li>
+                                    <li><code>_input</code> key'i clipboard text ile eklenir</li>
+                                    <li>Key not found → <code>_error</code> key ile "Lookup key not found" message</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🚀 Performans</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Constructor Load:</strong> Data tek sefer yüklenir, her handler execution'da reuse edilir</li>
+                                    <li><strong>O(1) Lookup:</strong> Dictionary hash-based key lookup → constant time</li>
+                                    <li><strong>Immutable:</strong> ReadOnlyDictionary → thread-safe, no locking overhead</li>
+                                    <li><strong>StreamReader:</strong> Line-by-line read → large files için memory efficient</li>
+                                </ul>
+                            </div>
+
+                            <div class="ui-card">
+                                <h4>💻 JSON Örneği + Data File</h4>
+                                <p><strong>Handler JSON:</strong></p>
+                                <div class="code-block"><pre><code class="language-json">{
+  "name": "Employee Badge Lookup",
+  "type": "lookup",
+  "description": "Maps employee badge numbers to contact info",
+  "path": "C:\\Data\\employees.csv",
+  "delimiter": ",",
+  "key_names": ["badge", "email"],
+  "value_names": ["badge", "name", "department", "email", "phone"],
+  "screen_id": "markdown2",
+  "actions": [
+    { "name": "show_window", "key": "_formatted_output" }
+  ],
+  "output_format": "# $(name)\\n\\n**Badge:** $(badge)\\n**Department:** $(department)\\n**Email:** $(email)\\n**Phone:** $(phone)"
+}</code></pre></div>
+                                <p><strong>employees.csv:</strong></p>
+                                <div class="code-block"><pre><code class="language-csv"># Employee Data
+12345,John Doe,Engineering,john.doe@company.com,+1-555-0100
+67890,Jane Smith,HR,jane.smith@company.com,+1-555-0200
+# Badge, Name, Department, Email, Phone</code></pre></div>
+                            </div>
+                        </div>
+
+                        <!-- API HANDLER -->
+                        <a id="api-handler"></a>
+                        <div class="handler-detail-section">
+                            <h3><i class="fas fa-globe"></i> API Handler</h3>
+                            <p class="handler-description">HTTP/HTTPS requests yapan handler. Optional regex matching, JSON response flattening, connection pooling ve optimized HttpClient. RESTAPI'ler için ideal.</p>
+                            
+                            <div class="info-box">
+                                <h4>📐 Teknik Mimari</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Base:</strong> <code>Dispatch</code> abstract class</li>
+                                    <li><strong>Interfaces:</strong> <code>IHandler</code>, <code>IDisposable</code></li>
+                                    <li><strong>Constructor:</strong> <code>CreateOptimizedHttpClient()</code> → SocketsHttpHandler ile connection pooling + optional regex compilation</li>
+                                    <li><strong>CanHandle:</strong> Optional regex check (varsa) veya always true</li>
+                                    <li><strong>CreateContext:</strong> Regex groups → Dynamic URL resolution → HttpClient.SendAsync → JSON response flattening</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>⚙️ İşleyiş Detayları</h4>
+                                <p><strong>1. HttpClient Optimization (Constructor):</strong></p>
+                                <ul class="feature-list">
+                                    <li><strong>SocketsHttpHandler:</strong> <code>MaxConnectionsPerServer=10</code>, <code>PooledConnectionLifetime=15min</code>, <code>PooledConnectionIdleTimeout=5min</code></li>
+                                    <li><strong>Keep-Alive:</strong> <code>DefaultRequestHeaders.ConnectionClose = false</code>, <code>Keep-Alive: timeout=300, max=1000</code></li>
+                                    <li><strong>Timeout:</strong> <code>HandlerConfig.TimeoutSeconds ?? 30</code> seconds</li>
+                                    <li><strong>Custom Headers:</strong> <code>HandlerConfig.Headers</code> → DefaultRequestHeaders'a eklenir</li>
+                                    <li><strong>Connection Pooling:</strong> Long-running app için optimize edilmiş, connection reuse</li>
+                                </ul>
+
+                                <p><strong>2. CanHandle Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>!clipboardContent.IsText || string.IsNullOrWhiteSpace(Text)</code> → false</li>
+                                    <li><strong>Optional Regex:</strong> <code>HandlerConfig.Regex</code> varsa → <code>_optionalRegex.IsMatch()</code> (5s timeout)</li>
+                                    <li>Regex yoksa → always true (tüm text'leri kabul eder)</li>
+                                </ul>
+
+                                <p><strong>3. CreateContext Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><strong>Optional Regex Processing:</strong> Varsa → <code>_match</code>, named/indexed groups context'e eklenir (Regex Handler ile aynı logic)</li>
+                                    <li><strong>URL Resolution:</strong> <code>HandlerContextProcessor.ReplaceDynamicValues(url, context)</code> → <code>$(key)</code>, <code>$func:</code>, <code>$config:</code> patterns çözümlenir</li>
+                                    <li><strong>Request Building:</strong>
+                                        <ul>
+                                            <li><code>new HttpRequestMessage(method ?? "GET", url)</code></li>
+                                            <li><code>request_body</code> (JsonElement) varsa → <code>GetRawText()</code> → dynamic value resolution → StringContent</li>
+                                            <li><code>content_type</code> default "application/json"</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>HTTP Request:</strong> <code>await _httpClient.SendAsync(request)</code></li>
+                                    <li><strong>Response Context Keys:</strong>
+                                        <ul>
+                                            <li><code>StatusCode</code> = (int)response.StatusCode</li>
+                                            <li><code>IsSuccessful</code> = response.IsSuccessStatusCode (boolean)</li>
+                                            <li><code>RawResponse</code> = full response body string</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>JSON Flattening:</strong>
+                                        <ul>
+                                            <li>ContentType "application/json" ise → <code>JsonDocument.Parse()</code></li>
+                                            <li><code>FlattenJsonToContext()</code> → Recursive flattening</li>
+                                            <li>Objects: <code>property.Name</code> → <code>parent.child</code> keys</li>
+                                            <li>Arrays: <code>[index]</code> → <code>items[0].id</code>, <code>items[1].id</code>, ...</li>
+                                            <li>Primitives: Direct string value</li>
+                                        </ul>
+                                    </li>
+                                    <li>JSON parse error → <code>JsonParseError</code> key eklenir, raw response preserved</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🔄 Resource Management</h4>
+                                <ul class="feature-list">
+                                    <li><strong>IDisposable:</strong> <code>_httpClient.Dispose()</code> app shutdown'da çağrılır</li>
+                                    <li><strong>Finalizer:</strong> <code>~ApiHandler()</code> → Dispose(false) güvenlik ağı</li>
+                                    <li><strong>Connection Pooling:</strong> SocketsHttpHandler automatic connection reuse</li>
+                                </ul>
+                            </div>
+
+                            <div class="ui-card">
+                                <h4>💻 JSON Örneği: REST API Call</h4>
+                                <div class="code-block"><pre><code class="language-json">{
+  "name": "GitHub Repo Info",
+  "type": "api",
+  "description": "Fetches repository information from GitHub API",
+  "regex": "^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$",
+  "groups": ["owner", "repo"],
+  "url": "https://api.github.com/repos/$(_match)",
+  "method": "GET",
+  "headers": {
+    "Accept": "application/vnd.github.v3+json",
+    "User-Agent": "Contextualizer/1.0"
+  },
+  "timeout_seconds": 15,
+  "screen_id": "markdown2",
+  "actions": [
+    { "name": "show_window", "key": "_formatted_output" }
+  ],
+  "output_format": "# $(full_name)\\n\\n**Description:** $(description)\\n**Stars:** $(stargazers_count)\\n**Forks:** $(forks_count)\\n**Language:** $(language)"
+}</code></pre></div>
+                            </div>
+                        </div>
+
+                        <!-- CUSTOM HANDLER -->
+                        <a id="custom-handler"></a>
+                        <div class="handler-detail-section">
+                            <h3><i class="fas fa-code"></i> Custom Handler</h3>
+                            <p class="handler-description">Plugin-based validation ve context creation. IContextValidator ve IContextProvider ile custom logic implementasyonu. XML/JSON validation, complex business rules için ideal.</p>
+                            
+                            <div class="info-box">
+                                <h4>📐 Teknik Mimari</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Base:</strong> <code>Dispatch</code> abstract class</li>
+                                    <li><strong>Interfaces:</strong> <code>IHandler</code></li>
+                                    <li><strong>Constructor:</strong> <code>ServiceLocator.Get&lt;IActionService&gt;()</code> → Plugin caching (<code>_cachedValidator</code>, <code>_cachedContextProvider</code>)</li>
+                                    <li><strong>CanHandle:</strong> <code>_cachedValidator.Validate(clipboardContent, HandlerConfig)</code> → Plugin-defined logic</li>
+                                    <li><strong>CreateContext:</strong> <code>_cachedContextProvider.CreateContext(clipboardContent, HandlerConfig)</code> → Plugin-defined logic</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>⚙️ İşleyiş Detayları</h4>
+                                <p><strong>1. Plugin Loading (Constructor):</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>IActionService</code> ServiceLocator'dan alınır</li>
+                                    <li><strong>Validator Cache:</strong> <code>_actionService.GetContextValidator(handlerConfig.Validator)</code> → <code>_cachedValidator</code></li>
+                                    <li><strong>Provider Cache:</strong> <code>_actionService.GetContextProvider(handlerConfig.ContextProvider)</code> → <code>_cachedContextProvider</code></li>
+                                    <li>Plugin not found → <code>UserFeedback.ShowError()</code>, null cached (runtime'da check edilir)</li>
+                                    <li><strong>Performance:</strong> Plugin'ler constructor'da yüklenir, her execution'da reuse edilir</li>
+                                </ul>
+
+                                <p><strong>2. CanHandle Validation Chain:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>IsValidClipboardContent()</code> → ClipboardContent null/Success check → false ise return</li>
+                                    <li><code>IsValidatorConfigured()</code> → <code>HandlerConfig.Validator</code> empty check → false ise return</li>
+                                    <li><code>IsValidatorAvailable()</code> → <code>_cachedValidator == null</code> check → false ise return</li>
+                                    <li><code>await _cachedValidator.Validate(clipboardContent, HandlerConfig)</code> → Plugin-defined validation logic</li>
+                                    <li><strong>Early Return Pattern:</strong> Her adımda fail olursa sonraki adımlar atlanır (performance)</li>
+                                </ul>
+
+                                <p><strong>3. CreateContext Provider Chain:</strong></p>
+                                <ul class="feature-list">
+                                    <li>Aynı validation chain pattern (IsValidClipboardContent, IsContextProviderConfigured, IsContextProviderAvailable)</li>
+                                    <li><code>await _cachedContextProvider.CreateContext(clipboardContent, HandlerConfig)</code> → Plugin-defined context logic</li>
+                                    <li>Exception handling → <code>UserFeedback.ShowError()</code>, empty dictionary return</li>
+                                </ul>
+                            </div>
+
+                            <div class="ui-card">
+                                <h4>💻 JSON Örneği: JSON Validator</h4>
+                                <div class="code-block"><pre><code class="language-json">{
   "name": "JSON Handler",
   "type": "custom",
-  "description": "Validates and processes JSON content using plugins",
+  "description": "Validates and formats JSON clipboard content",
   "validator": "json_content_validator",
   "context_provider": "json_context_provider",
   "screen_id": "json_formatter",
@@ -1683,118 +1957,262 @@ using (logger?.BeginScope("ClipboardProcessing", metadata))
     { "name": "show_window", "key": "_self" }
   ]
 }</code></pre></div>
+                            </div>
                         </div>
 
-                        <h3>Synthetic Handler</h3>
-                        <a id="synthetic-example"></a>
-                        <p>Meta-handler pattern: başka handler'ları wrap eder veya referans eder, kullanıcı input'u ile synthetic clipboard content oluşturabilir. ITriggerableHandler ve ISyntheticContent implement eder.</p>
-                        <div class="properties-table">
-                            <table>
-                                <thead><tr><th>Davranış</th><th>Detaylar</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Base Class</td><td>Dispatch sınıfından türer, IHandler, ITriggerableHandler, ISyntheticContent ve IDisposable implement eder</td></tr>
-                                    <tr><td>Always CanHandle</td><td><code>CanHandleAsync</code> her zaman true döner; clipboard matching gerektirmez</td></tr>
-                                    <tr><td>ActualType Mode</td><td><code>actual_type</code> belirtilirse: HandlerFactory ile internal handler oluşturulur (constructor'da); config'in type'ı actual_type'a değiştirilir; Execute delegated to _actualHandler</td></tr>
-                                    <tr><td>ReferenceHandler Mode</td><td><code>reference_handler</code> belirtilirse: Execute sırasında HandlerManager'dan mevcut handler bulunur ve execute edilir</td></tr>
-                                    <tr><td>Synthetic Content</td><td><code>CreateSyntheticContent(UserInputRequest)</code>: Kullanıcıdan input alır; IsFilePicker durumunda file path döner, yoksa text döner; ClipboardContent objesi oluşturur</td></tr>
-                                    <tr><td>Execution Flow</td><td>3 senaryo: 1) _actualHandler varsa execute et, 2) reference_handler varsa bul ve execute et, 3) yoksa base Dispatch.Execute çağır</td></tr>
-                                    <tr><td>Disposal</td><td>_actualHandler IDisposable ise dispose edilir; resource cleanup pattern</td></tr>
-                                    <tr><td>Use Cases</td><td>Manual trigger buttons, user prompted handlers, handler chaining, clipboard-less operations</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="ui-card">
-                            <h4>Example JSON (ActualType)</h4>
-                            <div class="code-block"><pre><code class="language-json">{
-  "name": "Quick Note",
+                        <!-- SYNTHETIC HANDLER -->
+                        <a id="synthetic-handler"></a>
+                        <div class="handler-detail-section">
+                            <h3><i class="fas fa-project-diagram"></i> Synthetic Handler</h3>
+                            <p class="handler-description">Meta-handler pattern. Diğer handler'ları wrap eder veya reference eder, kullanıcı input'u ile synthetic clipboard content oluşturur. Clipboard-less operations için ideal.</p>
+                            
+                            <div class="info-box">
+                                <h4>📐 Teknik Mimari</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Base:</strong> <code>Dispatch</code> abstract class</li>
+                                    <li><strong>Interfaces:</strong> <code>IHandler</code>, <code>ITriggerableHandler</code>, <code>ISyntheticContent</code>, <code>IDisposable</code></li>
+                                    <li><strong>Constructor:</strong> <code>actual_type</code> varsa → <code>HandlerFactory.Create()</code> ile <code>_actualHandler</code> oluşturulur</li>
+                                    <li><strong>CanHandle:</strong> Always true (clipboard matching yok)</li>
+                                    <li><strong>Execute:</strong> 3 mode: ActualType, ReferenceHandler, Fallback</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>⚙️ İşleyiş Detayları</h4>
+                                <p><strong>1. Constructor - Internal Handler Creation:</strong></p>
+                                <ul class="feature-list">
+                                    <li><strong>ActualType Mode:</strong> <code>handlerConfig.ActualType</code> varsa → config.Type = actualType → <code>HandlerFactory.Create()</code> → <code>_actualHandler</code></li>
+                                    <li>HandlerFactory tüm handler tiplerini destekler (regex, api, database, file, lookup, custom, manual)</li>
+                                    <li>Factory creation fail → <code>UserFeedback.ShowWarning()</code>, <code>_actualHandler = null</code></li>
+                                </ul>
+
+                                <p><strong>2. Execute() - 3 Execution Modes:</strong></p>
+                                <ul class="feature-list">
+                                    <li><strong>Mode 1 - ActualType:</strong>
+                                        <ul>
+                                            <li><code>_actualHandler != null</code> ise → <code>await _actualHandler.Execute(clipboardContent)</code></li>
+                                            <li>Embedded handler execution, complete isolation</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>Mode 2 - ReferenceHandler:</strong>
+                                        <ul>
+                                            <li><code>HandlerConfig.ReferenceHandler</code> varsa → <code>ServiceLocator.Get&lt;HandlerManager&gt;()</code></li>
+                                            <li><code>handlerManager.GetHandlerByName(referenceHandler)</code> → existing handler bulunur</li>
+                                            <li><code>await referenceHandler.Execute(clipboardContent)</code> → shared handler execution</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>Mode 3 - Fallback:</strong>
+                                        <ul>
+                                            <li>Ne actualType ne referenceHandler → <code>await base.Execute(clipboardContent)</code></li>
+                                            <li>Normal Dispatch flow (empty context + actions)</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+
+                                <p><strong>3. CreateSyntheticContent() - User Input:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>IUserInteractionService.GetUserInput(UserInputRequest)</code> → kullanıcıdan input alınır</li>
+                                    <li><strong>IsFilePicker=true:</strong> <code>ClipboardContent.IsFile=true</code>, <code>Files=[userInput]</code></li>
+                                    <li><strong>IsFilePicker=false:</strong> <code>ClipboardContent.IsText=true</code>, <code>Text=userInput</code></li>
+                                    <li>Null/empty input → <code>Success=false</code> ClipboardContent</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🔄 Resource Management</h4>
+                                <ul class="feature-list">
+                                    <li><strong>IDisposable:</strong> <code>_actualHandler</code> IDisposable ise dispose edilir</li>
+                                    <li>Dispose pattern: <code>Dispose(bool disposing)</code>, <code>~SyntheticHandler()</code> finalizer</li>
+                                </ul>
+                            </div>
+
+                            <div class="ui-card">
+                                <h4>💻 JSON Örneği: User Prompted Handler</h4>
+                                <div class="code-block"><pre><code class="language-json">{
+  "name": "Quick SQL Query",
   "type": "synthetic",
-  "description": "Opens a markdown viewer with user input",
-  "actual_type": "regex",
-  "regex": ".*",
-  "screen_id": "markdown2",
-  "synthetic_input": {
-    "key": "note_content",
-    "title": "Quick Note",
-    "message": "Enter your note:",
-    "is_multi_line": true
-  },
-  "actions": [
-    { "name": "show_window", "key": "_input" }
-  ]
-}</code></pre></div>
-                        </div>
-
-                        <h3>Cron Handler</h3>
-                        <a id="cron-example"></a>
-                        <p>Zamanlı task scheduler handler. SyntheticHandler'dan türer ve cron expression ile belirtilen zamanlarda actual handler'ı otomatik execute eder.</p>
-                        <div class="properties-table">
-                            <table>
-                                <thead><tr><th>Davranış</th><th>Detaylar</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Base Class</td><td>SyntheticHandler'dan türer (dolayısıyla Dispatch, IHandler, ITriggerableHandler, ISyntheticContent, IDisposable)</td></tr>
-                                    <tr><td>Cron Registration</td><td>Constructor'da <code>RegisterCronJob()</code> çağrılır; <code>ICronService</code> üzerinden job schedule edilir; <code>cron_expression</code> mandatory</td></tr>
-                                    <tr><td>Job ID</td><td><code>cron_job_id</code> varsa kullanılır; yoksa <code>cron_{name}</code> otomatik generate edilir (spaces → underscores, lowercase)</td></tr>
-                                    <tr><td>Actual Handler Config</td><td><code>CreateActualHandlerConfig()</code>: Tüm properties copy edilir (regex, database, api vb.); actual_type ile yeni config oluşturulur</td></tr>
-                                    <tr><td>Scheduling</td><td><code>CronService.ScheduleJob(jobId, expression, config, timezone)</code>; başarılı olursa success feedback</td></tr>
-                                    <tr><td>Manual Execution</td><td><code>ExecuteNow()</code>: CronService.TriggerJob ile manuel tetikleme; test ve debugging için</td></tr>
-                                    <tr><td>Enable/Disable</td><td><code>SetEnabled(bool)</code>: CronService.SetJobEnabled ile job aktif/pasif; runtime control</td></tr>
-                                    <tr><td>Timezone Support</td><td><code>cron_timezone</code> ile timezone belirtilebilir; UTC varsayılan</td></tr>
-                                    <tr><td>Error Handling</td><td>Registration, execution ve state change errors yakalanır; verbose logging</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="ui-card">
-                            <h4>Example JSON</h4>
-                            <div class="code-block"><pre><code class="language-json">{
-  "name": "Daily Report",
-  "type": "cron",
-  "description": "Generates daily sales report at 9 AM",
-  "cron_job_id": "daily_sales_report",
-  "cron_expression": "0 0 9 * * ?",
-  "cron_timezone": "Europe/Istanbul",
+  "description": "Execute SQL query with user input",
   "actual_type": "database",
   "connector": "mssql",
-  "connection_string": "$config:database.sales_db",
-  "query": "SELECT * FROM SalesSummary WHERE SaleDate = CAST(GETDATE() AS DATE)",
+  "connection_string": "$config:database.main_db",
+  "query": "SELECT * FROM Users WHERE UserId = @p_input",
+  "synthetic_input": {
+    "key": "user_id",
+    "title": "User Lookup",
+    "message": "Enter User ID:",
+    "is_multi_line": false
+  },
   "screen_id": "markdown2",
   "actions": [
     { "name": "show_window", "key": "_formatted_output" }
   ]
 }</code></pre></div>
+                            </div>
                         </div>
 
-                        <h3>Manual Handler</h3>
-                        <a id="manual-example"></a>
-                        <p>En basit triggerable handler. Clipboard matching yapmaz, her zaman çalışmaya hazırdır. UI button'ları ve manuel komutlar için ideal.</p>
-                        <div class="properties-table">
-                            <table>
-                                <thead><tr><th>Davranış</th><th>Detaylar</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Base Class</td><td>Dispatch sınıfından türer, IHandler ve ITriggerableHandler implement eder</td></tr>
-                                    <tr><td>Always CanHandle</td><td><code>CanHandleAsync</code> her zaman true döner; hiçbir validation yapmaz</td></tr>
-                                    <tr><td>Empty Context</td><td><code>CreateContextAsync</code> boş dictionary döner; context tamamen seeder'lardan gelir</td></tr>
-                                    <tr><td>ITriggerableHandler</td><td>HandlerManager tarafından <code>_manualHandlers</code> listesinde ayrı tutulur; normal clipboard flow'a dahil değil</td></tr>
-                                    <tr><td>Use Cases</td><td>Documentation links, settings shortcuts, utility commands, quick actions, menu items</td></tr>
-                                    <tr><td>Seeder Dependency</td><td>Tüm data <code>constant_seeder</code> ve <code>seeder</code> ile sağlanmalı; clipboard input yok</td></tr>
-                                    <tr><td>Minimal Code</td><td>En az kod içeren handler; sadece action execution odaklı</td></tr>
-                                </tbody>
-                            </table>
+                        <!-- CRON HANDLER -->
+                        <a id="cron-handler"></a>
+                        <div class="handler-detail-section">
+                            <h3><i class="fas fa-clock"></i> Cron Handler</h3>
+                            <p class="handler-description">Scheduled task execution. SyntheticHandler'dan türer, cron expression ile belirtilen zamanlarda actual handler'ı otomatik execute eder. Recurring tasks için ideal.</p>
+                            
+                            <div class="info-box">
+                                <h4>📐 Teknik Mimari</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Base:</strong> <code>SyntheticHandler</code> (dolayısıyla Dispatch, IHandler, ITriggerableHandler, ISyntheticContent, IDisposable)</li>
+                                    <li><strong>Constructor:</strong> <code>RegisterCronJob()</code> → <code>ICronService.ScheduleJob()</code> ile job schedule edilir</li>
+                                    <li><strong>Scheduling:</strong> Cron expression parsing + timezone support + automatic execution</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>⚙️ İşleyiş Detayları</h4>
+                                <p><strong>1. Constructor - Job Registration:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>HandlerConfig.CronExpression</code> null check → yoksa <code>UserFeedback.ShowWarning()</code></li>
+                                    <li><code>RegisterCronJob()</code> çağrılır:
+                                        <ul>
+                                            <li><code>ServiceLocator.Get&lt;ICronService&gt;()</code> → CronScheduler instance</li>
+                                            <li><strong>Job ID Generation:</strong> <code>cron_job_id</code> varsa kullanılır, yoksa <code>cron_{name_lowercase_underscored}</code></li>
+                                            <li><code>CreateActualHandlerConfig()</code> → Tüm handler properties copy edilir (regex, url, query, vb.)</li>
+                                            <li><code>cronService.ScheduleJob(jobId, expression, actualConfig, timezone)</code></li>
+                                        </ul>
+                                    </li>
+                                    <li>Success → <code>UserFeedback.ShowSuccess()</code>, Fail → <code>UserFeedback.ShowError()</code></li>
+                                </ul>
+
+                                <p><strong>2. CreateActualHandlerConfig() - Property Copy:</strong></p>
+                                <ul class="feature-list">
+                                    <li>Yeni <code>HandlerConfig</code> objesi oluşturulur</li>
+                                    <li><strong>Copied Properties:</strong> Name, Description, Title, ScreenId, OutputFormat, Actions, Seeder, ConstantSeeder, UserInputs, RequiresConfirmation</li>
+                                    <li><strong>Handler-Specific:</strong> Regex, Groups, ConnectionString, Query, Connector, Url, Method, Headers, RequestBody, Path, Delimiter, KeyNames, ValueNames, FileExtensions, Validator, ContextProvider</li>
+                                    <li><strong>Synthetic Props:</strong> ReferenceHandler, ActualType, SyntheticInput</li>
+                                    <li><code>Type = ActualType ?? "synthetic"</code></li>
+                                </ul>
+
+                                <p><strong>3. Runtime Controls:</strong></p>
+                                <ul class="feature-list">
+                                    <li><strong>ExecuteNow():</strong> <code>cronService.TriggerJob(jobId)</code> → Manuel tetikleme, test/debug için</li>
+                                    <li><strong>SetEnabled(bool):</strong> <code>cronService.SetJobEnabled(jobId, enabled)</code> → Runtime'da job aktif/pasif</li>
+                                    <li>Her iki metod da <code>UserFeedback</code> ile status bildirimi yapar</li>
+                                </ul>
+
+                                <p><strong>4. Timezone Support:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>cron_timezone</code> property ile timezone belirtilebilir (örn: "Europe/Istanbul", "America/New_York")</li>
+                                    <li>Belirtilmezse UTC kullanılır</li>
+                                    <li>CronScheduler timezone conversion handle eder</li>
+                                </ul>
+                            </div>
+
+                            <div class="ui-card">
+                                <h4>💻 JSON Örneği: Daily Database Report</h4>
+                                <div class="code-block"><pre><code class="language-json">{
+  "name": "Morning Sales Report",
+  "type": "cron",
+  "description": "Generates sales report every morning at 9 AM",
+  "cron_job_id": "morning_sales_report",
+  "cron_expression": "0 0 9 * * ?",
+  "cron_timezone": "Europe/Istanbul",
+  "actual_type": "database",
+  "connector": "mssql",
+  "connection_string": "$config:database.sales_db",
+  "query": "SELECT ProductName, SUM(Quantity) as TotalSold, SUM(Revenue) as TotalRevenue FROM DailySales WHERE SaleDate = CAST(GETDATE() AS DATE) GROUP BY ProductName",
+  "screen_id": "markdown2",
+  "bring_window_to_front": true,
+  "actions": [
+    { "name": "show_window", "key": "_formatted_output" }
+  ]
+}</code></pre></div>
+                            </div>
                         </div>
-                        <div class="ui-card">
-                            <h4>Example JSON</h4>
-                            <div class="code-block"><pre><code class="language-json">{
-  "name": "Open Documentation",
+
+                        <!-- MANUAL HANDLER -->
+                        <a id="manual-handler"></a>
+                        <div class="handler-detail-section">
+                            <h3><i class="fas fa-hand-pointer"></i> Manual Handler</h3>
+                            <p class="handler-description">En basit handler türü. Always triggerable, clipboard matching yok, minimal code. UI buttons, shortcuts, menu items için ideal.</p>
+                            
+                            <div class="info-box">
+                                <h4>📐 Teknik Mimari</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Base:</strong> <code>Dispatch</code> abstract class</li>
+                                    <li><strong>Interfaces:</strong> <code>IHandler</code>, <code>ITriggerableHandler</code></li>
+                                    <li><strong>CanHandle:</strong> Always true (no validation)</li>
+                                    <li><strong>CreateContext:</strong> Empty dictionary (context from seeders only)</li>
+                                    <li><strong>GetActions:</strong> <code>HandlerConfig.Actions</code> directly returned</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>⚙️ İşleyiş Detayları</h4>
+                                <p><strong>1. Constructor:</strong></p>
+                                <ul class="feature-list">
+                                    <li>Minimal initialization, sadece <code>base(handlerConfig)</code> çağrısı</li>
+                                    <li>No regex compilation, no connection setup, no file loading</li>
+                                </ul>
+
+                                <p><strong>2. CanHandle Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>protected override async Task&lt;bool&gt; CanHandleAsync(ClipboardContent clipboardContent) => true</code></li>
+                                    <li>Hiçbir validation, hiçbir check, her zaman ready</li>
+                                </ul>
+
+                                <p><strong>3. CreateContext Logic:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>protected override async Task&lt;Dictionary&lt;string, string&gt;&gt; CreateContextAsync(ClipboardContent clipboardContent) => new Dictionary&lt;string, string&gt;()</code></li>
+                                    <li>Boş dictionary döner</li>
+                                    <li><strong>Context kaynağı:</strong> Tamamen <code>constant_seeder</code> ve <code>seeder</code>'dan gelir (Dispatch.Execute() içinde merge edilir)</li>
+                                </ul>
+
+                                <p><strong>4. HandlerManager Integration:</strong></p>
+                                <ul class="feature-list">
+                                    <li><code>ITriggerableHandler</code> marker interface → <code>HandlerManager._manualHandlers</code> listesine ayrı tutulur</li>
+                                    <li>Normal clipboard flow'da iterate edilmez</li>
+                                    <li>Sadece explicit trigger ile çalıştırılır (UI button click, menu selection, vb.)</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 Use Cases</h4>
+                                <ul class="feature-list">
+                                    <li><strong>Documentation Links:</strong> Help, API docs, user guides</li>
+                                    <li><strong>Settings Shortcuts:</strong> Open config folder, view logs, clear cache</li>
+                                    <li><strong>Utility Commands:</strong> System info, network test, clipboard history</li>
+                                    <li><strong>Quick Actions:</strong> Open specific URLs, launch external tools</li>
+                                    <li><strong>Menu Items:</strong> Application menu entries, context menu actions</li>
+                                </ul>
+                            </div>
+
+                            <div class="ui-card">
+                                <h4>💻 JSON Örneği: Documentation Shortcut</h4>
+                                <div class="code-block"><pre><code class="language-json">{
+  "name": "Open User Guide",
   "type": "manual",
-  "description": "Opens the application documentation in browser",
+  "description": "Opens the user guide in browser",
   "screen_id": "url_viewer",
-  "title": "Contextualizer Documentation",
+  "title": "Contextualizer - User Guide",
   "constant_seeder": {
-    "url": "file:///C:/PortableApps/Contextualizer/docs/index.html"
+    "url": "https://github.com/yourorg/contextualizer/wiki/user-guide"
   },
   "actions": [
     { "name": "show_window", "key": "url" }
   ]
 }</code></pre></div>
+
+                                <h4>💻 JSON Örneği: Settings Shortcut</h4>
+                                <div class="code-block"><pre><code class="language-json">{
+  "name": "Open Config Folder",
+  "type": "manual",
+  "description": "Opens the configuration folder in Explorer",
+  "seeder": {
+    "config_path": "$func:GetConfigDirectory()"
+  },
+  "actions": [
+    { "name": "open_file", "key": "config_path" }
+  ]
+}</code></pre></div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -1863,169 +2281,447 @@ using (logger?.BeginScope("ClipboardProcessing", metadata))
                 <!-- UI Controls Section -->
                 <section id="ui-controls" class="content-section">
                     <div class="section-header">
-                        <h1>Kullanıcı Arayüzü</h1>
-                        <p>Contextualizer arayüzü ve kullanıcı deneyimi özelliklerinde ustalaşın</p>
+                        <h1>Kullanıcı Arayüzü Mimarisi</h1>
+                        <p>WPF-based UI sistemi, IUserInteractionService pattern, IDynamicScreen architecture ve Carbon design system</p>
                     </div>
-                    
-                    <div class="ui-features">
-                        <h2>Sekme Yönetimi</h2>
-                        <div class="ui-feature">
-                            <h3>Chrome-benzeri Sekme Davranışı</h3>
+
+                    <!-- IUSERINTERACTIONSERVICE -->
+                    <div class="handler-detail-section">
+                        <h2><i class="fas fa-layer-group"></i> IUserInteractionService - Core Interface</h2>
+                        <p class="handler-description">Pluginler ve core services için UI interaction gateway. WpfUserInteractionService implementasyonu ile WPF MainWindow bridge.</p>
+                        
+                        <div class="info-box">
+                            <h4>📐 Interface Metodları</h4>
                             <ul class="feature-list">
-                                <li><i class="fas fa-mouse"></i> <strong>Orta tuş ile kapatma:</strong> Herhangi bir sekmeyi kapatmak için fare tekerleğine tıklayın</li>
-                                <li><i class="fas fa-times"></i> <strong>Kapatma butonu:</strong> Her sekmedeki X butonuna tıklayın</li>
-                                <li><i class="fas fa-eye-slash"></i> <strong>Sessiz sekmeler:</strong> Yeni sekmeler varsayılan olarak arka planda açılır</li>
-                                <li><i class="fas fa-window-restore"></i> <strong>Akıllı odaklanma:</strong> Yapılandırılabilir sekme odaklanma davranışı</li>
+                                <li><code>ShowWindow(screenId, title, context, actions, autoFocus, bringToFront)</code> - Tab creation with dynamic screens</li>
+                                <li><code>ShowNotification(message, type, title, duration, onActionClicked)</code> - Toast notifications (legacy single action)</li>
+                                <li><code>ShowNotificationWithActions(message, type, title, duration, params ToastAction[])</code> - Multi-button toast notifications</li>
+                                <li><code>ShowActivityFeedback(type, message, timestamp, additionalInfo)</code> - Activity log panel entries</li>
+                                <li><code>ShowConfirmationAsync(title, message)</code> - Modal confirmation dialog</li>
+                                <li><code>GetUserInput(UserInputRequest)</code> - Modal input dialog</li>
+                                <li><code>GetUserInputWithNavigation(request, context, canGoBack, step, total)</code> - Multi-step wizard</li>
                             </ul>
                         </div>
-                        
-                        <h2>Pencere Yönetimi</h2>
-                        <div class="ui-feature">
-                            <h3>Akıllı Pencere Davranışı</h3>
+
+                        <div class="info-box">
+                            <h4>⚙️ ShowWindow() - Tab Creation with Actions</h4>
+                            <p><strong>Method Signature:</strong></p>
+                            <div class="code-block"><pre><code class="language-csharp">void ShowWindow(
+    string screenId, 
+    string title, 
+    Dictionary&lt;string, string&gt; context, 
+    List&lt;KeyValuePair&lt;string, Action&lt;Dictionary&lt;string, string&gt;&gt;&gt;&gt;? actions = null, 
+    bool autoFocus = false, 
+    bool bringToFront = false
+)</code></pre></div>
+
+                            <p><strong>Implementation Flow:</strong></p>
                             <ul class="feature-list">
-                                <li><i class="fas fa-expand"></i> <strong>Akıllı aktivasyon:</strong> Pencereyi sadece gerektiğinde ön plana getirir</li>
-                                <li><i class="fas fa-window-minimize"></i> <strong>Simge durumundan geri yükle:</strong> Simge durumundaki pencereleri otomatik geri yükler</li>
-                                <li><i class="fas fa-cog"></i> <strong>Yapılandırılabilir:</strong> Handler başına pencere davranışını kontrol edin</li>
+                                <li><strong>Screen Creation:</strong> <code>CreateScreenById(screenId)</code> → Reflection-based dynamic screen discovery
+                                    <ul>
+                                        <li>Factory lookup: <code>_screenFactories.TryGetValue(screenId)</code></li>
+                                        <li>Runtime discovery: <code>AppDomain.GetAssemblies().SelectMany()</code> → Find IDynamicScreen implementations</li>
+                                        <li>Activator: <code>Activator.CreateInstance(screenType)</code></li>
+                                    </ul>
+                                </li>
+                                <li><strong>Context Injection:</strong> <code>screen.SetScreenInformation(context)</code> → Dictionary → UI binding</li>
+                                <li><strong>Action Buttons (Optional):</strong> <code>actions != null && actions.Count > 0</code>
+                                    <ul>
+                                        <li>Grid creation: 2 rows (content + button panel)</li>
+                                        <li>StackPanel: <code>Orientation.Horizontal</code>, <code>HorizontalAlignment.Right</code></li>
+                                        <li>Buttons: <code>Carbon.Button.Base</code> style, Click event → <code>action.Value.Invoke(context)</code></li>
+                                        <li>Context passed to action: Real-time dictionary reference</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Tab Registration:</strong> <code>_mainWindow.AddOrUpdateTab(key, title, content, autoFocus)</code></li>
+                                <li><strong>Window Activation:</strong> <code>bringToFront</code> → <code>_mainWindow.BringToFront()</code></li>
                             </ul>
                         </div>
-                        
-                        <h2>Aktivite Loglama</h2>
-                        <div class="ui-feature">
-                            <h3>Gerçek Zamanlı Aktivite Akışı</h3>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-list"></i> <strong>Aktivite logu:</strong> Tüm handler çalıştırmalarını gerçek zamanlı görün</li>
-                                <li><i class="fas fa-filter"></i> <strong>Log filtreleme:</strong> Log seviyesine ve arama metnine göre filtrele</li>
-                                <li><i class="fas fa-search"></i> <strong>Log arama:</strong> Belirli log girişlerini hızlıca bulun</li>
-                                <li><i class="fas fa-trash"></i> <strong>Logları temizle:</strong> Gerektiğinde log görünümünü temizleyin</li>
-                            </ul>
+
+                        <div class="ui-card">
+                            <h4>💻 Örnek: Button Actions ile Ekran</h4>
+                            <div class="code-block"><pre><code class="language-csharp">// Plugin veya handler içinden
+var actions = new List&lt;KeyValuePair&lt;string, Action&lt;Dictionary&lt;string, string&gt;&gt;&gt;&gt;
+{
+    new KeyValuePair&lt;string, Action&lt;Dictionary&lt;string, string&gt;&gt;&gt;(
+        "Save",
+        (ctx) => {
+            // Context'ten data al
+            var content = ctx["_formatted_output"];
+            File.WriteAllText("output.txt", content);
+            _loggingService.LogInfo("File saved!");
+        }
+    ),
+    new KeyValuePair&lt;string, Action&lt;Dictionary&lt;string, string&gt;&gt;&gt;(
+        "Copy",
+        (ctx) => {
+            Clipboard.SetText(ctx["_formatted_output"]);
+        }
+    )
+};
+
+_userInteractionService.ShowWindow(
+    "markdown2", 
+    "Report", 
+    context, 
+    actions, 
+    autoFocus: true, 
+    bringToFront: false
+);</code></pre></div>
                         </div>
                     </div>
-                    
-                    <div class="ui-configuration">
-                        <h2>UI Yapılandırması</h2>
-                        <div class="code-block">
-                            <pre><code class="language-json">{
-  "name": "My Handler",
-  "type": "regex",
-  "regex": "test",
-  "auto_focus_tab": false,
-  "bring_window_to_front": false,
-  "actions": [
-    {
-      "name": "show_window",
-      "key": "_formatted_output"
-    }
-  ]
-}</code></pre>
-                        </div>
+
+                    <!-- TOAST NOTIFICATIONS -->
+                    <div class="handler-detail-section">
+                        <h2><i class="fas fa-bell"></i> Toast Notifications - ToastAction System</h2>
+                        <p class="handler-description">Multi-button actionable toast notifications. ToastAction enum (Primary, Secondary, Danger) ile styled buttons.</p>
                         
-                        <div class="config-explanation">
-                            <h3>Yapılandırma Seçenekleri</h3>
-                            <ul class="config-list">
-                                <li><code>auto_focus_tab: false</code> - Sekme arka planda açılır (önerilen)</li>
-                                <li><code>auto_focus_tab: true</code> - Sekme hemen aktif olur</li>
-                                <li><code>bring_window_to_front: false</code> - Pencere mevcut durumda kalır (önerilen)</li>
-                                <li><code>bring_window_to_front: true</code> - Pencere ön plana gelir (dikkatli kullanın)</li>
+                        <div class="info-box">
+                            <h4>📐 ToastAction Class</h4>
+                            <div class="code-block"><pre><code class="language-csharp">public class ToastAction
+{
+    public string Text { get; set; }                  // Button label
+    public Action Action { get; set; }                // Click handler
+    public ToastActionStyle Style { get; set; }       // Primary, Secondary, Danger
+    public bool CloseOnClick { get; set; } = true;    // Auto-close toast
+    public bool IsDefaultAction { get; set; } = false; // Timeout/close default
+}
+
+public enum ToastActionStyle
+{
+    Primary,    // Main action (e.g., "Yes", "Confirm") - Blue
+    Secondary,  // Secondary (e.g., "No", "Cancel") - Gray
+    Danger      // Destructive (e.g., "Delete") - Red
+}</code></pre></div>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>⚙️ ToastActions - Static Helpers</h4>
+                            <div class="code-block"><pre><code class="language-csharp">// Common action presets
+ToastActions.Yes(action)
+ToastActions.No(action)
+ToastActions.Ok(action)
+ToastActions.Cancel(action)
+ToastActions.Delete(action)
+ToastActions.Confirm(action)
+ToastActions.Retry(action)
+ToastActions.Dismiss(action)
+
+// Default action variants (for timeout/close behavior)
+ToastActions.DefaultYes(action)
+ToastActions.DefaultNo(action)
+ToastActions.DefaultCancel(action)
+ToastActions.DefaultDismiss(action)</code></pre></div>
+                        </div>
+
+                        <div class="ui-card">
+                            <h4>💻 Örnek: Multi-Button Toast</h4>
+                            <div class="code-block"><pre><code class="language-csharp">_userInteractionService.ShowNotificationWithActions(
+    "Configuration updated. Restart application?",
+    LogType.Warning,
+    "Configuration Changed",
+    durationInSeconds: 10,
+    ToastActions.Yes(() => {
+        _loggingService.LogInfo("Restarting application...");
+        Application.Current.Shutdown();
+        Process.Start(Application.ResourceAssembly.Location);
+    }),
+    ToastActions.No(() => {
+        _loggingService.LogInfo("Restart cancelled");
+    }),
+    ToastActions.Dismiss(() => { })
+);</code></pre></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB MANAGEMENT -->
+                    <div class="handler-detail-section">
+                        <h2><i class="fas fa-window-restore"></i> Tab Management - Chrome-like Behavior</h2>
+                        <p class="handler-description">Dynamic tab creation, middle-click close, auto-focus control, update-or-create pattern.</p>
+                        
+                        <div class="info-box">
+                            <h4>⚙️ AddOrUpdateTab() Logic</h4>
+                            <ul class="feature-list">
+                                <li><strong>Key Generation:</strong> <code>key = $"{screenId}_{title}"</code> → Unique tab identifier</li>
+                                <li><strong>Update Existing:</strong> <code>_tabs.ContainsKey(key)</code> → <code>_tabs[key].Content = content</code> + optional focus</li>
+                                <li><strong>Create New:</strong>
+                                    <ul>
+                                        <li>TabItem creation: <code>IsSelected = autoFocus</code></li>
+                                        <li>Header: StackPanel (TextBlock + Close Button)</li>
+                                        <li>Close button: <code>CloseButtonStyle</code> (X icon)</li>
+                                        <li>Middle-click: <code>MouseDown</code> event → <code>e.ChangedButton == MouseButton.Middle</code> → Close</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Tab Registration:</strong> <code>_tabs[key] = tabItem</code> + <code>MainTabControl.Items.Add(tabItem)</code></li>
+                            </ul>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>🎯 Chrome-like Features</h4>
+                            <ul class="feature-list">
+                                <li><strong>Middle-Click Close:</strong> Mouse wheel button → instant tab close</li>
+                                <li><strong>Close Button:</strong> X icon button in tab header</li>
+                                <li><strong>Silent Tabs:</strong> <code>autoFocus = false</code> (default) → background tab creation</li>
+                                <li><strong>Tab Reuse:</strong> Same key → content update, not duplicate tab</li>
                             </ul>
                         </div>
                     </div>
 
-                    <div class="ui-dynamic-screens">
-                        <div class="ui-card">
-                            <h2><i class="fas fa-window-restore"></i> Dinamik Ekranlar</h2>
-                            <p>UI içerik, sekmelerde dinamik ekranlar tarafından görüntülenir. Her ekran benzersiz bir ScreenId ile tanımlanır ve bağlam sözlüğü ile veri alır. Uygun ekran otomatik olarak oluşturulur ve sekmeye yerleştirilir.</p>
+                    <!-- ACTIVITY LOGGING -->
+                    <div class="handler-detail-section">
+                        <h2><i class="fas fa-list"></i> Activity Logging Panel</h2>
+                        <p class="handler-description">Real-time activity stream. ObservableCollection with filtering, newest-first display, 50-entry limit.</p>
+                        
+                        <div class="info-box">
+                            <h4>⚙️ AddLog() Implementation</h4>
                             <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> MarkdownViewer2 (markdown2) — Markdown → HTML; tema duyarlı görünüm</li>
-                                <li><i class="fas fa-check"></i> UrlViewer (url_viewer) — Dahili/harici linkleri ve dosyaları gösterir</li>
-                                <li><i class="fas fa-check"></i> PlSqlEditor (plsql_editor) — Yerel ACE editörü ile SQL düzenleme</li>
-                                <li><i class="fas fa-check"></i> JsonFormatterView — JSON pretty-print + ağaç</li>
-                                <li><i class="fas fa-check"></i> XmlFormatterView — XML pretty-print + ağaç</li>
+                                <li><strong>Log Entry Creation:</strong> <code>new LogEntry { Type, Message, Timestamp, AdditionalInfo }</code></li>
+                                <li><strong>Insert at Top:</strong> <code>_logs.Insert(0, log)</code> → Newest first</li>
+                                <li><strong>Capacity Limit:</strong> <code>while (_logs.Count > 50) _logs.RemoveAt(_logs.Count - 1)</code> → Oldest removed</li>
+                                <li><strong>Message Truncation:</strong> <code>maxLength = 500</code> → Long messages truncated with "..."</li>
+                                <li><strong>Filtering:</strong> <code>FilterLogs()</code> → Apply search/level filters → <code>_filteredLogs</code> ObservableCollection</li>
                             </ul>
-                            <div class="section-illustration">
-                                <img src="https://placehold.co/1000x320?text=Dynamic+Screens+Overview" alt="Dinamik ekranlar genel bakış" />
-                            </div>
                         </div>
-                     </div>
- 
-                     <div class="ui-webview2">
-                        <div class="ui-card">
-                            <h2><i class="fas fa-globe"></i> WebView2 Entegrasyonu</h2>
-                            <p>WebView2, Windows'ta modern web içeriğini yerel uygulama içinde güvenli ve performanslı bir şekilde görüntülemeyi sağlar. Dinamik olarak üretilen sayfalar gösterilebilir, yerel dosyalar veya URL'ler açılabilir ve uygulama ile web içeriği arasında etkileşim kurulabilir.</p>
+
+                        <div class="info-box">
+                            <h4>🔍 Log Filtering</h4>
                             <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> Dinamik HTML gösterimi ve URL/yerel dosya gezinme</li>
-                                <li><i class="fas fa-check"></i> Uygulama ↔ web içeriği arasında çift yönlü etkileşim</li>
-                                <li><i class="fas fa-check"></i> Yerel varlıkları güvenli şekilde sunma (ör. editör scriptleri)</li>
+                                <li><strong>Search Text:</strong> Case-insensitive message/additionalInfo contains</li>
+                                <li><strong>Log Level:</strong> ComboBox selection (All, Info, Warning, Error, Success)</li>
+                                <li><strong>Clear Button:</strong> <code>_logs.Clear()</code> → Empty activity panel</li>
                             </ul>
-                            <div class="section-illustration">
-                                <img src="https://placehold.co/1000x320?text=WebView2+Integration" alt="WebView2 entegrasyonu" />
-                            </div>
                         </div>
-                     </div>
- 
-                     <div class="ui-markdown">
+                    </div>
+
+                    <!-- DYNAMIC SCREENS -->
+                    <div class="handler-detail-section">
+                        <h2><i class="fas fa-window-restore"></i> IDynamicScreen Pattern</h2>
+                        <p class="handler-description">Interface-based screen architecture. Reflection-based discovery, dictionary context injection, WPF UserControl implementations.</p>
+                        
+                        <div class="info-box">
+                            <h4>📐 IDynamicScreen Interface</h4>
+                            <div class="code-block"><pre><code class="language-csharp">public interface IDynamicScreen 
+{
+    string ScreenId { get; }  // Unique identifier (e.g., "markdown2", "json_formatter")
+    void SetScreenInformation(Dictionary&lt;string, string&gt; context);  // Context injection
+}</code></pre></div>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>⚙️ Screen Discovery & Creation</h4>
+                            <ul class="feature-list">
+                                <li><strong>Factory Lookup:</strong> <code>_screenFactories.TryGetValue(screenId)</code> → Pre-registered factories (e.g., "markdown" → MarkdownViewer2)</li>
+                                <li><strong>Runtime Discovery:</strong> <code>AppDomain.CurrentDomain.GetAssemblies()</code> → <code>SelectMany(a => a.GetTypes())</code>
+                                    <ul>
+                                        <li>Filter: <code>typeof(IDynamicScreen).IsAssignableFrom(t)</code></li>
+                                        <li>Filter: <code>typeof(UserControl).IsAssignableFrom(t)</code></li>
+                                        <li>Filter: <code>!t.IsAbstract</code></li>
+                                        <li>Filter: <code>t.GetProperty("ScreenId") != null</code></li>
+                                        <li>Filter: <code>t.GetConstructor(Type.EmptyTypes) != null</code> (parameterless constructor)</li>
+                                        <li>Match: <code>(string)t.GetProperty("ScreenId")?.GetValue(Activator.CreateInstance(t)) == screenId</code></li>
+                                    </ul>
+                                </li>
+                                <li><strong>Instantiation:</strong> <code>Activator.CreateInstance(screenType)</code> → IDynamicScreen instance</li>
+                                <li><strong>Fallback:</strong> <code>screen == null</code> → TextBlock("Ekran bulunamadı: {screenId}")</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>🎨 Built-in Dynamic Screens</h4>
+                            <table>
+                                <thead><tr><th>ScreenId</th><th>Class</th><th>Purpose</th><th>Technology</th></tr></thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>markdown2</code></td>
+                                        <td>MarkdownViewer2</td>
+                                        <td>Markdown → HTML rendering</td>
+                                        <td>WebView2 + Markdig + Theme-aware HTML</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>url_viewer</code></td>
+                                        <td>UrlViewer</td>
+                                        <td>Web pages / local HTML files</td>
+                                        <td>WebView2 navigation</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>plsql_editor</code></td>
+                                        <td>PlSqlEditor</td>
+                                        <td>SQL code editing with syntax highlighting</td>
+                                        <td>ACE Editor (JavaScript) via WebView2</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>json_formatter</code></td>
+                                        <td>JsonFormatterView</td>
+                                        <td>JSON pretty-print + tree view</td>
+                                        <td>WebView2 + JavaScript JSON formatter</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>xml_formatter</code></td>
+                                        <td>XmlFormatterView</td>
+                                        <td>XML pretty-print + tree view</td>
+                                        <td>WebView2 + JavaScript XML formatter</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
                         <div class="ui-card">
-                            <h2><i class="fas fa-file-alt"></i> Markdown → HTML</h2>
-                            <p>Markdig hızlı ve genişletilebilir bir Markdown işlemcisidir. Başlıklar, tablolar, listeler, kod blokları, emoji ve görev listeleri gibi gelişmiş özellikleri destekler. İçerik önce HTML'e dönüştürülür, ardından geçerli temaya uygun stillerle WebView2 içinde gösterilir.</p>
-                            <div class="section-illustration">
-                                <img src="https://placehold.co/1000x320?text=Markdown+to+HTML+via+Markdig" alt="Markdown'dan HTML'e dönüşüm" />
-                            </div>
+                            <h4>💻 Örnek: Custom Dynamic Screen</h4>
+                            <div class="code-block"><pre><code class="language-csharp">public partial class MyCustomScreen : UserControl, IDynamicScreen
+{
+    public string ScreenId => "my_custom_screen";
+
+    public MyCustomScreen()
+    {
+        InitializeComponent();
+    }
+
+    public void SetScreenInformation(Dictionary&lt;string, string&gt; context)
+    {
+        // Context injection
+        if (context.TryGetValue("title", out var title))
+            TitleTextBlock.Text = title;
+
+        if (context.TryGetValue("content", out var content))
+            ContentTextBlock.Text = content;
+    }
+}</code></pre></div>
+                            <p><strong>Handler JSON kullanımı:</strong></p>
+                            <div class="code-block"><pre><code class="language-json">{
+  "name": "Custom Screen Handler",
+  "type": "regex",
+  "regex": ".*",
+  "screen_id": "my_custom_screen",
+  "actions": [
+    { "name": "show_window", "key": "_self" }
+  ],
+  "constant_seeder": {
+    "title": "My Custom Title",
+    "content": "Dynamic content here"
+  }
+}</code></pre></div>
                         </div>
-                     </div>
+                    </div>
  
-                     <div class="ui-theme">
-                        <div class="ui-card">
-                            <h2><i class="fas fa-palette"></i> Theme System (Carbon)</h2>
-                            <p>Arayüz renkleri Carbon tasarım sisteminden esinlenir. Açık, Koyu ve Dim temaları arasında geçiş yapılabilir; tema değişimi tüm ekranlara yayılır ve WebView2 içeriği de güncellenir.</p>
-                            <div class="color-palette">
-                                <div class="palette-group">
-                                    <div class="palette-title">Dark</div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#161616"></div><div class="swatch-info"><span class="swatch-name">Background Primary</span><span class="swatch-hex">#161616</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#262626"></div><div class="swatch-info"><span class="swatch-name">Background Secondary</span><span class="swatch-hex">#262626</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#393939"></div><div class="swatch-info"><span class="swatch-name">Background Tertiary</span><span class="swatch-hex">#393939</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#F4F4F4"></div><div class="swatch-info"><span class="swatch-name">Text Primary</span><span class="swatch-hex">#F4F4F4</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#4589FF"></div><div class="swatch-info"><span class="swatch-name">Interactive Primary</span><span class="swatch-hex">#4589FF</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#FA4D56"></div><div class="swatch-info"><span class="swatch-name">Error</span><span class="swatch-hex">#FA4D56</span></div></div>
-                                </div>
-                                <div class="palette-group">
-                                    <div class="palette-title">Light</div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#FFFFFF"></div><div class="swatch-info"><span class="swatch-name">Background Primary</span><span class="swatch-hex">#FFFFFF</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#F4F4F4"></div><div class="swatch-info"><span class="swatch-name">Background Secondary</span><span class="swatch-hex">#F4F4F4</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#E0E0E0"></div><div class="swatch-info"><span class="swatch-name">Background Tertiary</span><span class="swatch-hex">#E0E0E0</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#161616"></div><div class="swatch-info"><span class="swatch-name">Text Primary</span><span class="swatch-hex">#161616</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#0F62FE"></div><div class="swatch-info"><span class="swatch-name">Interactive Primary</span><span class="swatch-hex">#0F62FE</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#DA1E28"></div><div class="swatch-info"><span class="swatch-name">Error</span><span class="swatch-hex">#DA1E28</span></div></div>
-                                </div>
-                                <div class="palette-group">
-                                    <div class="palette-title">Dim</div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#474747"></div><div class="swatch-info"><span class="swatch-name">Background Primary</span><span class="swatch-hex">#474747</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#5A5A5A"></div><div class="swatch-info"><span class="swatch-name">Background Secondary</span><span class="swatch-hex">#5A5A5A</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#8D8D8D"></div><div class="swatch-info"><span class="swatch-name">Border/Helper</span><span class="swatch-hex">#8D8D8D</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#FFFFFF"></div><div class="swatch-info"><span class="swatch-name">Text Primary</span><span class="swatch-hex">#FFFFFF</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#3D8BFD"></div><div class="swatch-info"><span class="swatch-name">Interactive Primary</span><span class="swatch-hex">#3D8BFD</span></div></div>
-                                    <div class="swatch-row"><div class="swatch" style="background:#FF4D4D"></div><div class="swatch-info"><span class="swatch-name">Error</span><span class="swatch-hex">#FF4D4D</span></div></div>
-                                </div>
-                            </div>
-                            <div class="section-illustration">
-                                <img src="https://placehold.co/1000x280?text=Theme+Preview" alt="Tema önizlemesi" />
-                            </div>
+                    <!-- WEBVIEW2 & MARKDIG -->
+                    <div class="handler-detail-section">
+                        <h2><i class="fas fa-globe"></i> WebView2 & Markdig Integration</h2>
+                        <p class="handler-description">Microsoft Edge WebView2 runtime. Chromium-based rendering, JavaScript execution, HTML injection, theme-aware styling.</p>
+                        
+                        <div class="info-box">
+                            <h4>🌐 WebView2 Features</h4>
+                            <ul class="feature-list">
+                                <li><strong>Dynamic HTML:</strong> <code>NavigateToString(htmlContent)</code> → Inject generated HTML</li>
+                                <li><strong>URL Navigation:</strong> <code>Navigate(url)</code> → External sites or local files (file:///)</li>
+                                <li><strong>Virtual Host Mapping:</strong> <code>SetVirtualHostNameToFolderMapping()</code> → Serve local assets (e.g., ACE editor scripts)</li>
+                                <li><strong>JavaScript Execution:</strong> <code>ExecuteScriptAsync()</code> → Call JS functions from C#</li>
+                                <li><strong>Web Message:</strong> <code>WebMessageReceived</code> event → C# ↔ JS bidirectional communication</li>
+                            </ul>
                         </div>
-                     </div>
+
+                        <div class="info-box">
+                            <h4>📝 MarkdownViewer2 - Markdig Pipeline</h4>
+                            <ul class="feature-list">
+                                <li><strong>Markdig Library:</strong> Fast, extensible Markdown processor (.NET)</li>
+                                <li><strong>Pipeline:</strong> Advanced extensions (tables, task lists, emoji, auto-links, custom containers)</li>
+                                <li><strong>HTML Generation:</strong> <code>Markdown.ToHtml(markdown, pipeline)</code></li>
+                                <li><strong>Theme Injection:</strong> Current theme CSS dynamically inserted into HTML template</li>
+                                <li><strong>WebView2 Display:</strong> <code>NavigateToString(htmlWithTheme)</code></li>
+                            </ul>
+                        </div>
+
+                        <div class="ui-card">
+                            <h4>💻 Markdown Context Key Örneği</h4>
+                            <div class="code-block"><pre><code class="language-json">{
+  "name": "Markdown Report",
+  "type": "regex",
+  "regex": ".*",
+  "screen_id": "markdown2",
+  "output_format": "# Report Title\\n\\n## Summary\\n\\n- Item 1\\n- Item 2\\n\\n## Details\\n\\n```json\\n{ \\"key\\": \\"value\\" }\\n```",
+  "actions": [
+    { "name": "show_window", "key": "_formatted_output" }
+  ]
+}</code></pre></div>
+                        </div>
+                    </div>
  
-                     <div class="ui-exchange-cron">
-                        <div class="ui-card">
-                            <h2><i class="fas fa-exchange-alt"></i> Exchange & Cron Screens</h2>
-                            <h3>Handler Exchange</h3>
-                            <p>Hazır şablonları listeler; arama, etiket filtreleme ve sıralama sunar. Kartlardan yükleme/güncelleme/kaldırma yapılabilir. Pencere konumu/boyutu kaydedilir.</p>
-                            <div class="section-illustration">
-                                <img src="https://placehold.co/1000x300?text=Handler+Exchange+UI" alt="Handler Exchange arayüzü" />
-                            </div>
-                            <h3 style="margin-top:1rem">Cron Manager</h3>
-                            <p>Planlanmış işleri gösterir; etkinleştir/devre dışı bırak ve manuel tetikleme destekler. Durum rozetleri tema renkleriyle uyumludur; sayım ve filtreler canlıdır.</p>
-                            <div class="section-illustration">
-                                <img src="https://placehold.co/1000x300?text=Cron+Manager+UI" alt="Cron Manager arayüzü" />
-                            </div>
+                    <!-- CARBON THEME SYSTEM -->
+                    <div class="handler-detail-section">
+                        <h2><i class="fas fa-palette"></i> Carbon Design System - Theme Engine</h2>
+                        <p class="handler-description">IBM Carbon-inspired theme system. 3 themes (Dark, Light, Dim), WPF ResourceDictionary switching, WebView2 CSS injection.</p>
+                        
+                        <div class="info-box">
+                            <h4>🎨 Theme Architecture</h4>
+                            <ul class="feature-list">
+                                <li><strong>Theme Files:</strong> 
+                                    <ul>
+                                        <li><code>Themes/CarbonColors.xaml</code> - Dark theme (default)</li>
+                                        <li><code>Themes/LightCarbonColors.xaml</code> - Light theme</li>
+                                        <li><code>Themes/DimCarbonColors.xaml</code> - Dim theme</li>
+                                        <li><code>Themes/CarbonStyles.xaml</code> - Shared control styles (Button, TextBox, ComboBox, etc.)</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Runtime Switching:</strong> <code>Application.Current.Resources.MergedDictionaries</code> clear & add</li>
+                                <li><strong>WebView2 Update:</strong> Theme change → Reload all WebView2 controls with new CSS</li>
+                                <li><strong>Persistence:</strong> Selected theme saved to settings, restored on startup</li>
+                            </ul>
                         </div>
-                     </div>
+
+                        <div class="info-box">
+                            <h4>🔑 Key Color Resources</h4>
+                            <ul class="feature-list">
+                                <li><code>Carbon.Background.Primary</code> - Main background (#161616 dark, #FFFFFF light)</li>
+                                <li><code>Carbon.Text.Primary</code> - Main text color (#F4F4F4 dark, #161616 light)</li>
+                                <li><code>Carbon.Interactive.Primary</code> - Buttons, links (#4589FF dark, #0F62FE light)</li>
+                                <li><code>Carbon.Support.Error</code> - Error states (#FA4D56 dark, #DA1E28 light)</li>
+                                <li><code>Carbon.Button.Base</code> - Button style with hover/pressed states</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- SPECIAL WINDOWS -->
+                    <div class="handler-detail-section">
+                        <h2><i class="fas fa-cog"></i> Special Windows</h2>
+                        <p class="handler-description">Dedicated WPF windows for specific features. HandlerExchangeWindow, CronManagerWindow, LoggingSettingsWindow, SettingsWindow.</p>
+                        
+                        <div class="info-box">
+                            <h4>🔧 Built-in Special Windows</h4>
+                            <ul class="feature-list">
+                                <li><strong>HandlerExchangeWindow:</strong> Handler marketplace
+                                    <ul>
+                                        <li>Card-based UI for browsing handlers</li>
+                                        <li>Search, tag filtering, sorting</li>
+                                        <li>Install/Update/Remove operations</li>
+                                        <li>Window position/size persistence</li>
+                                    </ul>
+                                </li>
+                                <li><strong>CronManagerWindow:</strong> Scheduled job management
+                                    <ul>
+                                        <li>List all cron jobs with status badges</li>
+                                        <li>Enable/Disable toggle switches</li>
+                                        <li>Manual trigger button (ExecuteNow)</li>
+                                        <li>Live counts and filtering</li>
+                                    </ul>
+                                </li>
+                                <li><strong>LoggingSettingsWindow:</strong> Logging configuration
+                                    <ul>
+                                        <li>Enable/Disable logging toggle</li>
+                                        <li>Log level configuration</li>
+                                        <li>Usage statistics display</li>
+                                        <li>Clear logs functionality</li>
+                                    </ul>
+                                </li>
+                                <li><strong>SettingsWindow:</strong> Application settings
+                                    <ul>
+                                        <li>Paths configuration (Config, Data, Plugins)</li>
+                                        <li>Keyboard shortcut customization</li>
+                                        <li>Theme selection (Dark, Light, Dim)</li>
+                                        <li>Window behavior settings</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Plugin Development Section -->
