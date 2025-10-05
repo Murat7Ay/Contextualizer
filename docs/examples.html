@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examples - Contextualizer Documentation</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="docs-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-cogs"></i> Contextualizer</h1>
+                <p class="version">v1.0.0</p>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="nav-section">
+                    <h3>Examples</h3>
+                    <ul>
+                        <li><a href="#examples-basic" class="nav-link active">Basic Examples</a></li>
+                        <li><a href="#examples-advanced" class="nav-link">Advanced Examples</a></li>
+                        <li><a href="#examples-real-world" class="nav-link">Real-world Use Cases</a></li>
+                        <li><a href="#examples-ui-controls" class="nav-link">UI Control Examples</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html" class="nav-link">← Back to Home</a></li>
+                        <li><a href="handlers.html" class="nav-link">Handler Types</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <main class="main-content">
+            <div class="content-header">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search examples..." class="search-input">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            
+            <div class="content-body">
+                <!-- Basic Examples Section -->
+                <section id="examples-basic" class="content-section active">
+                    <div class="section-header">
+                        <h1>Basic Examples</h1>
+                        <p>Simple handlers to get you started with Contextualizer</p>
+                    </div>
+                    
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-header">
+                                <h3><i class="fas fa-link"></i> URL Detector</h3>
+                                <span class="example-type">Regex Handler</span>
+                            </div>
+                            <p>Detects URLs in clipboard and shows a notification</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "URL Detector",
+  "description": "Detects URLs and shows notification",
+  "type": "regex",
+  "regex": "https?://[\\w\\.-]+(?:/[\\w\\.-]*)*",
+  "auto_focus_tab": false,
+  "bring_window_to_front": false,
+  "actions": [
+    {
+      "name": "show_notification",
+      "message": "URL detected: {_matched_content}"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="example-usage">
+                                <strong>Usage:</strong> Copy any URL to clipboard to see the notification
+                            </div>
+                        </div>
+                        
+                        <div class="example-card">
+                            <div class="example-header">
+                                <h3><i class="fas fa-envelope"></i> Email Formatter</h3>
+                                <span class="example-type">Regex Handler</span>
+                            </div>
+                            <p>Formats email addresses and copies them back to clipboard</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Email Formatter",
+  "description": "Formats email addresses",
+  "type": "regex",
+  "regex": "([\\w\\.-]+)@([\\w\\.-]+)",
+  "auto_focus_tab": false,
+  "actions": [
+    {
+      "name": "copy_to_clipboard",
+      "key": "_formatted_email"
+    },
+    {
+      "name": "show_notification",
+      "message": "Email formatted: {_formatted_email}"
+    }
+  ],
+  "context_processors": [
+    {
+      "key": "_formatted_email",
+      "value": "📧 {$1}@{$2}"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="example-usage">
+                                <strong>Usage:</strong> Copy an email address to get it formatted with an emoji
+                            </div>
+                        </div>
+                        
+                        <div class="example-card">
+                            <div class="example-header">
+                                <h3><i class="fas fa-file-alt"></i> Text Viewer</h3>
+                                <span class="example-type">Manual Handler</span>
+                            </div>
+                            <p>Shows any clipboard text in a formatted window</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Text Viewer",
+  "description": "Shows clipboard text in window",
+  "type": "manual",
+  "auto_focus_tab": true,
+  "bring_window_to_front": false,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "clipboard_content",
+      "screen_id": "text",
+      "title": "Clipboard Content"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="example-usage">
+                                <strong>Usage:</strong> Manually trigger to view current clipboard content
+                            </div>
+                        </div>
+                        
+                        <div class="example-card">
+                            <div class="example-header">
+                                <h3><i class="fas fa-clock"></i> Time Logger</h3>
+                                <span class="example-type">Cron Handler</span>
+                            </div>
+                            <p>Logs current time every minute</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Time Logger",
+  "description": "Logs current time every minute",
+  "type": "cron",
+  "cron_expression": "0 * * * * *",
+  "auto_focus_tab": false,
+  "actions": [
+    {
+      "name": "show_notification",
+      "message": "Current time: {_current_timestamp}"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="example-usage">
+                                <strong>Usage:</strong> Automatically runs every minute to show current time
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Advanced Examples Section -->
+                <section id="examples-advanced" class="content-section">
+                    <div class="section-header">
+                        <h1>Advanced Examples</h1>
+                        <p>Complex handlers demonstrating advanced features</p>
+                    </div>
+                    
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-header">
+                                <h3><i class="fas fa-code"></i> JSON Formatter</h3>
+                                <span class="example-type">Custom Handler</span>
+                            </div>
+                            <p>Detects and formats JSON content with syntax highlighting</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "JSON Formatter",
+  "description": "Formats and validates JSON",
+  "type": "custom",
+  "assembly_path": "JsonFormatter.dll",
+  "class_name": "JsonFormatter.Handler",
+  "auto_focus_tab": true,
+  "bring_window_to_front": false,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_formatted_json",
+      "screen_id": "json",
+      "title": "Formatted JSON"
+    },
+    {
+      "name": "copy_to_clipboard",
+      "key": "_formatted_json"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="example-usage">
+                                <strong>Usage:</strong> Copy JSON text to get it formatted and validated
+                            </div>
+                        </div>
+                        
+                        <div class="example-card">
+                            <div class="example-header">
+                                <h3><i class="fas fa-language"></i> Multi-Language Translator</h3>
+                                <span class="example-type">API Handler</span>
+                            </div>
+                            <p>Translates text to multiple languages using external API</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Multi Translator",
+  "description": "Translates to multiple languages",
+  "type": "api",
+  "url": "https://api.translate.com/v1/translate",
+  "method": "POST",
+  "headers": {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
+  },
+  "body_template": "{\"text\": \"{clipboard_content}\", \"targets\": [\"es\", \"fr\", \"de\"]}",
+  "auto_focus_tab": true,
+  "bring_window_to_front": true,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_translation_results",
+      "screen_id": "markdown",
+      "title": "Translation Results"
+    }
+  ],
+  "context_processors": [
+    {
+      "key": "_translation_results",
+      "value": "# Translation Results\\n\\n**Original:** {clipboard_content}\\n\\n**Spanish:** {_api_response.translations.es}\\n\\n**French:** {_api_response.translations.fr}\\n\\n**German:** {_api_response.translations.de}"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="example-usage">
+                                <strong>Usage:</strong> Copy text to translate it to Spanish, French, and German
+                            </div>
+                        </div>
+                        
+                        <div class="example-card">
+                            <div class="example-header">
+                                <h3><i class="fas fa-database"></i> Customer Dashboard</h3>
+                                <span class="example-type">Database Handler</span>
+                            </div>
+                            <p>Comprehensive customer lookup with multiple queries</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Customer Dashboard",
+  "description": "Complete customer information lookup",
+  "type": "database",
+  "connection_string": "Server=localhost;Database=CRM;Integrated Security=true;",
+  "query": "EXEC GetCustomerDashboard @customerId",
+  "parameters": {
+    "@customerId": "{clipboard_content}"
+  },
+  "auto_focus_tab": true,
+  "bring_window_to_front": false,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_customer_dashboard",
+      "screen_id": "html",
+      "title": "Customer Dashboard"
+    }
+  ],
+  "context_processors": [
+    {
+      "key": "_customer_dashboard",
+      "value": "<div class='customer-dashboard'><h2>{_db_result.CustomerName}</h2><div class='info-grid'><div><strong>Email:</strong> {_db_result.Email}</div><div><strong>Phone:</strong> {_db_result.Phone}</div><div><strong>Status:</strong> {_db_result.Status}</div><div><strong>Last Order:</strong> {_db_result.LastOrderDate}</div></div></div>"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="example-usage">
+                                <strong>Usage:</strong> Copy customer ID to see complete dashboard
+                            </div>
+                        </div>
+                        
+                        <div class="example-card">
+                            <div class="example-header">
+                                <h3><i class="fas fa-chart-line"></i> Data Pipeline</h3>
+                                <span class="example-type">Multiple Handlers</span>
+                            </div>
+                            <p>Complex data processing pipeline with multiple steps</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">[
+  {
+    "name": "Data Validator",
+    "type": "regex",
+    "regex": "^\\d{4}-\\d{2}-\\d{2}\\s+\\d+\\.\\d+$",
+    "actions": [
+      {
+        "name": "show_notification",
+        "message": "Valid data format detected"
+      }
+    ]
+  },
+  {
+    "name": "Data Processor",
+    "type": "api",
+    "url": "https://api.dataprocessor.com/process",
+    "method": "POST",
+    "body_template": "{\"data\": \"{clipboard_content}\"}",
+    "actions": [
+      {
+        "name": "show_window",
+        "key": "_api_response.processed_data",
+        "screen_id": "chart",
+        "title": "Processed Data"
+      }
+    ]
+  },
+  {
+    "name": "Data Archiver",
+    "type": "database",
+    "connection_string": "Data Source=archive.db",
+    "query": "INSERT INTO ProcessedData (Timestamp, OriginalData, ProcessedData) VALUES (@timestamp, @original, @processed)",
+    "parameters": {
+      "@timestamp": "{_current_timestamp}",
+      "@original": "{clipboard_content}",
+      "@processed": "{_api_response.processed_data}"
+    },
+    "actions": [
+      {
+        "name": "show_notification",
+        "message": "Data archived successfully"
+      }
+    ]
+  }
+]</code></pre>
+                            </div>
+                            <div class="example-usage">
+                                <strong>Usage:</strong> Copy formatted data to trigger validation, processing, and archiving
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Real-world Use Cases Section -->
+                <section id="examples-real-world" class="content-section">
+                    <div class="section-header">
+                        <h1>Real-world Use Cases</h1>
+                        <p>Practical examples for common business scenarios</p>
+                    </div>
+                    
+                    <div class="use-case-grid">
+                        <div class="use-case-card">
+                            <div class="use-case-header">
+                                <h3><i class="fas fa-headset"></i> Customer Support</h3>
+                                <div class="use-case-tags">
+                                    <span class="tag">Support</span>
+                                    <span class="tag">CRM</span>
+                                </div>
+                            </div>
+                            <p>Automatically look up customer information when copying customer IDs or email addresses</p>
+                            
+                            <div class="use-case-scenario">
+                                <h4>Scenario:</h4>
+                                <p>Support agent copies customer email from a ticket and immediately sees customer history, recent orders, and contact preferences.</p>
+                            </div>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Support Customer Lookup",
+  "description": "Quick customer info for support",
+  "type": "regex",
+  "regex": "([\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,})|([A-Z]{2}\\d{6})",
+  "auto_focus_tab": true,
+  "bring_window_to_front": false,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_customer_info",
+      "screen_id": "html",
+      "title": "Customer Support Info"
+    }
+  ],
+  "context_processors": [
+    {
+      "key": "_customer_info",
+      "value": "<div class='support-panel'><h3>Customer: {_matched_content}</h3><div class='quick-actions'><button onclick='openTickets()'>View Tickets</button><button onclick='viewOrders()'>Recent Orders</button><button onclick='contactHistory()'>Contact History</button></div></div>"
+    }
+  ]
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="use-case-card">
+                            <div class="use-case-header">
+                                <h3><i class="fas fa-code-branch"></i> Development Workflow</h3>
+                                <div class="use-case-tags">
+                                    <span class="tag">DevOps</span>
+                                    <span class="tag">Git</span>
+                                </div>
+                            </div>
+                            <p>Enhance development workflow by processing commit hashes, branch names, and issue numbers</p>
+                            
+                            <div class="use-case-scenario">
+                                <h4>Scenario:</h4>
+                                <p>Developer copies a commit hash and gets quick access to commit details, related issues, and deployment status.</p>
+                            </div>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Git Commit Lookup",
+  "description": "Git commit information",
+  "type": "regex",
+  "regex": "\\b[a-f0-9]{7,40}\\b",
+  "auto_focus_tab": true,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_commit_info",
+      "screen_id": "markdown",
+      "title": "Commit Information"
+    }
+  ],
+  "context_processors": [
+    {
+      "key": "_commit_info",
+      "value": "# Commit: {_matched_content}\\n\\n## Quick Actions\\n- [View on GitHub](https://github.com/repo/commit/{_matched_content})\\n- [View Build Status](https://ci.company.com/builds/{_matched_content})\\n- [Deployment History](https://deploy.company.com/commits/{_matched_content})"
+    }
+  ]
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="use-case-card">
+                            <div class="use-case-header">
+                                <h3><i class="fas fa-shopping-cart"></i> E-commerce Operations</h3>
+                                <div class="use-case-tags">
+                                    <span class="tag">E-commerce</span>
+                                    <span class="tag">Orders</span>
+                                </div>
+                            </div>
+                            <p>Streamline order management by automatically processing order numbers and tracking codes</p>
+                            
+                            <div class="use-case-scenario">
+                                <h4>Scenario:</h4>
+                                <p>Operations team copies order number and immediately sees order details, shipping status, and customer information.</p>
+                            </div>
+                            
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Order Management",
+  "description": "Complete order information",
+  "type": "regex",
+  "regex": "ORD-\\d{8}|TRK-[A-Z0-9]{10}",
+  "auto_focus_tab": true,
+  "bring_window_to_front": false,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_order_dashboard",
+      "screen_id": "html",
+      "title": "Order Dashboard"
+    }
+  ],
+  "context_processors": [
+    {
+      "key": "_order_dashboard",
+      "value": "<div class='order-dashboard'><h2>Order: {_matched_content}</h2><div class='status-grid'><div class='status-item'><strong>Status:</strong> <span class='status-shipped'>Shipped</span></div><div class='status-item'><strong>Customer:</strong> John Doe</div><div class='status-item'><strong>Total:</strong> $299.99</div><div class='status-item'><strong>Tracking:</strong> TRK-ABC123XYZ0</div></div></div>"
+    }
+  ]
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- UI Control Examples Section -->
+                <section id="examples-ui-controls" class="content-section">
+                    <div class="section-header">
+                        <h1>UI Control Examples</h1>
+                        <p>Examples demonstrating different UI behaviors and window management</p>
+                    </div>
+                    
+                    <div class="ui-examples-grid">
+                        <div class="ui-example-card">
+                            <div class="ui-example-header">
+                                <h3><i class="fas fa-eye-slash"></i> Silent Background Processing</h3>
+                                <span class="ui-behavior">Recommended Default</span>
+                            </div>
+                            <p>Process content silently without disrupting user workflow</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Silent Logger",
+  "type": "regex",
+  "regex": ".*",
+  "auto_focus_tab": false,
+  "bring_window_to_front": false,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "clipboard_content",
+      "screen_id": "text",
+      "title": "Activity Log"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="ui-explanation">
+                                <strong>Behavior:</strong> Tab opens in background, window stays in current state
+                            </div>
+                        </div>
+                        
+                        <div class="ui-example-card">
+                            <div class="ui-example-header">
+                                <h3><i class="fas fa-eye"></i> Immediate Attention</h3>
+                                <span class="ui-behavior">High Priority</span>
+                            </div>
+                            <p>Immediately show important information that requires user attention</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Security Alert",
+  "type": "regex",
+  "regex": "SECURITY|ALERT|URGENT",
+  "auto_focus_tab": true,
+  "bring_window_to_front": true,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_alert_message",
+      "screen_id": "html",
+      "title": "🚨 Security Alert"
+    },
+    {
+      "name": "show_notification",
+      "message": "Security alert detected!"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="ui-explanation">
+                                <strong>Behavior:</strong> Tab becomes active, window comes to front immediately
+                            </div>
+                        </div>
+                        
+                        <div class="ui-example-card">
+                            <div class="ui-example-header">
+                                <h3><i class="fas fa-window-restore"></i> Focus Tab Only</h3>
+                                <span class="ui-behavior">Moderate Priority</span>
+                            </div>
+                            <p>Show content in active tab but don't interrupt other applications</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Code Formatter",
+  "type": "regex",
+  "regex": "function\\s+\\w+\\s*\\(",
+  "auto_focus_tab": true,
+  "bring_window_to_front": false,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_formatted_code",
+      "screen_id": "code",
+      "title": "Formatted Code"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="ui-explanation">
+                                <strong>Behavior:</strong> Tab becomes active, window stays in current state
+                            </div>
+                        </div>
+                        
+                        <div class="ui-example-card">
+                            <div class="ui-example-header">
+                                <h3><i class="fas fa-bell"></i> Notification Only</h3>
+                                <span class="ui-behavior">Minimal Disruption</span>
+                            </div>
+                            <p>Provide feedback without opening any windows</p>
+                            <div class="code-block">
+                                <pre><code class="language-json">{
+  "name": "Copy Confirmation",
+  "type": "regex",
+  "regex": ".*",
+  "actions": [
+    {
+      "name": "show_notification",
+      "message": "Content copied: {_matched_content}"
+    }
+  ]
+}</code></pre>
+                            </div>
+                            <div class="ui-explanation">
+                                <strong>Behavior:</strong> Only shows notification, no window interaction
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ui-best-practices">
+                        <h2>UI Best Practices</h2>
+                        <div class="best-practices-grid">
+                            <div class="practice-card">
+                                <h3><i class="fas fa-thumbs-up"></i> Recommended</h3>
+                                <ul class="practice-list">
+                                    <li>Use <code>auto_focus_tab: false</code> for background processing</li>
+                                    <li>Use <code>bring_window_to_front: false</code> as default</li>
+                                    <li>Reserve window activation for high-priority content</li>
+                                    <li>Use notifications for simple confirmations</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="practice-card">
+                                <h3><i class="fas fa-exclamation-triangle"></i> Avoid</h3>
+                                <ul class="practice-list">
+                                    <li>Multiple handlers with <code>bring_window_to_front: true</code></li>
+                                    <li>Auto-focusing tabs for frequent operations</li>
+                                    <li>Interrupting user workflow unnecessarily</li>
+                                    <li>Opening windows for every clipboard change</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -2,6 +2,17 @@
 
 Contextualizer is a powerful Windows application that provides context-aware clipboard management and automation capabilities. It allows you to define custom handlers and actions for different types of clipboard content, making it a versatile tool for automating repetitive tasks.
 
+## 📚 Documentation
+
+**[📖 Complete Documentation](docs/index.html)** - Open the comprehensive documentation site with detailed guides, examples, and API reference.
+
+### Quick Links
+- **[🚀 Getting Started](docs/index.html#quick-start)** - Set up Contextualizer in 5 minutes
+- **[⚙️ Configuration Guide](docs/index.html#configuration)** - Learn how to configure handlers
+- **[🔧 Handler Types](docs/handlers.html)** - Complete guide to all handler types
+- **[💡 Examples](docs/examples.html)** - Real-world examples and use cases
+- **[🎨 UI Controls](docs/index.html#ui-controls)** - Master the interface features
+
 ## Features
 
 - **Context-Aware Clipboard Management**: Monitors and captures clipboard content with customizable handlers

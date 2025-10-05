@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contextualizer Documentation</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="docs-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-cogs"></i> Contextualizer</h1>
+                <p class="version">v1.0.0</p>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="nav-section">
+                    <h3>Getting Started</h3>
+                    <ul>
+                        <li><a href="#overview" class="nav-link active">Overview</a></li>
+                        <li><a href="#installation" class="nav-link">Installation</a></li>
+                        <li><a href="#quick-start" class="nav-link">Quick Start</a></li>
+                        <li><a href="#configuration" class="nav-link">Configuration</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Core Features</h3>
+                    <ul>
+                        <li><a href="#clipboard-monitoring" class="nav-link">Clipboard Monitoring</a></li>
+                        <li><a href="#handlers" class="nav-link">Handlers</a></li>
+                        <li><a href="#actions" class="nav-link">Actions</a></li>
+                        <li><a href="#ui-controls" class="nav-link">UI Controls</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Handler Types</h3>
+                    <ul>
+                        <li><a href="#regex-handlers" class="nav-link">Regex Handlers</a></li>
+                        <li><a href="#api-handlers" class="nav-link">API Handlers</a></li>
+                        <li><a href="#database-handlers" class="nav-link">Database Handlers</a></li>
+                        <li><a href="#file-handlers" class="nav-link">File Handlers</a></li>
+                        <li><a href="#cron-handlers" class="nav-link">Cron Handlers</a></li>
+                        <li><a href="#custom-handlers" class="nav-link">Custom Handlers</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Advanced Topics</h3>
+                    <ul>
+                        <li><a href="#plugin-development" class="nav-link">Plugin Development</a></li>
+                        <li><a href="#logging-system" class="nav-link">Logging System</a></li>
+                        <li><a href="#performance" class="nav-link">Performance</a></li>
+                        <li><a href="#troubleshooting" class="nav-link">Troubleshooting</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Examples</h3>
+                    <ul>
+                        <li><a href="#examples-basic" class="nav-link">Basic Examples</a></li>
+                        <li><a href="#examples-advanced" class="nav-link">Advanced Examples</a></li>
+                        <li><a href="#examples-real-world" class="nav-link">Real-world Use Cases</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search documentation..." class="search-input">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            
+            <div class="content-body">
+                <!-- Overview Section -->
+                <section id="overview" class="content-section active">
+                    <div class="section-header">
+                        <h1>Contextualizer Documentation</h1>
+                        <p class="lead">A powerful clipboard monitoring and automation tool that processes clipboard content through configurable handlers and actions.</p>
+                    </div>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-clipboard"></i>
+                            </div>
+                            <h3>Clipboard Monitoring</h3>
+                            <p>Real-time clipboard content monitoring with intelligent processing</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h3>Configurable Handlers</h3>
+                            <p>Multiple handler types for different content processing needs</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h3>Automated Actions</h3>
+                            <p>Execute custom actions based on clipboard content patterns</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-puzzle-piece"></i>
+                            </div>
+                            <h3>Plugin System</h3>
+                            <p>Extensible architecture with custom plugin support</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <h3>Modern UI</h3>
+                            <p>WPF-based interface with tab management and Chrome-like UX</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3>Scheduled Tasks</h3>
+                            <p>Cron-based scheduling for automated operations</p>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-start-banner">
+                        <h2>Ready to get started?</h2>
+                        <p>Follow our quick start guide to set up Contextualizer in minutes.</p>
+                        <a href="#quick-start" class="btn btn-primary">Get Started <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </section>
+                
+                <!-- Installation Section -->
+                <section id="installation" class="content-section">
+                    <div class="section-header">
+                        <h1>Installation</h1>
+                        <p>Get Contextualizer up and running on your system</p>
+                    </div>
+                    
+                    <div class="installation-options">
+                        <div class="install-option">
+                            <h3><i class="fas fa-download"></i> Portable Single EXE (Network Share)</h3>
+                            <p>Copy the single EXE from the network share and run it without installation</p>
+                            <div class="code-block">
+                                <pre><code class="language-powershell"># Create target folder (if needed)
+New-Item -Path 'C:\PortableApps\Contextualizer' -ItemType Directory -Force
+
+# Copy the EXE from the network share
+Copy-Item "\\ortak\cashmanagement\murat ay\contextualizer\*.exe" "C:\PortableApps\Contextualizer\" -Force
+
+# Run
+# Go to C:\PortableApps\Contextualizer and launch the EXE</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="install-option">
+                            <h3><i class="fas fa-code-branch"></i> Build from Source (GitHub)</h3>
+                            <p>Clone from GitHub, build locally, and run</p>
+                            <div class="code-block">
+                                <pre><code class="language-powershell"># Clone the repository
+git clone https://github.com/Murat7Ay/Contextualizer.git
+cd Contextualizer
+
+# Build the project
+dotnet build --configuration Release
+
+# Run the application
+dotnet run --project WpfInteractionApp</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="portable-structure">
+                        <h3>Portable Directory Structure</h3>
+                        <ul>
+                            <li><code>C:\PortableApps\Contextualizer\Config</code> — Settings and <code>handlers.json</code> (auto-created on first run)</li>
+                            <li><code>C:\PortableApps\Contextualizer\Data\Exchange</code> — Exchange templates (seeds <code>sample-regex-handler.json</code> if empty)</li>
+                            <li><code>C:\PortableApps\Contextualizer\Data\Installed</code> — Installed handlers</li>
+                            <li><code>C:\PortableApps\Contextualizer\Data\Logs</code> — Application logs</li>
+                            <li><code>C:\PortableApps\Contextualizer\Plugins</code> — Plugins</li>
+                            <li><code>C:\PortableApps\Contextualizer\Temp</code> — Temporary files</li>
+                        </ul>
+                        <p class="note">These are created by <code>CreatePortableDirectories()</code> on first launch. A sample handler is generated by <code>CreateSampleExchangeHandler()</code>.</p>
+                    </div>
+                    
+                    <div class="requirements">
+                        <h3>System Requirements</h3>
+                        <ul>
+                            <li><strong>OS:</strong> Windows 10/11 (x64)</li>
+                            <li><strong>Framework:</strong> .NET 9.0 or later</li>
+                            <li><strong>Memory:</strong> 256 MB RAM minimum</li>
+                            <li><strong>Storage:</strong> 100 MB available space</li>
+                        </ul>
+                    </div>
+                </section>
+                
+                <!-- Quick Start Section -->
+                <section id="quick-start" class="content-section">
+                    <div class="section-header">
+                        <h1>Quick Start</h1>
+                        <p>Get up and running with Contextualizer in 5 minutes</p>
+                    </div>
+                    
+                    <div class="quick-start-steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h3>Launch the Application</h3>
+                                <p>Start WpfInteractionApp.exe. The application will begin monitoring your clipboard automatically.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h3>Get Your First Handler from Exchange</h3>
+                                <p>On first launch, a sample is seeded at <code>C:\PortableApps\Contextualizer\Data\Exchange\sample-regex-handler.json</code>. You can also drop this JSON into the Exchange folder:</p>
+                                <div class="code-block">
+                                    <pre><code class="language-json">{
+  "name": "Hello",
+  "title": "First handler",
+  "type": "regex",
+  "screen_id": "markdown2",
+  "bring_window_to_front": true,
+  "auto_focus_tab": true,
+  "regex": "\\b\\w{3,}\\b",
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_formatted_output"
+    }
+  ],
+  "output_format": "👋 Hello $(_match)<br>Welcome!!"
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h3>Test the Hello Handler</h3>
+                                <p>Copy any word with 3+ characters. Contextualizer will match it and open a window (screen <code>markdown2</code>) showing the formatted message.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h3>Install More from Exchange</h3>
+                                <p>Place handler templates (<code>*.json</code>) into <code>C:\PortableApps\Contextualizer\Data\Exchange</code>. They will be discovered on startup.</p>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">5</div>
+                            <div class="step-content">
+                                <h3>Explore Advanced Features</h3>
+                                <p>Check out the examples section for more complex handlers and automation scenarios.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Configuration Section -->
+                <section id="configuration" class="content-section">
+                    <div class="section-header">
+                        <h1>Configuration</h1>
+                        <p>Learn how to configure Contextualizer for your specific needs</p>
+                    </div>
+                    
+                    <div class="config-overview">
+                        <h2>Configuration Files</h2>
+                        <p>Contextualizer uses JSON configuration files to define handlers and their behavior:</p>
+                        
+                        <div class="config-file-list">
+                            <div class="config-file">
+                                <h3><i class="fas fa-file-code"></i> handlers.json</h3>
+                                <p>Main configuration file containing all your handlers</p>
+                                <div class="code-block">
+                                    <pre><code class="language-json">{
+  "handlers": [
+    {
+      "name": "Welcome Handler",
+      "type": "manual",
+      "description": "This is a sample handler to get you started. You can create your own handlers or install them from the exchange.",
+      "actions": [
+        {
+          "name": "show_notification",
+          "message": "Welcome to Contextualizer!",
+          "title": "Welcome",
+          "duration": 10
+        }
+      ]
+    },
+    {
+      "name": "Documentation",
+      "type": "manual",
+      "screen_id": "url_viewer",
+      "title": "Documentation",
+      "actions": [
+        { "name": "show_window", "key": "url" }
+      ],
+      "constant_seeder": {
+        "url": "file:///C:/Users/murat/source/repos/Contextualizer/docs/index.html"
+      }
+    }
+  ]
+}</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="config-file">
+                                <h3><i class="fas fa-cog"></i> appsettings.json</h3>
+                                <p>Application-level settings and preferences</p>
+                                <div class="code-block">
+                                    <pre><code class="language-json">{
+  "handlers_file_path": "C:\\PortableApps\\Contextualizer\\Config\\handlers.json",
+  "plugins_directory": "C:\\PortableApps\\Contextualizer\\Plugins",
+  "exchange_directory": "C:\\PortableApps\\Contextualizer\\Data\\Exchange",
+
+  "keyboard_shortcut": {
+    "modifier_keys": ["Win"],
+    "key": "W"
+  },
+
+  "clipboard_wait_timeout": 5000,
+  "window_activation_delay": 100,
+  "clipboard_clear_delay": 800,
+
+  "window_settings": {
+    "width": 1200,
+    "height": 800,
+    "left": 0,
+    "top": 0,
+    "window_state": "Normal",
+    "grid_splitter_position": 200,
+    "settings_window": { "left": 0, "top": 0, "width": 0, "height": 0 },
+    "exchange_window": { "left": 0, "top": 0, "width": 0, "height": 0 }
+  },
+
+  "ui_settings": {
+    "toast_position_x": 0,
+    "toast_position_y": 0,
+    "theme": "Dark",
+    "skipped_update_version": null,
+    "last_update_check": null,
+    "network_update_settings": {
+      "enable_network_updates": true,
+      "network_update_path": "\\\\server\\share\\Contextualizer\\Updates",
+      "check_interval_hours": 24,
+      "auto_install_non_mandatory": false,
+      "auto_install_mandatory": true
+    }
+  },
+
+  "logging_settings": {
+    "enable_local_logging": true,
+    "enable_usage_tracking": true,
+    "local_log_path": "C:\\PortableApps\\Contextualizer\\Data\\Logs",
+    "usage_endpoint_url": "http://localhost:5678/webhook/api/usage",
+    "minimum_log_level": "Info",
+    "max_log_file_size_mb": 10,
+    "max_log_file_count": 5,
+    "enable_debug_mode": false
+  },
+
+  "config_system": {
+    "enabled": true,
+    "config_file_path": "C:\\PortableApps\\Contextualizer\\Config\\config.ini",
+    "secrets_file_path": "C:\\PortableApps\\Contextualizer\\Config\\secrets.ini",
+    "auto_create_files": true,
+    "file_format": "ini"
+  }
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-details">
+                        <h2>Handler Configuration Reference</h2>
+                        <p>The unified handler configuration model supports all handler types via a single JSON schema. Properties below map to <code>HandlerConfig</code> and are used selectively depending on handler <code>type</code>.</p>
+
+                        <h3>Core Properties</h3>
+                        <div class="properties-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Property</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>name</code></td><td>string</td><td>Unique name for the handler</td></tr>
+                                    <tr><td><code>description</code></td><td>string</td><td>Optional description for documentation</td></tr>
+                                    <tr><td><code>type</code></td><td>string</td><td>Handler type (e.g., <code>regex</code>, <code>api</code>, <code>database</code>, <code>file</code>, <code>lookup</code>, <code>synthetic</code>, <code>cron</code>, <code>manual</code>)</td></tr>
+                                    <tr><td><code>title</code></td><td>string</td><td>UI title when showing windows/tabs</td></tr>
+                                    <tr><td><code>screen_id</code></td><td>string</td><td>Target screen/view identifier (e.g., <code>markdown</code>, <code>markdown2</code>, <code>url_viewer</code>)</td></tr>
+                                    <tr><td><code>validator</code></td><td>string</td><td>Custom validator key (optional)</td></tr>
+                                    <tr><td><code>context_provider</code></td><td>string</td><td>Custom context provider key (optional)</td></tr>
+                                    <tr><td><code>actions</code></td><td>array</td><td>List of action objects to execute (see Actions section)</td></tr>
+                                    <tr><td><code>output_format</code></td><td>string</td><td>Template for formatted output (supports <code>$(_match)</code> and keys)</td></tr>
+                                    <tr><td><code>user_inputs</code></td><td>array</td><td>Interactive input requests required before execution</td></tr>
+                                    <tr><td><code>requires_confirmation</code></td><td>bool</td><td>Prompt for confirmation before executing actions</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>UI Behavior</h3>
+                        <div class="properties-table">
+                            <table>
+                                <thead>
+                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>auto_focus_tab</code></td><td>bool (default: false)</td><td>Focus the opened tab immediately</td></tr>
+                                    <tr><td><code>bring_window_to_front</code></td><td>bool (default: false)</td><td>Force the main window to the foreground</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Regex / File / Lookup</h3>
+                        <div class="properties-table">
+                            <table>
+                                <thead>
+                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>regex</code></td><td>string</td><td>Pattern to match clipboard/content</td></tr>
+                                    <tr><td><code>groups</code></td><td>array&lt;string&gt;</td><td>Explicit group names (optional)</td></tr>
+                                    <tr><td><code>path</code></td><td>string</td><td>File path or directory (File/Lookup handlers)</td></tr>
+                                    <tr><td><code>delimiter</code></td><td>string</td><td>Delimiter for parsing text files</td></tr>
+                                    <tr><td><code>key_names</code></td><td>array&lt;string&gt;</td><td>Column/field names for keys</td></tr>
+                                    <tr><td><code>value_names</code></td><td>array&lt;string&gt;</td><td>Column/field names for values</td></tr>
+                                    <tr><td><code>file_extensions</code></td><td>array&lt;string&gt;</td><td>Allowed file extensions</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>API Handler</h3>
+                        <div class="properties-table">
+                            <table>
+                                <thead>
+                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>url</code></td><td>string</td><td>Endpoint URL</td></tr>
+                                    <tr><td><code>method</code></td><td>string</td><td>HTTP method (GET, POST, etc.)</td></tr>
+                                    <tr><td><code>headers</code></td><td>object</td><td>Request headers</td></tr>
+                                    <tr><td><code>request_body</code></td><td>object</td><td>JSON request payload</td></tr>
+                                    <tr><td><code>content_type</code></td><td>string</td><td>Request content type</td></tr>
+                                    <tr><td><code>timeout_seconds</code></td><td>number</td><td>Request timeout</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Database Handler</h3>
+                        <div class="properties-table">
+                            <table>
+                                <thead>
+                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>connectionString</code></td><td>string</td><td>Database connection string</td></tr>
+                                    <tr><td><code>query</code></td><td>string</td><td>Query or command to execute</td></tr>
+                                    <tr><td><code>connector</code></td><td>string</td><td>DB provider/connector identifier</td></tr>
+                                    <tr><td><code>command_timeout_seconds</code></td><td>number</td><td>Command timeout</td></tr>
+                                    <tr><td><code>connection_timeout_seconds</code></td><td>number</td><td>Connection timeout</td></tr>
+                                    <tr><td><code>max_pool_size</code></td><td>number</td><td>Maximum connection pool size</td></tr>
+                                    <tr><td><code>min_pool_size</code></td><td>number</td><td>Minimum connection pool size</td></tr>
+                                    <tr><td><code>disable_pooling</code></td><td>bool</td><td>Disable connection pooling</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Synthetic Handler</h3>
+                        <div class="properties-table">
+                            <table>
+                                <thead>
+                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>reference_handler</code></td><td>string</td><td>Name of existing handler to reference</td></tr>
+                                    <tr><td><code>actual_type</code></td><td>string</td><td>Real handler type executed behind the scenes</td></tr>
+                                    <tr><td><code>synthetic_input</code></td><td>object</td><td>Predefined input to feed the referenced handler</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Cron Handler</h3>
+                        <div class="properties-table">
+                            <table>
+                                <thead>
+                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>cron_job_id</code></td><td>string</td><td>Unique job id</td></tr>
+                                    <tr><td><code>cron_expression</code></td><td>string</td><td>Cron schedule expression</td></tr>
+                                    <tr><td><code>cron_timezone</code></td><td>string</td><td>Time zone id for scheduling</td></tr>
+                                    <tr><td><code>cron_enabled</code></td><td>bool (default: true)</td><td>Enable/disable the job</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h3>Full Handler JSON (All Properties)</h3>
+                        <p>A comprehensive example including all available properties from <code>HandlerConfig</code> and nested types. Use only the fields relevant to your handler type.</p>
+                        <div class="code-block">
+                            <pre><code class="language-json">{
+  "name": "Example Handler",
+  "description": "Comprehensive schema example",
+  "type": "regex",
+  "title": "Example Title",
+  "screen_id": "markdown",
+  "validator": "custom_validator",
+  "context_provider": "custom_context",
+
+  "regex": "\\b\\w+\\b",
+  "groups": ["group1", "group2"],
+
+  "path": "C:\\data\\input.txt",
+  "delimiter": ",",
+  "key_names": ["key"],
+  "value_names": ["value"],
+  "file_extensions": [".txt", ".csv"],
+
+  "output_format": "Output: $(_match)",
+  "seeder": { "dynamic_key": "value" },
+  "constant_seeder": { "const_key": "value" },
+
+  "user_inputs": [
+    {
+      "key": "input_key",
+      "title": "Input Title",
+      "message": "Provide a value",
+      "validation_regex": "^\\\\\\w+$",
+      "is_required": true,
+      "is_selection_list": false,
+      "is_password": false,
+      "selection_items": [
+        { "value": "v1", "display": "Value 1" },
+        { "value": "v2", "display": "Value 2" }
+      ],
+      "is_multi_select": false,
+      "is_file_picker": false,
+      "is_multi_line": false,
+      "default_value": "",
+      "dependent_key": "other_key",
+      "dependent_selection_item_map": {
+        "other_key_value": {
+          "selection_items": [ { "value": "x", "display": "X" } ],
+          "default_value": "x"
+        }
+      },
+      "config_target": "config.section.key"
+    }
+  ],
+  "requires_confirmation": false,
+
+  "url": "https://api.example.com/resource",
+  "method": "POST",
+  "headers": { "Authorization": "Bearer $(token)" },
+  "request_body": { "example": "data" },
+  "content_type": "application/json",
+  "timeout_seconds": 30,
+
+  "connectionString": "Server=.;Database=app;Trusted_Connection=True;",
+  "query": "SELECT 1",
+  "connector": "mssql",
+  "command_timeout_seconds": 30,
+  "connection_timeout_seconds": 15,
+  "max_pool_size": 100,
+  "min_pool_size": 0,
+  "disable_pooling": false,
+
+  "reference_handler": "Existing Handler",
+  "actual_type": "regex",
+  "synthetic_input": {
+    "key": "synthetic",
+    "title": "Synthetic Input",
+    "message": "Provide value",
+    "is_required": true
+  },
+
+  "cron_job_id": "job_hello",
+  "cron_expression": "0/30 * * * * ?",
+  "cron_timezone": "UTC",
+  "cron_enabled": true,
+
+  "auto_focus_tab": false,
+  "bring_window_to_front": false,
+
+  "actions": [
+    {
+      "name": "show_window",
+      "requires_confirmation": false,
+      "key": "_formatted_output",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          { "operator": "equals", "field": "_match", "value": "test" }
+        ]
+      },
+      "user_inputs": [],
+      "seeder": { "k": "v" },
+      "constant_seeder": { "ck": "cv" },
+      "inner_actions": [
+        { "name": "copy_to_clipboard", "key": "_self", "requires_confirmation": false }
+      ]
+    }
+  ]
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="app-settings-details">
+                        <h2>Application Settings</h2>
+                        <p>Application settings are persisted under <code>C:\PortableApps\Contextualizer\Config\appsettings.json</code> and map to <code>AppSettings</code>.</p>
+
+                        <h3>Core Paths</h3>
+                        <ul>
+                            <li><code>handlers_file_path</code>: Path to <code>handlers.json</code></li>
+                            <li><code>plugins_directory</code>: Folder for plugins</li>
+                            <li><code>exchange_directory</code>: Folder for Exchange templates</li>
+                        </ul>
+
+                        <h3>Keyboard Shortcut</h3>
+                        <ul>
+                            <li><code>keyboard_shortcut.modifier_keys</code>: Array of modifiers (e.g., <code>["Ctrl"]</code>)</li>
+                            <li><code>keyboard_shortcut.key</code>: Main key (e.g., <code>W</code>)</li>
+                        </ul>
+
+                        <h3>Timing</h3>
+                        <ul>
+                            <li><code>clipboard_wait_timeout</code> (ms)</li>
+                            <li><code>window_activation_delay</code> (ms)</li>
+                            <li><code>clipboard_clear_delay</code> (ms)</li>
+                        </ul>
+
+                        <h3>Window Settings</h3>
+                        <ul>
+                            <li><code>window_settings</code>: <code>width</code>, <code>height</code>, <code>left</code>, <code>top</code>, <code>window_state</code>, <code>grid_splitter_position</code></li>
+                            <li><code>window_settings.settings_window</code>/<code>exchange_window</code>: <code>left</code>, <code>top</code>, <code>width</code>, <code>height</code></li>
+                        </ul>
+
+                        <h3>UI Settings</h3>
+                        <ul>
+                            <li><code>ui_settings.toast_position_x</code>, <code>toast_position_y</code></li>
+                            <li><code>ui_settings.theme</code> (e.g., <code>Dark</code>)</li>
+                            <li><code>ui_settings.skipped_update_version</code>, <code>last_update_check</code></li>
+                            <li><code>ui_settings.network_update_settings</code>: <code>enable_network_updates</code>, <code>network_update_path</code>, <code>check_interval_hours</code>, <code>auto_install_non_mandatory</code>, <code>auto_install_mandatory</code></li>
+                        </ul>
+
+                        <h3>Logging Settings</h3>
+                        <ul>
+                            <li><code>logging_settings.enable_local_logging</code>, <code>enable_usage_tracking</code></li>
+                            <li><code>logging_settings.local_log_path</code>, <code>usage_endpoint_url</code></li>
+                            <li><code>logging_settings.minimum_log_level</code>, <code>max_log_file_size_mb</code>, <code>max_log_file_count</code>, <code>enable_debug_mode</code></li>
+                        </ul>
+
+                        <h3>Config System</h3>
+                        <ul>
+                            <li><code>config_system.enabled</code></li>
+                            <li><code>config_system.config_file_path</code>, <code>secrets_file_path</code></li>
+                            <li><code>config_system.auto_create_files</code>, <code>file_format</code></li>
+                        </ul>
+
+                        <h3>Settings UI</h3>
+                        <p>You can manage these settings from the application UI:</p>
+                        <ul>
+                            <li><strong>Application Settings</strong> window (<code>SettingsWindow</code>): Paths, keyboard shortcut, timing, config system, network updates</li>
+                            <li><strong>Logging Settings</strong> window (<code>LoggingSettingsWindow</code>): Local logging, analytics, and log statistics</li>
+                        </ul>
+                    </div>
+                </section>
+                
+                <!-- Clipboard Monitoring Section -->
+                <section id="clipboard-monitoring" class="content-section">
+                    <div class="section-header">
+                        <h1>Clipboard Monitoring</h1>
+                        <p>Understanding how Contextualizer monitors and processes clipboard content</p>
+                    </div>
+                    
+                    <div class="monitoring-flow">
+                        <h2>How It Works</h2>
+                        <div class="flow-diagram">
+                            <div class="flow-step">
+                                <div class="flow-icon"><i class="fas fa-clipboard"></i></div>
+                                <h3>Clipboard Change</h3>
+                                <p>User copies content to clipboard</p>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon"><i class="fas fa-search"></i></div>
+                                <h3>Content Analysis</h3>
+                                <p>Contextualizer analyzes the content</p>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon"><i class="fas fa-filter"></i></div>
+                                <h3>Handler Matching</h3>
+                                <p>Finds matching handlers for the content</p>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon"><i class="fas fa-play"></i></div>
+                                <h3>Action Execution</h3>
+                                <p>Executes configured actions</p>
+                            </div>
+                        </div>
+                        
+                        <div class="monitoring-features">
+                            <h3>Key Features</h3>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i> Real-time monitoring with minimal performance impact</li>
+                                <li><i class="fas fa-check"></i> Support for text, images, and file content</li>
+                                <li><i class="fas fa-check"></i> Intelligent content type detection</li>
+                                <li><i class="fas fa-check"></i> Configurable polling intervals</li>
+                                <li><i class="fas fa-check"></i> Privacy-focused - content stays local</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Handlers Section -->
+                <section id="handlers" class="content-section">
+                    <div class="section-header">
+                        <h1>Handlers</h1>
+                        <p>Comprehensive guide to creating and configuring handlers</p>
+                    </div>
+                    
+                    <div class="handler-types">
+                        <h2>Handler Types Overview</h2>
+                        <div class="handler-grid">
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-search"></i></div>
+                                <h3>Regex Handlers</h3>
+                                <p>Match content using regular expressions</p>
+                                <a href="#regex-handlers" class="handler-link">Learn More →</a>
+                            </div>
+                            
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-globe"></i></div>
+                                <h3>API Handlers</h3>
+                                <p>Send content to external APIs</p>
+                                <a href="#api-handlers" class="handler-link">Learn More →</a>
+                            </div>
+                            
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-database"></i></div>
+                                <h3>Database Handlers</h3>
+                                <p>Query and store data in databases</p>
+                                <a href="#database-handlers" class="handler-link">Learn More →</a>
+                            </div>
+                            
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-file"></i></div>
+                                <h3>File Handlers</h3>
+                                <p>Process file paths and content</p>
+                                <a href="#file-handlers" class="handler-link">Learn More →</a>
+                            </div>
+                            
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-clock"></i></div>
+                                <h3>Cron Handlers</h3>
+                                <p>Schedule automated tasks</p>
+                                <a href="#cron-handlers" class="handler-link">Learn More →</a>
+                            </div>
+                            
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-code"></i></div>
+                                <h3>Custom Handlers</h3>
+                                <p>Create your own handler logic</p>
+                                <a href="#custom-handlers" class="handler-link">Learn More →</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="common-properties">
+                        <h2>Common Handler Properties</h2>
+                        <div class="properties-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Property</th>
+                                        <th>Type</th>
+                                        <th>Required</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>name</code></td>
+                                        <td>string</td>
+                                        <td>✅</td>
+                                        <td>Unique identifier for the handler</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>description</code></td>
+                                        <td>string</td>
+                                        <td>❌</td>
+                                        <td>Human-readable description</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>type</code></td>
+                                        <td>string</td>
+                                        <td>✅</td>
+                                        <td>Handler type (regex, api, database, etc.)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>actions</code></td>
+                                        <td>array</td>
+                                        <td>✅</td>
+                                        <td>Actions to execute when handler matches</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>auto_focus_tab</code></td>
+                                        <td>boolean</td>
+                                        <td>❌</td>
+                                        <td>Whether to focus new tabs (default: false)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>bring_window_to_front</code></td>
+                                        <td>boolean</td>
+                                        <td>❌</td>
+                                        <td>Whether to bring window to front (default: false)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Actions Section -->
+                <section id="actions" class="content-section">
+                    <div class="section-header">
+                        <h1>Actions</h1>
+                        <p>Complete reference for all available actions</p>
+                    </div>
+                    
+                    <div class="actions-overview">
+                        <h2>Available Actions</h2>
+                        <div class="action-grid">
+                            <div class="action-card">
+                                <h3><i class="fas fa-bell"></i> show_notification</h3>
+                                <p>Display a toast notification to the user</p>
+                                <div class="code-block">
+                                    <pre><code class="language-json">{
+  "name": "show_notification",
+  "message": "Notification text here",
+  "title": "Optional title",
+  "type": "info"
+}</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="action-card">
+                                <h3><i class="fas fa-window-maximize"></i> show_window</h3>
+                                <p>Open content in a new tab or window</p>
+                                <div class="code-block">
+                                    <pre><code class="language-json">{
+  "name": "show_window",
+  "key": "content_key",
+  "screen_id": "markdown",
+  "title": "Window Title"
+}</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="action-card">
+                                <h3><i class="fas fa-copy"></i> copy_to_clipboard</h3>
+                                <p>Copy processed content back to clipboard</p>
+                                <div class="code-block">
+                                    <pre><code class="language-json">{
+  "name": "copy_to_clipboard",
+  "key": "processed_content"
+}</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="action-card">
+                                <h3><i class="fas fa-external-link-alt"></i> open_file</h3>
+                                <p>Open files or URLs with default applications</p>
+                                <div class="code-block">
+                                    <pre><code class="language-json">{
+  "name": "open_file",
+  "key": "file_path_or_url"
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- UI Controls Section -->
+                <section id="ui-controls" class="content-section">
+                    <div class="section-header">
+                        <h1>UI Controls</h1>
+                        <p>Master the Contextualizer interface and user experience features</p>
+                    </div>
+                    
+                    <div class="ui-features">
+                        <h2>Tab Management</h2>
+                        <div class="ui-feature">
+                            <h3>Chrome-like Tab Behavior</h3>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-mouse"></i> <strong>Middle-click to close:</strong> Click mouse wheel on any tab to close it</li>
+                                <li><i class="fas fa-times"></i> <strong>Close button:</strong> Click the X button on each tab</li>
+                                <li><i class="fas fa-eye-slash"></i> <strong>Silent tabs:</strong> New tabs open in background by default</li>
+                                <li><i class="fas fa-window-restore"></i> <strong>Smart focus:</strong> Configurable tab focusing behavior</li>
+                            </ul>
+                        </div>
+                        
+                        <h2>Window Management</h2>
+                        <div class="ui-feature">
+                            <h3>Intelligent Window Behavior</h3>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-expand"></i> <strong>Smart activation:</strong> Only brings window to front when needed</li>
+                                <li><i class="fas fa-window-minimize"></i> <strong>Minimize restore:</strong> Automatically restores minimized windows</li>
+                                <li><i class="fas fa-cog"></i> <strong>Configurable:</strong> Control window behavior per handler</li>
+                            </ul>
+                        </div>
+                        
+                        <h2>Activity Logging</h2>
+                        <div class="ui-feature">
+                            <h3>Real-time Activity Feed</h3>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-list"></i> <strong>Activity log:</strong> See all handler executions in real-time</li>
+                                <li><i class="fas fa-filter"></i> <strong>Log filtering:</strong> Filter by log level and search text</li>
+                                <li><i class="fas fa-search"></i> <strong>Search logs:</strong> Quickly find specific log entries</li>
+                                <li><i class="fas fa-trash"></i> <strong>Clear logs:</strong> Clean up the log view when needed</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="ui-configuration">
+                        <h2>UI Configuration</h2>
+                        <div class="code-block">
+                            <pre><code class="language-json">{
+  "name": "My Handler",
+  "type": "regex",
+  "regex": "test",
+  "auto_focus_tab": false,
+  "bring_window_to_front": false,
+  "actions": [
+    {
+      "name": "show_window",
+      "key": "_formatted_output"
+    }
+  ]
+}</code></pre>
+                        </div>
+                        
+                        <div class="config-explanation">
+                            <h3>Configuration Options</h3>
+                            <ul class="config-list">
+                                <li><code>auto_focus_tab: false</code> - Tab opens in background (recommended)</li>
+                                <li><code>auto_focus_tab: true</code> - Tab becomes active immediately</li>
+                                <li><code>bring_window_to_front: false</code> - Window stays in current state (recommended)</li>
+                                <li><code>bring_window_to_front: true</code> - Window comes to front (use sparingly)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

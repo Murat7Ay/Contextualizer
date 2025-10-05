@@ -139,18 +139,35 @@ namespace WpfInteractionApp.Services
                     {
                         name = "Welcome Handler",
                         type = "manual",
-                        screen_id = "welcome_screen",
-                        title = "Welcome to Contextualizer!",
-                        description = "This is a sample handler to get you started. You can create your own handlers or install them from the marketplace.",
+                        description = "This is a sample handler to get you started. You can create your own handlers or install them from the exchange.",
                         actions = new[]
                         {
                             new
                             {
                                 name = "show_notification",
-                                message = "Welcome to Contextualizer! 🎉\n\nThis portable installation is ready to use.\n\nYou can:\n- Create custom handlers\n- Install handlers from marketplace\n- Configure settings\n- View activity logs",
+                                message = "Welcome to Contextualizer! 🎉\n\nThis portable installation is ready to use.\n\nYou can:\n- Create custom handlers\n- Install handlers from exchange\n- Configure settings\n- View activity logs",
                                 title = "Welcome",
                                 duration = 10
                             }
+                        }
+                    },
+                    new
+                    {
+                        name = "Documentation",
+                        type = "manual",
+                        screen_id = "url_viewer",
+                        title = "Documentation",
+                        actions = new[]
+                        {
+                            new
+                            {
+                                name = "show_window",
+                                key = "url"
+                            }
+                        },
+                        constant_seeder = new
+                        {
+                            url = "file:///C:/Users/murat/source/repos/Contextualizer/docs/index.html"
                         }
                     }
                 }
@@ -175,24 +192,25 @@ namespace WpfInteractionApp.Services
                 version = "1.0.0",
                 author = "Contextualizer Team",
                 description = "A sample regex handler that processes email addresses from clipboard content",
-                tags = new[] { "sample", "regex", "email" },
+                tags = new[] { "sample", "regex", "hello" },
                 handlerJson = new
                 {
-                    name = "Email Extractor",
+                    name = "Hello",
+                    title = "First handler",
                     type = "regex",
-                    screen_id = "email_screen",
-                    title = "Extract Email Addresses",
-                    description = "Extracts email addresses from clipboard text",
-                    regex = @"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+                    screen_id = "markdown2",
+                    bring_window_to_front = true,
+                    auto_focus_tab = true,
+                    regex = @"\b\w{3,}\b",
                     actions = new[]
                     {
                         new
                         {
-                            name = "simple_print_key",
-                            key = "_self"
+                            name = "show_window",
+                            key = "_formatted_output"
                         }
                     },
-                    output_format = "Found email: $(_match)"
+                    output_format = "👋 Hello $(_match)<br>Welcome!!"
                 }
             };
 
