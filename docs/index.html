@@ -147,55 +147,7 @@
                         <p>Follow our quick start guide to set up Contextualizer in minutes.</p>
                         <a href="#quick-start" class="btn btn-primary">Get Started <i class="fas fa-arrow-right"></i></a>
                     </div>
-
-                    <div class="ui-dynamic-screens">
-                        <h2>Dynamic Screens</h2>
-                        <p>UI content is rendered in tabs by dynamic screens that implement <code>IDynamicScreen</code>. Screens are discovered by <code>WpfUserInteractionService</code> using a small factory plus reflection. Each screen exposes a unique <code>ScreenId</code> and a method <code>SetScreenInformation(Dictionary&lt;string, string&gt; context)</code> to receive data.</p>
-                        <div class="code-block">
-                            <pre><code class="language-csharp">public interface IDynamicScreen { string ScreenId { get; } void SetScreenInformation(Dictionary&lt;string,string&gt; context); }</code></pre>
-                        </div>
-                        <h3>Screens</h3>
-                        <ul>
-                            <li><code>MarkdownViewer2</code> (ScreenId: <code>markdown2</code>) — Renders markdown to HTML via Markdig; theme-aware CSS injected into WebView2.</li>
-                            <li><code>UrlViewer</code> (ScreenId: <code>url_viewer</code>) — Displays external/internal URLs with WebView2; supports shared profile via context key <code>shared_webview_profile</code> and <code>file:///</code> paths.</li>
-                            <li><code>PlSqlEditor</code> (ScreenId: <code>plsql_editor</code>) — SQL editor powered by ACE (loaded locally) inside WebView2 with live theme switching.</li>
-                            <li><code>JsonFormatterView</code> (ScreenId: <code>jsonformatter</code>) — Pretty-print and tree view toggle for JSON.</li>
-                            <li><code>XmlFormatterView</code> (ScreenId: <code>xmlformatter</code>) — Pretty-print and tree view toggle for XML.</li>
-                        </ul>
-                        <p>To open a screen, actions like <code>show_window</code> pass a <code>screen_id</code>, an optional <code>title</code>, and a <code>key</code> pointing to context content (commonly <code>_formatted_output</code> or <code>_self</code>).</p>
-                    </div>
-
-                    <div class="ui-webview2">
-                        <h2>WebView2 Integration</h2>
-                        <ul class="feature-list">
-                            <li><strong>Initialization</strong>: <code>await WebView.EnsureCoreWebView2Async()</code> and optional <code>CoreWebView2Environment</code> for shared profiles.</li>
-                            <li><strong>Local assets</strong>: Map folders with <code>SetVirtualHostNameToFolderMapping("local", Assets/ace, Allow)</code> to load scripts via <code>https://local/...</code>.</li>
-                            <li><strong>Messaging</strong>: Handle <code>WebMessageReceived</code> to receive messages from injected JavaScript.</li>
-                            <li><strong>Navigation</strong>: Use <code>NavigateToString</code> for generated HTML or set <code>Source</code> for URLs and <code>file:///</code> paths.</li>
-                        </ul>
-                    </div>
-
-                    <div class="ui-markdown">
-                        <h2>Markdown → HTML</h2>
-                        <p><code>MarkdownViewer2</code> uses Markdig with advanced extensions to convert markdown to HTML, then injects a theme-aware stylesheet before calling <code>WebView.NavigateToString</code>. Theme changes re-render the HTML.</p>
-                    </div>
-
-                    <div class="ui-theme">
-                        <h2>Theme System (Carbon)</h2>
-                        <ul class="feature-list">
-                            <li><strong>Design tokens</strong>: Colors, brushes, and styles follow Carbon-inspired resources.</li>
-                            <li><strong>Theme propagation</strong>: <code>MainWindow</code> notifies all <code>IThemeAware</code> children via <code>OnThemeChanged</code>.</li>
-                            <li><strong>WebView sync</strong>: Screens like <code>PlSqlEditor</code> call injected JS <code>setTheme</code> to switch ACE editor themes.</li>
-                        </ul>
-                    </div>
-
-                    <div class="ui-exchange-cron">
-                        <h2>Exchange & Cron Screens</h2>
-                        <h3>Handler Exchange</h3>
-                        <p><code>HandlerExchangeWindow</code> lists available handlers from the Exchange, supports search, tag filter, sort, and actions: Install, Update, Remove. Window position persists via <code>SettingsService</code>.</p>
-                        <h3>Cron Manager</h3>
-                        <p><code>CronManagerWindow</code> displays scheduled jobs (<code>ICronService</code>), with enable/disable toggle and manual trigger. Status uses Carbon success/danger styles. Counts and filters are live.</p>
-                    </div>
+ 
                 </section>
 
                 <!-- Execution Pipeline Section -->
@@ -1472,6 +1424,55 @@ dotnet run --project WpfInteractionApp</code></pre>
                                 <li><code>bring_window_to_front: true</code> - Window comes to front (use sparingly)</li>
                             </ul>
                         </div>
+                    </div>
+
+                    <div class="ui-dynamic-screens">
+                        <h2>Dynamic Screens</h2>
+                        <p>UI content is rendered in tabs by dynamic screens that implement <code>IDynamicScreen</code>. Screens are discovered by <code>WpfUserInteractionService</code> using a small factory plus reflection. Each screen exposes a unique <code>ScreenId</code> and a method <code>SetScreenInformation(Dictionary&lt;string, string&gt; context)</code> to receive data.</p>
+                        <div class="code-block">
+                            <pre><code class="language-csharp">public interface IDynamicScreen { string ScreenId { get; } void SetScreenInformation(Dictionary&lt;string,string&gt; context); }</code></pre>
+                        </div>
+                        <h3>Screens</h3>
+                        <ul>
+                            <li><code>MarkdownViewer2</code> (ScreenId: <code>markdown2</code>) — Renders markdown to HTML via Markdig; theme-aware CSS injected into WebView2.</li>
+                            <li><code>UrlViewer</code> (ScreenId: <code>url_viewer</code>) — Displays external/internal URLs with WebView2; supports shared profile via context key <code>shared_webview_profile</code> and <code>file:///</code> paths.</li>
+                            <li><code>PlSqlEditor</code> (ScreenId: <code>plsql_editor</code>) — SQL editor powered by ACE (loaded locally) inside WebView2 with live theme switching.</li>
+                            <li><code>JsonFormatterView</code> (ScreenId: <code>jsonformatter</code>) — Pretty-print and tree view toggle for JSON.</li>
+                            <li><code>XmlFormatterView</code> (ScreenId: <code>xmlformatter</code>) — Pretty-print and tree view toggle for XML.</li>
+                        </ul>
+                        <p>To open a screen, actions like <code>show_window</code> pass a <code>screen_id</code>, an optional <code>title</code>, and a <code>key</code> pointing to context content (commonly <code>_formatted_output</code> or <code>_self</code>).</p>
+                    </div>
+
+                    <div class="ui-webview2">
+                        <h2>WebView2 Integration</h2>
+                        <ul class="feature-list">
+                            <li><strong>Initialization</strong>: <code>await WebView.EnsureCoreWebView2Async()</code> and optional <code>CoreWebView2Environment</code> for shared profiles.</li>
+                            <li><strong>Local assets</strong>: Map folders with <code>SetVirtualHostNameToFolderMapping("local", Assets/ace, Allow)</code> to load scripts via <code>https://local/...</code>.</li>
+                            <li><strong>Messaging</strong>: Handle <code>WebMessageReceived</code> to receive messages from injected JavaScript.</li>
+                            <li><strong>Navigation</strong>: Use <code>NavigateToString</code> for generated HTML or set <code>Source</code> for URLs and <code>file:///</code> paths.</li>
+                        </ul>
+                    </div>
+
+                    <div class="ui-markdown">
+                        <h2>Markdown → HTML</h2>
+                        <p><code>MarkdownViewer2</code> uses Markdig with advanced extensions to convert markdown to HTML, then injects a theme-aware stylesheet before calling <code>WebView.NavigateToString</code>. Theme changes re-render the HTML.</p>
+                    </div>
+
+                    <div class="ui-theme">
+                        <h2>Theme System (Carbon)</h2>
+                        <ul class="feature-list">
+                            <li><strong>Design tokens</strong>: Colors, brushes, and styles follow Carbon-inspired resources.</li>
+                            <li><strong>Theme propagation</strong>: <code>MainWindow</code> notifies all <code>IThemeAware</code> children via <code>OnThemeChanged</code>.</li>
+                            <li><strong>WebView sync</strong>: Screens like <code>PlSqlEditor</code> call injected JS <code>setTheme</code> to switch ACE editor themes.</li>
+                        </ul>
+                    </div>
+
+                    <div class="ui-exchange-cron">
+                        <h2>Exchange & Cron Screens</h2>
+                        <h3>Handler Exchange</h3>
+                        <p><code>HandlerExchangeWindow</code> lists available handlers from the Exchange, supports search, tag filter, sort, and actions: Install, Update, Remove. Window position persists via <code>SettingsService</code>.</p>
+                        <h3>Cron Manager</h3>
+                        <p><code>CronManagerWindow</code> displays scheduled jobs (<code>ICronService</code>), with enable/disable toggle and manual trigger. Status uses Carbon success/danger styles. Counts and filters are live.</p>
                     </div>
                 </section>
             </div>
