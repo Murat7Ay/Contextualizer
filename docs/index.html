@@ -1179,6 +1179,119 @@ dotnet run --project WpfInteractionApp</code></pre>
                             </table>
                         </div>
                     </div>
+
+                    <div class="handler-details">
+                        <h2>Handler Type Details</h2>
+
+                        <h3>API Handler</h3>
+                        <p>Matches optional <code>regex</code>, builds request from <code>url</code>, <code>method</code>, <code>headers</code>, and optional <code>request_body</code>. Flattens JSON responses into context.</p>
+                        <div class="properties-table">
+                            <table>
+                                <thead><tr><th>Behavior</th><th>Details</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Regex</td><td>Optional, compiled with 5s timeout; named groups preferred; adds <code>_match</code> and group keys</td></tr>
+                                    <tr><td>Request</td><td><code>url</code> after dynamic resolution; <code>method</code> default GET; <code>headers</code> merged; <code>request_body</code> resolved via placeholders/functions</td></tr>
+                                    <tr><td>Response</td><td>Adds <code>StatusCode</code>, <code>IsSuccessful</code>, <code>RawResponse</code>; JSON responses flattened to keys (e.g. <code>data.items[0].id</code>)</td></tr>
+                                    <tr><td>Timeouts</td><td>Client timeout from <code>timeout_seconds</code> (default 30s); connection pooling optimized</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Database Handler</h3>
+                        <p>Executes read-only SQL with parameterized inputs; builds a tabular context and renders markdown by default.</p>
+                        <div class="properties-table">
+                            <table>
+                                <thead><tr><th>Behavior</th><th>Details</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Safety</td><td>Only <code>SELECT</code> allowed; forbidden keywords blocked; parameters truncated to 4000 chars</td></tr>
+                                    <tr><td>Regex params</td><td>Optional regex; sets <code>p_input</code>, <code>p_match</code>, and groups (<code>group</code> names or <code>p_group_i</code>)</td></tr>
+                                    <tr><td>Connectors</td><td><code>connector</code> alias: mssql <code>@</code>, plsql <code>:</code>; connection via <code>ConnectionManager</code></td></tr>
+                                    <tr><td>Output</td><td>Context contains <code>_count</code> and keys like <code>Column#Row</code>; <code>output_format</code> or auto markdown table</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>File Handler</h3>
+                        <p>Processes file clipboard content; validates extensions; exposes rich file metadata for each file.</p>
+                        <div class="properties-table">
+                            <table>
+                                <thead><tr><th>Keys</th><th>Example</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Basics</td><td><code>FileName0</code>, <code>FullPath0</code>, <code>Extension0</code>, <code>SizeBytes0</code></td></tr>
+                                    <tr><td>Timestamps</td><td><code>CreationDate0</code>, <code>LastAccess0</code>, <code>LastWrite0</code> (and UTC variants)</td></tr>
+                                    <tr><td>Attributes</td><td><code>Hidden0</code>, <code>ReadOnly0</code>, <code>System0</code>, <code>Archive0</code>, ...</td></tr>
+                                    <tr><td>Counts</td><td><code>_count</code> = number of files</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Lookup Handler</h3>
+                        <p>Loads key-value data from a delimited file; resolves <code>path</code> via config, supports comments and {{NEWLINE}} replacement.</p>
+                        <div class="properties-table">
+                            <table>
+                                <thead><tr><th>Behavior</th><th>Details</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Load</td><td>Resolves <code>path</code> with config; reads file; splits by <code>delimiter</code></td></tr>
+                                    <tr><td>Schema</td><td><code>key_names</code> choose dictionary keys; <code>value_names</code> create value fields</td></tr>
+                                    <tr><td>Match</td><td><code>CanHandle</code> true if clipboard text matches a loaded key</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Regex Handler</h3>
+                        <p>Matches compiled regex with 5s timeout; captures named and indexed groups into context.</p>
+                        <div class="properties-table">
+                            <table>
+                                <thead><tr><th>Keys</th><th>Details</th></tr></thead>
+                                <tbody>
+                                    <tr><td><code>_match</code></td><td>Full match</td></tr>
+                                    <tr><td>Groups</td><td>Named groups by name; otherwise <code>group_i</code></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Custom Handler</h3>
+                        <p>Delegates validation and context creation to plugins specified by <code>validator</code> and <code>context_provider</code>.</p>
+                        <div class="properties-table">
+                            <table>
+                                <thead><tr><th>Plugin</th><th>Role</th></tr></thead>
+                                <tbody>
+                                    <tr><td><code>validator</code></td><td><code>IContextValidator.Validate</code> to decide <code>CanHandle</code></td></tr>
+                                    <tr><td><code>context_provider</code></td><td><code>IContextProvider.CreateContext</code> to build context</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Synthetic Handler</h3>
+                        <p>Orchestrator handler: executes an <code>ActualType</code> handler or references another handler by name; can synthesize clipboard content.</p>
+                        <div class="properties-table">
+                            <table>
+                                <thead><tr><th>Mode</th><th>Details</th></tr></thead>
+                                <tbody>
+                                    <tr><td>ActualType</td><td>Creates internal handler by setting config <code>type</code> to <code>actual_type</code> and executing it</td></tr>
+                                    <tr><td>ReferenceHandler</td><td>Finds existing handler by name via <code>HandlerManager</code> and executes it</td></tr>
+                                    <tr><td>Synthetic Input</td><td>Builds <code>ClipboardContent</code> from <code>synthetic_input</code> spec</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Cron Handler</h3>
+                        <p>Schedules handlers with <code>cron_expression</code>; uses Synthetic pattern to execute the actual handler at schedule.</p>
+                        <div class="properties-table">
+                            <table>
+                                <thead><tr><th>Property</th><th>Details</th></tr></thead>
+                                <tbody>
+                                    <tr><td><code>cron_job_id</code></td><td>Job identifier (auto-generated if empty)</td></tr>
+                                    <tr><td><code>cron_expression</code></td><td>Cron schedule; uses <code>ICronService</code> for scheduling</td></tr>
+                                    <tr><td><code>cron_timezone</code></td><td>Optional timezone</td></tr>
+                                    <tr><td>Enable/Disable</td><td>Programmatic control via <code>SetEnabled</code>; manual trigger via <code>ExecuteNow</code></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Manual Handler</h3>
+                        <p>Always <code>CanHandle</code> = true and <code>ITriggerableHandler</code>; useful for buttons/menus to run actions without matching clipboard.</p>
+                    </div>
                 </section>
                 
                 <!-- Actions Section -->
