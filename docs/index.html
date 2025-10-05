@@ -792,179 +792,92 @@ dotnet run --project WpfInteractionApp</code></pre>
                         <h3>API Handler</h3>
                         <!-- anchor -->
                         <a id="api-handlers"></a>
-                        <div class="properties-table">
-                            <table>
-                                <thead>
-                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td><code>url</code></td><td>string</td><td>Endpoint URL</td></tr>
-                                    <tr><td><code>method</code></td><td>string</td><td>HTTP method (GET, POST, etc.)</td></tr>
-                                    <tr><td><code>headers</code></td><td>object</td><td>Request headers</td></tr>
-                                    <tr><td><code>request_body</code></td><td>object</td><td>JSON request payload</td></tr>
-                                    <tr><td><code>content_type</code></td><td>string</td><td>Request content type</td></tr>
-                                    <tr><td><code>timeout_seconds</code></td><td>number</td><td>Request timeout</td></tr>
-                                </tbody>
-                            </table>
+                        <div class="ui-card" id="api-example">
+                            <h4>API Handler — Example</h4>
+                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
+                            <div class="code-block"><pre><code class="language-json">{
+  
+}</code></pre></div>
                         </div>
 
                         <h3>Database Handler</h3>
                         <a id="database-handlers"></a>
-                        <div class="properties-table">
-                            <table>
-                                <thead>
-                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td><code>connectionString</code></td><td>string</td><td>Database connection string</td></tr>
-                                    <tr><td><code>query</code></td><td>string</td><td>Query or command to execute</td></tr>
-                                    <tr><td><code>connector</code></td><td>string</td><td>DB provider/connector identifier</td></tr>
-                                    <tr><td><code>command_timeout_seconds</code></td><td>number</td><td>Command timeout</td></tr>
-                                    <tr><td><code>connection_timeout_seconds</code></td><td>number</td><td>Connection timeout</td></tr>
-                                    <tr><td><code>max_pool_size</code></td><td>number</td><td>Maximum connection pool size</td></tr>
-                                    <tr><td><code>min_pool_size</code></td><td>number</td><td>Minimum connection pool size</td></tr>
-                                    <tr><td><code>disable_pooling</code></td><td>bool</td><td>Disable connection pooling</td></tr>
-                                </tbody>
-                            </table>
+                        <div class="ui-card" id="database-example">
+                            <h4>Database Handler — Example</h4>
+                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
+                            <div class="code-block"><pre><code class="language-json">{
+  
+}</code></pre></div>
+                        </div>
+
+                        <h3>File Handler</h3>
+                        <a id="file-handlers"></a>
+                        <div class="ui-card" id="file-example">
+                            <h4>File Handler — Example</h4>
+                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
+                            <div class="code-block"><pre><code class="language-json">{
+  
+}</code></pre></div>
+                        </div>
+
+                        <h3>Lookup Handler</h3>
+                        <a id="lookup-handlers"></a>
+                        <div class="ui-card" id="lookup-example">
+                            <h4>Lookup Handler — Example</h4>
+                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
+                            <div class="code-block"><pre><code class="language-json">{
+  
+}</code></pre></div>
+                        </div>
+
+                        <h3>Regex Handler</h3>
+                        <a id="regex-handlers"></a>
+                        <div class="ui-card" id="regex-example">
+                            <h4>Regex Handler — Example</h4>
+                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
+                            <div class="code-block"><pre><code class="language-json">{
+  
+}</code></pre></div>
+                        </div>
+
+                        <h3>Custom Handler</h3>
+                        <a id="custom-handlers"></a>
+                        <div class="ui-card" id="custom-example">
+                            <h4>Custom Handler — Example</h4>
+                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
+                            <div class="code-block"><pre><code class="language-json">{
+  
+}</code></pre></div>
                         </div>
 
                         <h3>Synthetic Handler</h3>
-                        <div class="properties-table">
-                            <table>
-                                <thead>
-                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td><code>reference_handler</code></td><td>string</td><td>Name of existing handler to reference</td></tr>
-                                    <tr><td><code>actual_type</code></td><td>string</td><td>Real handler type executed behind the scenes</td></tr>
-                                    <tr><td><code>synthetic_input</code></td><td>object</td><td>Predefined input to feed the referenced handler</td></tr>
-                                </tbody>
-                            </table>
+                        <a id="synthetic-handlers"></a>
+                        <div class="ui-card" id="synthetic-example">
+                            <h4>Synthetic Handler — Example</h4>
+                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
+                            <div class="code-block"><pre><code class="language-json">{
+  
+}</code></pre></div>
                         </div>
 
                         <h3>Cron Handler</h3>
                         <a id="cron-handlers"></a>
-                        <div class="properties-table">
-                            <table>
-                                <thead>
-                                    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td><code>cron_job_id</code></td><td>string</td><td>Unique job id</td></tr>
-                                    <tr><td><code>cron_expression</code></td><td>string</td><td>Cron schedule expression</td></tr>
-                                    <tr><td><code>cron_timezone</code></td><td>string</td><td>Time zone id for scheduling</td></tr>
-                                    <tr><td><code>cron_enabled</code></td><td>bool (default: true)</td><td>Enable/disable the job</td></tr>
-                                </tbody>
-                            </table>
+                        <div class="ui-card" id="cron-example">
+                            <h4>Cron Handler — Example</h4>
+                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
+                            <div class="code-block"><pre><code class="language-json">{
+  
+}</code></pre></div>
                         </div>
-                        
-                        <h3>Full Handler JSON (All Properties)</h3>
-                        <p>A comprehensive example including all available properties from <code>HandlerConfig</code> and nested types. Use only the fields relevant to your handler type.</p>
-                        <div class="code-block">
-                            <pre><code class="language-json">{
-  "name": "Example Handler",
-  "description": "Comprehensive schema example",
-  "type": "regex",
-  "title": "Example Title",
-  "screen_id": "markdown",
-  "validator": "custom_validator",
-  "context_provider": "custom_context",
 
-  "regex": "\\b\\w+\\b",
-  "groups": ["group1", "group2"],
-
-  "path": "C:\\data\\input.txt",
-  "delimiter": ",",
-  "key_names": ["key"],
-  "value_names": ["value"],
-  "file_extensions": [".txt", ".csv"],
-
-  "output_format": "Output: $(_match)",
-  "seeder": { "dynamic_key": "value" },
-  "constant_seeder": { "const_key": "value" },
-
-  "user_inputs": [
-    {
-      "key": "input_key",
-      "title": "Input Title",
-      "message": "Provide a value",
-      "validation_regex": "^\\\\\\w+$",
-      "is_required": true,
-      "is_selection_list": false,
-      "is_password": false,
-      "selection_items": [
-        { "value": "v1", "display": "Value 1" },
-        { "value": "v2", "display": "Value 2" }
-      ],
-      "is_multi_select": false,
-      "is_file_picker": false,
-      "is_multi_line": false,
-      "default_value": "",
-      "dependent_key": "other_key",
-      "dependent_selection_item_map": {
-        "other_key_value": {
-          "selection_items": [ { "value": "x", "display": "X" } ],
-          "default_value": "x"
-        }
-      },
-      "config_target": "config.section.key"
-    }
-  ],
-  "requires_confirmation": false,
-
-  "url": "https://api.example.com/resource",
-  "method": "POST",
-  "headers": { "Authorization": "Bearer $(token)" },
-  "request_body": { "example": "data" },
-  "content_type": "application/json",
-  "timeout_seconds": 30,
-
-  "connectionString": "Server=.;Database=app;Trusted_Connection=True;",
-  "query": "SELECT 1",
-  "connector": "mssql",
-  "command_timeout_seconds": 30,
-  "connection_timeout_seconds": 15,
-  "max_pool_size": 100,
-  "min_pool_size": 0,
-  "disable_pooling": false,
-
-  "reference_handler": "Existing Handler",
-  "actual_type": "regex",
-  "synthetic_input": {
-    "key": "synthetic",
-    "title": "Synthetic Input",
-    "message": "Provide value",
-    "is_required": true
-  },
-
-  "cron_job_id": "job_hello",
-  "cron_expression": "0/30 * * * * ?",
-  "cron_timezone": "UTC",
-  "cron_enabled": true,
-
-  "auto_focus_tab": false,
-  "bring_window_to_front": false,
-
-  "actions": [
-    {
-      "name": "show_window",
-      "requires_confirmation": false,
-      "key": "_formatted_output",
-      "conditions": {
-        "operator": "and",
-        "conditions": [
-          { "operator": "equals", "field": "_match", "value": "test" }
-        ]
-      },
-      "user_inputs": [],
-      "seeder": { "k": "v" },
-      "constant_seeder": { "ck": "cv" },
-      "inner_actions": [
-        { "name": "copy_to_clipboard", "key": "_self", "requires_confirmation": false }
-      ]
-    }
-  ]
-}</code></pre>
+                        <h3>Manual Handler</h3>
+                        <a id="manual-handlers"></a>
+                        <div class="ui-card" id="manual-example">
+                            <h4>Manual Handler — Example</h4>
+                            <p>Kendi örneğinizi aşağıdaki JSON bloğuna ekleyin.</p>
+                            <div class="code-block"><pre><code class="language-json">{
+  
+}</code></pre></div>
                         </div>
                     </div>
 
@@ -1094,60 +1007,60 @@ dotnet run --project WpfInteractionApp</code></pre>
                                 <div class="handler-icon"><i class="fas fa-search"></i></div>
                                 <h3>Regex Handlers</h3>
                                 <p>Match content using regular expressions</p>
-                                <a href="#regex-handlers" class="handler-link">Learn More →</a>
+                                <a href="#regex-example" class="handler-link">Learn More →</a>
                             </div>
                             
                             <div class="handler-card">
                                 <div class="handler-icon"><i class="fas fa-globe"></i></div>
                                 <h3>API Handlers</h3>
                                 <p>Send content to external APIs</p>
-                                <a href="#api-handlers" class="handler-link">Learn More →</a>
+                                <a href="#api-example" class="handler-link">Learn More →</a>
                             </div>
                             
                             <div class="handler-card">
                                 <div class="handler-icon"><i class="fas fa-database"></i></div>
                                 <h3>Database Handlers</h3>
                                 <p>Query and store data in databases</p>
-                                <a href="#database-handlers" class="handler-link">Learn More →</a>
+                                <a href="#database-example" class="handler-link">Learn More →</a>
                             </div>
                             
                             <div class="handler-card">
                                 <div class="handler-icon"><i class="fas fa-file"></i></div>
                                 <h3>File Handlers</h3>
                                 <p>Process file paths and content</p>
-                                <a href="#file-handlers" class="handler-link">Learn More →</a>
+                                <a href="#file-example" class="handler-link">Learn More →</a>
                             </div>
                             
                             <div class="handler-card">
                                 <div class="handler-icon"><i class="fas fa-clock"></i></div>
                                 <h3>Cron Handlers</h3>
                                 <p>Schedule automated tasks</p>
-                                <a href="#cron-handlers" class="handler-link">Learn More →</a>
+                                <a href="#cron-example" class="handler-link">Learn More →</a>
                             </div>
                             
                             <div class="handler-card">
                                 <div class="handler-icon"><i class="fas fa-code"></i></div>
                                 <h3>Custom Handlers</h3>
                                 <p>Create your own handler logic</p>
-                                <a href="#custom-handlers" class="handler-link">Learn More →</a>
+                                <a href="#custom-example" class="handler-link">Learn More →</a>
                             </div>
                             <div class="handler-card">
                                 <div class="handler-icon"><i class="fas fa-list"></i></div>
                                 <h3>Lookup Handlers</h3>
                                 <p>Map input to values from files</p>
-                                <a href="#lookup-handlers" class="handler-link">Learn More →</a>
+                                <a href="#lookup-example" class="handler-link">Learn More →</a>
                             </div>
                             <div class="handler-card">
                                 <div class="handler-icon"><i class="fas fa-project-diagram"></i></div>
                                 <h3>Synthetic Handlers</h3>
                                 <p>Orchestrate or reference other handlers</p>
-                                <a href="#synthetic-handlers" class="handler-link">Learn More →</a>
+                                <a href="#synthetic-example" class="handler-link">Learn More →</a>
                             </div>
                             <div class="handler-card">
                                 <div class="handler-icon"><i class="fas fa-hand-pointer"></i></div>
                                 <h3>Manual Handlers</h3>
                                 <p>Trigger on demand without matching</p>
-                                <a href="#manual-handlers" class="handler-link">Learn More →</a>
+                                <a href="#manual-example" class="handler-link">Learn More →</a>
                             </div>
                         </div>
                     </div>
@@ -1280,7 +1193,7 @@ dotnet run --project WpfInteractionApp</code></pre>
                         </div>
 
                         <h3>Regex Handler</h3>
-                        <a id="regex-handlers"></a>
+                        <a id="regex-example"></a>
                         <p>Matches compiled regex with 5s timeout; captures named and indexed groups into context.</p>
                         <div class="properties-table">
                             <table>
@@ -1303,7 +1216,7 @@ dotnet run --project WpfInteractionApp</code></pre>
                         </div>
 
                         <h3>Custom Handler</h3>
-                        <a id="custom-handlers"></a>
+                        <a id="custom-example"></a>
                         <p>Delegates validation and context creation to plugins specified by <code>validator</code> and <code>context_provider</code>.</p>
                         <div class="properties-table">
                             <table>
@@ -1326,7 +1239,7 @@ dotnet run --project WpfInteractionApp</code></pre>
                         </div>
 
                         <h3>Synthetic Handler</h3>
-                        <a id="synthetic-handlers"></a>
+                        <a id="synthetic-example"></a>
                         <p>Orchestrator handler: executes an <code>ActualType</code> handler or references another handler by name; can synthesize clipboard content.</p>
                         <div class="properties-table">
                             <table>
@@ -1350,7 +1263,7 @@ dotnet run --project WpfInteractionApp</code></pre>
                         </div>
 
                         <h3>Cron Handler</h3>
-                        <a id="cron-handlers"></a>
+                        <a id="cron-example"></a>
                         <p>Schedules handlers with <code>cron_expression</code>; uses Synthetic pattern to execute the actual handler at schedule.</p>
                         <div class="properties-table">
                             <table>
@@ -1377,7 +1290,7 @@ dotnet run --project WpfInteractionApp</code></pre>
                         </div>
 
                         <h3>Manual Handler</h3>
-                        <a id="manual-handlers"></a>
+                        <a id="manual-example"></a>
                         <p>Always <code>CanHandle</code> = true and <code>ITriggerableHandler</code>; useful for buttons/menus to run actions without matching clipboard.</p>
                         <div class="ui-card">
                             <h4>Example JSON</h4>
