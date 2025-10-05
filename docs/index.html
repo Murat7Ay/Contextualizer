@@ -48,6 +48,9 @@
                         <li><a href="#file-handlers" class="nav-link">File Handlers</a></li>
                         <li><a href="#cron-handlers" class="nav-link">Cron Handlers</a></li>
                         <li><a href="#custom-handlers" class="nav-link">Custom Handlers</a></li>
+                        <li><a href="#lookup-handlers" class="nav-link">Lookup Handlers</a></li>
+                        <li><a href="#synthetic-handlers" class="nav-link">Synthetic Handlers</a></li>
+                        <li><a href="#manual-handlers" class="nav-link">Manual Handlers</a></li>
                     </ul>
                 </div>
                 
@@ -1124,6 +1127,24 @@ dotnet run --project WpfInteractionApp</code></pre>
                                 <p>Create your own handler logic</p>
                                 <a href="#custom-handlers" class="handler-link">Learn More →</a>
                             </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-list"></i></div>
+                                <h3>Lookup Handlers</h3>
+                                <p>Map input to values from files</p>
+                                <a href="#lookup-handlers" class="handler-link">Learn More →</a>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-project-diagram"></i></div>
+                                <h3>Synthetic Handlers</h3>
+                                <p>Orchestrate or reference other handlers</p>
+                                <a href="#synthetic-handlers" class="handler-link">Learn More →</a>
+                            </div>
+                            <div class="handler-card">
+                                <div class="handler-icon"><i class="fas fa-hand-pointer"></i></div>
+                                <h3>Manual Handlers</h3>
+                                <p>Trigger on demand without matching</p>
+                                <a href="#manual-handlers" class="handler-link">Learn More →</a>
+                            </div>
                         </div>
                     </div>
                     
@@ -1238,6 +1259,18 @@ dotnet run --project WpfInteractionApp</code></pre>
                                 </tbody>
                             </table>
                         </div>
+                        <div class="ui-card">
+                            <h4>Example JSON</h4>
+                            <div class="code-block"><pre><code class="language-json">{
+  "name": "Lookup Sample",
+  "type": "lookup",
+  "path": "C:\\data\\map.csv",
+  "delimiter": ",",
+  "key_names": ["key"],
+  "value_names": ["value"],
+  "actions": [ { "name": "copy_to_clipboard", "key": "value" } ]
+}</code></pre></div>
+                        </div>
 
                         <h3>Regex Handler</h3>
                         <p>Matches compiled regex with 5s timeout; captures named and indexed groups into context.</p>
@@ -1249,6 +1282,16 @@ dotnet run --project WpfInteractionApp</code></pre>
                                     <tr><td>Groups</td><td>Named groups by name; otherwise <code>group_i</code></td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="ui-card">
+                            <h4>Example JSON</h4>
+                            <div class="code-block"><pre><code class="language-json">{
+  "name": "Regex Sample",
+  "type": "regex",
+  "regex": "\\b(?&lt;word&gt;\\w{3,})\\b",
+  "actions": [ { "name": "show_window", "key": "_formatted_output" } ],
+  "output_format": "Word: $(word)"
+}</code></pre></div>
                         </div>
 
                         <h3>Custom Handler</h3>
@@ -1262,6 +1305,16 @@ dotnet run --project WpfInteractionApp</code></pre>
                                 </tbody>
                             </table>
                         </div>
+                        <div class="ui-card">
+                            <h4>Example JSON</h4>
+                            <div class="code-block"><pre><code class="language-json">{
+  "name": "Custom Sample",
+  "type": "custom",
+  "validator": "my_validator",
+  "context_provider": "my_context",
+  "actions": [ { "name": "copy_to_clipboard", "key": "_self" } ]
+}</code></pre></div>
+                        </div>
 
                         <h3>Synthetic Handler</h3>
                         <p>Orchestrator handler: executes an <code>ActualType</code> handler or references another handler by name; can synthesize clipboard content.</p>
@@ -1274,6 +1327,16 @@ dotnet run --project WpfInteractionApp</code></pre>
                                     <tr><td>Synthetic Input</td><td>Builds <code>ClipboardContent</code> from <code>synthetic_input</code> spec</td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="ui-card">
+                            <h4>Example JSON</h4>
+                            <div class="code-block"><pre><code class="language-json">{
+  "name": "Synthetic Sample",
+  "type": "synthetic",
+  "actual_type": "regex",
+  "regex": "\\d+",
+  "actions": [ { "name": "copy_to_clipboard", "key": "_match" } ]
+}</code></pre></div>
                         </div>
 
                         <h3>Cron Handler</h3>
@@ -1289,9 +1352,31 @@ dotnet run --project WpfInteractionApp</code></pre>
                                 </tbody>
                             </table>
                         </div>
+                        <div class="ui-card">
+                            <h4>Example JSON</h4>
+                            <div class="code-block"><pre><code class="language-json">{
+  "name": "Cron Sample",
+  "type": "cron",
+  "cron_job_id": "job_demo",
+  "cron_expression": "0 0/5 * * * ?",
+  "actual_type": "regex",
+  "regex": "test",
+  "actions": [ { "name": "show_notification", "message": "Triggered" } ]
+}</code></pre></div>
+                        </div>
 
                         <h3>Manual Handler</h3>
                         <p>Always <code>CanHandle</code> = true and <code>ITriggerableHandler</code>; useful for buttons/menus to run actions without matching clipboard.</p>
+                        <div class="ui-card">
+                            <h4>Example JSON</h4>
+                            <div class="code-block"><pre><code class="language-json">{
+  "name": "Manual Docs",
+  "type": "manual",
+  "screen_id": "url_viewer",
+  "constant_seeder": { "url": "file:///C:/docs/index.html" },
+  "actions": [ { "name": "show_window", "key": "url" } ]
+}</code></pre></div>
+                        </div>
                     </div>
                 </section>
                 
@@ -1427,53 +1512,101 @@ dotnet run --project WpfInteractionApp</code></pre>
                     </div>
 
                     <div class="ui-dynamic-screens">
-                        <h2>Dynamic Screens</h2>
-                        <p>UI content is rendered in tabs by dynamic screens that implement <code>IDynamicScreen</code>. Screens are discovered by <code>WpfUserInteractionService</code> using a small factory plus reflection. Each screen exposes a unique <code>ScreenId</code> and a method <code>SetScreenInformation(Dictionary&lt;string, string&gt; context)</code> to receive data.</p>
-                        <div class="code-block">
-                            <pre><code class="language-csharp">public interface IDynamicScreen { string ScreenId { get; } void SetScreenInformation(Dictionary&lt;string,string&gt; context); }</code></pre>
+                        <div class="ui-card">
+                            <h2><i class="fas fa-window-restore"></i> Dynamic Screens</h2>
+                            <p>UI içerik, sekmelerde dinamik ekranlar tarafından görüntülenir. Her ekran benzersiz bir ScreenId ile tanımlanır ve bağlam sözlüğü ile veri alır. Uygun ekran otomatik olarak oluşturulur ve sekmeye yerleştirilir.</p>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i> MarkdownViewer2 (markdown2) — Markdown → HTML; tema duyarlı görünüm</li>
+                                <li><i class="fas fa-check"></i> UrlViewer (url_viewer) — Dahili/harici linkleri ve dosyaları gösterir</li>
+                                <li><i class="fas fa-check"></i> PlSqlEditor (plsql_editor) — Yerel ACE editörü ile SQL düzenleme</li>
+                                <li><i class="fas fa-check"></i> JsonFormatterView — JSON pretty-print + ağaç</li>
+                                <li><i class="fas fa-check"></i> XmlFormatterView — XML pretty-print + ağaç</li>
+                            </ul>
+                            <div class="section-illustration">
+                                <img src="https://placehold.co/1000x320?text=Dynamic+Screens+Overview" alt="Dynamic screens overview" />
+                            </div>
                         </div>
-                        <h3>Screens</h3>
-                        <ul>
-                            <li><code>MarkdownViewer2</code> (ScreenId: <code>markdown2</code>) — Renders markdown to HTML via Markdig; theme-aware CSS injected into WebView2.</li>
-                            <li><code>UrlViewer</code> (ScreenId: <code>url_viewer</code>) — Displays external/internal URLs with WebView2; supports shared profile via context key <code>shared_webview_profile</code> and <code>file:///</code> paths.</li>
-                            <li><code>PlSqlEditor</code> (ScreenId: <code>plsql_editor</code>) — SQL editor powered by ACE (loaded locally) inside WebView2 with live theme switching.</li>
-                            <li><code>JsonFormatterView</code> (ScreenId: <code>jsonformatter</code>) — Pretty-print and tree view toggle for JSON.</li>
-                            <li><code>XmlFormatterView</code> (ScreenId: <code>xmlformatter</code>) — Pretty-print and tree view toggle for XML.</li>
-                        </ul>
-                        <p>To open a screen, actions like <code>show_window</code> pass a <code>screen_id</code>, an optional <code>title</code>, and a <code>key</code> pointing to context content (commonly <code>_formatted_output</code> or <code>_self</code>).</p>
-                    </div>
-
-                    <div class="ui-webview2">
-                        <h2>WebView2 Integration</h2>
-                        <ul class="feature-list">
-                            <li><strong>Initialization</strong>: <code>await WebView.EnsureCoreWebView2Async()</code> and optional <code>CoreWebView2Environment</code> for shared profiles.</li>
-                            <li><strong>Local assets</strong>: Map folders with <code>SetVirtualHostNameToFolderMapping("local", Assets/ace, Allow)</code> to load scripts via <code>https://local/...</code>.</li>
-                            <li><strong>Messaging</strong>: Handle <code>WebMessageReceived</code> to receive messages from injected JavaScript.</li>
-                            <li><strong>Navigation</strong>: Use <code>NavigateToString</code> for generated HTML or set <code>Source</code> for URLs and <code>file:///</code> paths.</li>
-                        </ul>
-                    </div>
-
-                    <div class="ui-markdown">
-                        <h2>Markdown → HTML</h2>
-                        <p><code>MarkdownViewer2</code> uses Markdig with advanced extensions to convert markdown to HTML, then injects a theme-aware stylesheet before calling <code>WebView.NavigateToString</code>. Theme changes re-render the HTML.</p>
-                    </div>
-
-                    <div class="ui-theme">
-                        <h2>Theme System (Carbon)</h2>
-                        <ul class="feature-list">
-                            <li><strong>Design tokens</strong>: Colors, brushes, and styles follow Carbon-inspired resources.</li>
-                            <li><strong>Theme propagation</strong>: <code>MainWindow</code> notifies all <code>IThemeAware</code> children via <code>OnThemeChanged</code>.</li>
-                            <li><strong>WebView sync</strong>: Screens like <code>PlSqlEditor</code> call injected JS <code>setTheme</code> to switch ACE editor themes.</li>
-                        </ul>
-                    </div>
-
-                    <div class="ui-exchange-cron">
-                        <h2>Exchange & Cron Screens</h2>
-                        <h3>Handler Exchange</h3>
-                        <p><code>HandlerExchangeWindow</code> lists available handlers from the Exchange, supports search, tag filter, sort, and actions: Install, Update, Remove. Window position persists via <code>SettingsService</code>.</p>
-                        <h3>Cron Manager</h3>
-                        <p><code>CronManagerWindow</code> displays scheduled jobs (<code>ICronService</code>), with enable/disable toggle and manual trigger. Status uses Carbon success/danger styles. Counts and filters are live.</p>
-                    </div>
+                     </div>
+ 
+                     <div class="ui-webview2">
+                        <div class="ui-card">
+                            <h2><i class="fas fa-globe"></i> WebView2 Integration</h2>
+                            <p>WebView2, Windows'ta modern web içeriğini yerel uygulama içinde güvenli ve performanslı bir şekilde görüntülemeyi sağlar. Dinamik olarak üretilen sayfalar gösterilebilir, yerel dosyalar veya URL'ler açılabilir ve uygulama ile web içeriği arasında etkileşim kurulabilir.</p>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i> Dinamik HTML gösterimi ve URL/yerel dosya gezinme</li>
+                                <li><i class="fas fa-check"></i> Uygulama ↔ web içeriği arasında çift yönlü etkileşim</li>
+                                <li><i class="fas fa-check"></i> Yerel varlıkları güvenli şekilde sunma (ör. editör scriptleri)</li>
+                            </ul>
+                            <div class="section-illustration">
+                                <img src="https://placehold.co/1000x320?text=WebView2+Integration" alt="WebView2 integration placeholder" />
+                            </div>
+                        </div>
+                     </div>
+ 
+                     <div class="ui-markdown">
+                        <div class="ui-card">
+                            <h2><i class="fas fa-file-alt"></i> Markdown → HTML</h2>
+                            <p>Markdig hızlı ve genişletilebilir bir Markdown işlemcisidir. Başlıklar, tablolar, listeler, kod blokları, emoji ve görev listeleri gibi gelişmiş özellikleri destekler. İçerik önce HTML'e dönüştürülür, ardından geçerli temaya uygun stillerle WebView2 içinde gösterilir.</p>
+                            <div class="section-illustration">
+                                <img src="https://placehold.co/1000x320?text=Markdown+to+HTML+via+Markdig" alt="Markdown to HTML placeholder" />
+                            </div>
+                        </div>
+                     </div>
+ 
+                     <div class="ui-theme">
+                        <div class="ui-card">
+                            <h2><i class="fas fa-palette"></i> Theme System (Carbon)</h2>
+                            <p>Arayüz renkleri Carbon tasarım sisteminden esinlenir. Açık, Koyu ve Dim temaları arasında geçiş yapılabilir; tema değişimi tüm ekranlara yayılır ve WebView2 içeriği de güncellenir.</p>
+                            <div class="color-palette">
+                                <div class="palette-group">
+                                    <div class="palette-title">Dark</div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#161616"></div><div class="swatch-info"><span class="swatch-name">Background Primary</span><span class="swatch-hex">#161616</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#262626"></div><div class="swatch-info"><span class="swatch-name">Background Secondary</span><span class="swatch-hex">#262626</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#393939"></div><div class="swatch-info"><span class="swatch-name">Background Tertiary</span><span class="swatch-hex">#393939</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#F4F4F4"></div><div class="swatch-info"><span class="swatch-name">Text Primary</span><span class="swatch-hex">#F4F4F4</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#4589FF"></div><div class="swatch-info"><span class="swatch-name">Interactive Primary</span><span class="swatch-hex">#4589FF</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#FA4D56"></div><div class="swatch-info"><span class="swatch-name">Error</span><span class="swatch-hex">#FA4D56</span></div></div>
+                                </div>
+                                <div class="palette-group">
+                                    <div class="palette-title">Light</div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#FFFFFF"></div><div class="swatch-info"><span class="swatch-name">Background Primary</span><span class="swatch-hex">#FFFFFF</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#F4F4F4"></div><div class="swatch-info"><span class="swatch-name">Background Secondary</span><span class="swatch-hex">#F4F4F4</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#E0E0E0"></div><div class="swatch-info"><span class="swatch-name">Background Tertiary</span><span class="swatch-hex">#E0E0E0</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#161616"></div><div class="swatch-info"><span class="swatch-name">Text Primary</span><span class="swatch-hex">#161616</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#0F62FE"></div><div class="swatch-info"><span class="swatch-name">Interactive Primary</span><span class="swatch-hex">#0F62FE</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#DA1E28"></div><div class="swatch-info"><span class="swatch-name">Error</span><span class="swatch-hex">#DA1E28</span></div></div>
+                                </div>
+                                <div class="palette-group">
+                                    <div class="palette-title">Dim</div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#474747"></div><div class="swatch-info"><span class="swatch-name">Background Primary</span><span class="swatch-hex">#474747</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#5A5A5A"></div><div class="swatch-info"><span class="swatch-name">Background Secondary</span><span class="swatch-hex">#5A5A5A</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#8D8D8D"></div><div class="swatch-info"><span class="swatch-name">Border/Helper</span><span class="swatch-hex">#8D8D8D</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#FFFFFF"></div><div class="swatch-info"><span class="swatch-name">Text Primary</span><span class="swatch-hex">#FFFFFF</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#3D8BFD"></div><div class="swatch-info"><span class="swatch-name">Interactive Primary</span><span class="swatch-hex">#3D8BFD</span></div></div>
+                                    <div class="swatch-row"><div class="swatch" style="background:#FF4D4D"></div><div class="swatch-info"><span class="swatch-name">Error</span><span class="swatch-hex">#FF4D4D</span></div></div>
+                                </div>
+                            </div>
+                            <div class="section-illustration">
+                                <img src="https://placehold.co/1000x280?text=Theme+Preview" alt="Theme preview placeholder" />
+                            </div>
+                        </div>
+                     </div>
+ 
+                     <div class="ui-exchange-cron">
+                        <div class="ui-card">
+                            <h2><i class="fas fa-exchange-alt"></i> Exchange & Cron Screens</h2>
+                            <h3>Handler Exchange</h3>
+                            <p>Hazır şablonları listeler; arama, etiket filtreleme ve sıralama sunar. Kartlardan yükleme/güncelleme/kaldırma yapılabilir. Pencere konumu/boyutu kaydedilir.</p>
+                            <div class="section-illustration">
+                                <img src="https://placehold.co/1000x300?text=Handler+Exchange+UI" alt="Handler Exchange UI placeholder" />
+                            </div>
+                            <h3 style="margin-top:1rem">Cron Manager</h3>
+                            <p>Planlanmış işleri gösterir; etkinleştir/devre dışı bırak ve manuel tetikleme destekler. Durum rozetleri tema renkleriyle uyumludur; sayım ve filtreler canlıdır.</p>
+                            <div class="section-illustration">
+                                <img src="https://placehold.co/1000x300?text=Cron+Manager+UI" alt="Cron Manager UI placeholder" />
+                            </div>
+                        </div>
+                     </div>
                 </section>
             </div>
         </main>
