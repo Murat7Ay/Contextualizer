@@ -245,11 +245,30 @@
                             <div class="df-body">
                                 <div class="df-title">Action Loop</div>
                                 <ul class="df-list">
-                                    <li><strong>Action Conditions</strong>: evaluate <code>conditions</code> (and/or, equals/contains/regex…) against current context; skip if false.</li>
-                                    <li><strong>Action-level Seeding</strong> (if provided): merge action <code>constant_seeder</code>, resolve and merge action <code>seeder</code> (same multi-pass), without mutating base context.</li>
+                                    <li><strong>Action Confirmation</strong>: if action <code>requires_confirmation</code> = true, prompt user; cancel skips this action.</li>
+                                    <li><strong>Action User Inputs</strong>: if action has <code>user_inputs</code>, run the same wizard flow (Next/Back/Cancel); merge results into an action-local context.</li>
+                                    <li><strong>Action Conditions</strong>: evaluate <code>conditions</code> (and/or, equals/contains/regex…) against the (possibly updated) action context; skip if false.</li>
+                                    <li><strong>Action-level Seeding</strong>: merge action <code>constant_seeder</code>, then resolve and merge action <code>seeder</code> using the same multi-pass order; base handler context is not mutated.</li>
+                                    <li><strong>Key Usage</strong>: many plugins use <code>key</code> to read a value from context (e.g., <code>show_window.key</code> → content to render).</li>
                                     <li><strong>Execute</strong>: run plugin (e.g., <code>show_notification</code>, <code>show_window</code>, <code>copy_to_clipboard</code>, <code>open_file</code>), respecting <code>auto_focus_tab</code> and <code>bring_window_to_front</code>.</li>
-                                    <li><strong>inner_actions</strong>: execute nested actions after parent with the updated action context.</li>
+                                    <li><strong>inner_actions</strong>: execute nested actions after parent using the action-local context.</li>
                                 </ul>
+                                <div class="code-block">
+                                    <pre><code class="language-json">{
+  "name": "show_window",
+  "requires_confirmation": true,
+  "user_inputs": [
+    { "key": "title_override", "title": "Title", "message": "Enter a title", "is_required": false }
+  ],
+  "constant_seeder": { "screen_id": "markdown" },
+  "seeder": { "_formatted_output": "$func:string.upper($(body))" },
+  "conditions": { "operator": "and", "conditions": [ { "operator": "contains", "field": "_self", "value": "$(needle)" } ] },
+  "key": "_formatted_output",
+  "inner_actions": [
+    { "name": "copy_to_clipboard", "key": "_formatted_output" }
+  ]
+}</code></pre>
+                                </div>
                             </div>
                         </div>
                         <div class="df-step">
