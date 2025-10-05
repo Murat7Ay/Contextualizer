@@ -191,18 +191,7 @@
                         <p style="margin-top:12px"><strong>Dispatch:</strong> CanHandle → Context → UserInputs → Seeder → Actions</p>
                     </div>
 
-                    <div class="pipeline-details">
-                        <h2>Key Components</h2>
-                        <ul>
-                            <li><code>App.xaml.cs</code>: Initializes <code>SettingsService</code>, <code>ConfigurationService</code>, <code>LoggingService</code>, theme, network updates, cron scheduler, and <code>MainWindow</code>.</li>
-                            <li><code>DynamicAssemblyLoader</code>: Loads all <code>.dll</code> files from <code>Plugins</code> directory at startup — supports built‑in plugins and any external/custom plugins you drop in.</li>
-                            <li><code>HandlerManager</code>: Loads handlers from <code>handlers.json</code>, wires <code>KeyboardHook</code>, executes handlers in parallel, aggregates results and telemetry.</li>
-                            <li><code>KeyboardHook</code>: Global keyboard hook; composes shortcut from settings; captures selected text/file via hotkey and raises <code>TextCaptured</code>.</li>
-                            <li><code>HandlerLoader</code>: Parses <code>handlers.json</code> (top‑level <code>{"handlers": [...]}</code>) into <code>HandlerConfig</code> objects and creates instances via <code>HandlerFactory</code>.</li>
-                            <li><code>Dispatch</code>: Core pipeline: confirmation ➝ user inputs ➝ context build/seeding ➝ function/placeholder processing ➝ condition checks ➝ output formatting ➝ action dispatch.</li>
-                            <li><code>Plugins</code> (<code>Contextualizer.Plugins</code> + custom): Provide concrete actions like <code>show_notification</code>, <code>show_window</code>, <code>copy_to_clipboard</code>, <code>open_file</code>.</li>
-                        </ul>
-                    </div>
+                    
 
                     <div class="dispatch-deep-dive">
                         <h2 id="dispatch-sub">Dispatch Deep Dive</h2>
@@ -323,6 +312,55 @@
                                 <div class="flow-step-title">Completion</div>
                                 <div class="flow-step-body">Collected values merged into context; <code>ToastNotification</code> presents actions and feedback</div>
                             </div>
+                        </div>
+                        <div class="toast-demo">
+                            <h3>Toast Notifications</h3>
+                            <p>Non-blocking feedback with optional actions. Styled and positioned via <code>ToastNotification.xaml</code>.</p>
+                            <div class="toast-cards">
+                                <div class="toast-card">
+                                    <div class="toast-icon info">ℹ</div>
+                                    <div class="toast-body">
+                                        <div class="toast-title">Info</div>
+                                        <div class="toast-text">Operation started successfully.</div>
+                                        <div class="toast-actions">
+                                            <span class="toast-btn secondary">Dismiss</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="toast-card">
+                                    <div class="toast-icon success">✓</div>
+                                    <div class="toast-body">
+                                        <div class="toast-title">Success</div>
+                                        <div class="toast-text">Handler executed and copied to clipboard.</div>
+                                        <div class="toast-actions">
+                                            <span class="toast-btn primary">Open</span>
+                                            <span class="toast-btn secondary">Dismiss</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="toast-card">
+                                    <div class="toast-icon warn">⚠</div>
+                                    <div class="toast-body">
+                                        <div class="toast-title">Warning</div>
+                                        <div class="toast-text">No handlers matched this content.</div>
+                                        <div class="toast-actions">
+                                            <span class="toast-btn secondary">Dismiss</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="toast-card">
+                                    <div class="toast-icon error">✕</div>
+                                    <div class="toast-body">
+                                        <div class="toast-title">Error</div>
+                                        <div class="toast-text">Handler execution failed. See logs.</div>
+                                        <div class="toast-actions">
+                                            <span class="toast-btn danger">Retry</span>
+                                            <span class="toast-btn secondary">Dismiss</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="note">Positions persist across sessions (saved via <code>SettingsService</code>). Timer, progress ring and default action are supported.</p>
                         </div>
                     </div>
                 </section>
