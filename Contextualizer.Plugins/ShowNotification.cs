@@ -25,12 +25,17 @@ namespace Contextualizer.Plugins
                 ? title
                 : "Notification";
 
+            var titleDuration = context.TryGetValue(ContextKey._duration, out var duration) && int.TryParse(duration, out var parsedDuration)
+     ? parsedDuration
+     : 5;
+
+
             var userInteractionService = _pluginServiceProvider.GetService<IUserInteractionService>();
             userInteractionService.ShowNotification(
                 context[action.Key],
                 LogType.Info,
                 titleNotification,
-                durationInSeconds: 5,
+                durationInSeconds: titleDuration,
                 null);
 
             return Task.CompletedTask;

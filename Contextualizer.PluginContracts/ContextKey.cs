@@ -17,5 +17,6 @@ namespace Contextualizer.PluginContracts
         public static string _notification_title = "_notification_title";
         public static string _error = "_error";
         public static string _match = "_match";
+        public static string _duration = "_duration";
     }
 }
