@@ -145,9 +145,13 @@ namespace WpfInteractionApp.Services
                             new
                             {
                                 name = "show_notification",
-                                message = "Contextualizer'a Hoş Geldiniz! 🎉\n\nTaşınabilir kurulum kullanıma hazır.\n\nYapabilecekleriniz:\n- Özel handler'lar oluşturun\n- Exchange'den handler yükleyin\n- Ayarları yapılandırın\n- Aktivite loglarını görüntüleyin",
-                                title = "Hoş Geldiniz",
-                                duration = 10
+                                key = "message",
+                                seeder = new
+                                {
+                                    message = "Contextualizer'a Hoş Geldiniz! 🎉\n\nTaşınabilir kurulum kullanıma hazır.\n\nYapabilecekleriniz:\n- Özel handler'lar oluşturun\n- Exchange'den handler yükleyin\n- Ayarları yapılandırın\n- Aktivite loglarını görüntüleyin",
+                                    _notification_title = "Hoş Geldiniz",
+                                    _duration = "10"
+                                }
                             }
                         }
                     },
