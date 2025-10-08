@@ -1,0 +1,42 @@
+{
+  "id": "query-lookup",
+  "name": "Query Lookup",
+  "version": "1.0.0",
+  "author": "Murat",
+  "description": "Önceden tanımlanmış Core sorguları arasında arama yapar",
+  "tags": [
+    "lookup",
+    "query",
+    "plsql"
+  ],
+  "dependencies": [
+    "simple_print_key"
+  ],
+  "handlerJson": {
+    "name": "Query Lookup",
+    "type": "lookup",
+    "screen_id": "plsql_editor",
+    "title": "Core Query Viewer",
+    "path": "D:\\Contextualizer\\pre-defined\\queries.txt",
+    "delimiter": "|#|",
+    "key_names": [
+      "name"
+    ],
+    "value_names": [
+      "name",
+      "componentname",
+      "query"
+    ],
+    "actions": [
+      {
+        "name": "simple_print_key",
+        "key": "query"
+      }
+    ]
+  },
+  "metadata": {
+    "category": "Lookup",
+    "handlerType": "lookup"
+  }
+}
+

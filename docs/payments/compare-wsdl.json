@@ -1,0 +1,47 @@
+{
+  "id": "compare-wsdl",
+  "name": "Compare Wsdl",
+  "version": "1.0.0",
+  "author": "Murat",
+  "description": "Seçilen 2 wsdl dosyasını karşılaştırır",
+  "tags": [
+    "file",
+    "wsdl",
+    "compare",
+    "webservice"
+  ],
+  "dependencies": [
+    "compare_wsdls"
+  ],
+  "handlerJson": {
+    "name": "Compare Wsdl",
+    "type": "file",
+    "screen_id": "markdown2",
+    "title": "Compare Result",
+    "description": "Seçilen 2 wsdl dosyasını karşılaştırır.",
+    "actions": [
+      {
+        "name": "compare_wsdls",
+        "conditions": {
+          "operator": "and",
+          "conditions": [
+            {
+              "field": "_count",
+              "operator": "equals",
+              "value": "2"
+            }
+          ]
+        }
+      }
+    ],
+    "file_extensions": [
+      ".wsdl"
+    ]
+  },
+  "metadata": {
+    "category": "File Handler",
+    "handlerType": "file",
+    "fileTypes": ".wsdl"
+  }
+}
+

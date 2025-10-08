@@ -1,0 +1,45 @@
+{
+  "id": "lgx-detail-query",
+  "name": "LGX Detail Query",
+  "version": "1.0.0",
+  "author": "Murat",
+  "description": "LGX transaction log için SQL sorgusu oluşturur",
+  "tags": [
+    "regex",
+    "sql",
+    "query-generator",
+    "lgx"
+  ],
+  "dependencies": [
+    "simple_print_key",
+    "copytoclipboard"
+  ],
+  "handlerJson": {
+    "name": "LGX Detail Query",
+    "type": "regex",
+    "regex": "(\\d+)\\t(\\d+)\\t(\\d{8})",
+    "title": "LGX Detail Query Clipboard",
+    "screen_id": "jsonformatter",
+    "groups": [
+      "oid",
+      "trxid",
+      "processdate"
+    ],
+    "actions": [
+      {
+        "name": "simple_print_key",
+        "key": "_self"
+      },
+      {
+        "name": "copytoclipboard",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "SELECT * FROM LGX.SMG_TRANSACTION_LOGEXT stl WHERE stl.TRANSACTIONLOGOID =$(oid) AND stl.TRXID = $(trxid) AND stl.PROCESSDATE = $(processdate)"
+  },
+  "metadata": {
+    "category": "Query Generator",
+    "handlerType": "regex"
+  }
+}
+

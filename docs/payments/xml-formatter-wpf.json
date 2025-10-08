@@ -1,0 +1,35 @@
+{
+  "id": "xml-formatter-wpf",
+  "name": "Xml formatter wpf",
+  "version": "1.0.0",
+  "author": "Murat",
+  "description": "XML içeriğini formatlar ve doğrular",
+  "tags": [
+    "custom",
+    "xml",
+    "formatter",
+    "validator"
+  ],
+  "dependencies": [
+    "simple_print_key"
+  ],
+  "handlerJson": {
+    "name": "Xml formatter wpf",
+    "type": "custom",
+    "context_provider": "xmlvalidator",
+    "screen_id": "xmlformatter",
+    "validator": "xmlvalidator",
+    "title": "XML Formatter",
+    "actions": [
+      {
+        "name": "simple_print_key",
+        "key": "_input"
+      }
+    ]
+  },
+  "metadata": {
+    "category": "Utility",
+    "handlerType": "custom"
+  }
+}
+

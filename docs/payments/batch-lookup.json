@@ -1,0 +1,60 @@
+{
+  "id": "batch-lookup",
+  "name": "Batch Lookup",
+  "version": "1.0.0",
+  "author": "Murat",
+  "description": "Core batch bilgilerini arar ve Eclipse'de açar",
+  "tags": [
+    "lookup",
+    "batch",
+    "eclipse",
+    "core"
+  ],
+  "dependencies": [
+    "open_eclipse"
+  ],
+  "handlerJson": {
+    "name": "Batch Lookup",
+    "type": "lookup",
+    "screen_id": "markdown2",
+    "title": "Batch Markdown",
+    "path": "D:\\Contextualizer\\pre-defined\\batches.txt",
+    "delimiter": "|~#~|",
+    "key_names": [
+      "name"
+    ],
+    "value_names": [
+      "host_name",
+      "formatted_date",
+      "name",
+      "description",
+      "servicename",
+      "threadcount",
+      "commitcharge",
+      "batchclassname",
+      "tablename",
+      "responsible",
+      "componentname",
+      "classname",
+      "methodname"
+    ],
+    "seeder": {
+      "delayMs": "500",
+      "openTypeDelayMs": "1250",
+      "processname": "eclipse.exe"
+    },
+    "actions": [
+      {
+        "name": "open_eclipse",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "$file:D:\\Contextualizer\\markdown_templates\\batch_core_template.md"
+  },
+  "metadata": {
+    "category": "Lookup",
+    "handlerType": "lookup",
+    "targetApp": "Eclipse"
+  }
+}
+

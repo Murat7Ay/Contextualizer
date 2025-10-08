@@ -185,34 +185,34 @@ namespace WpfInteractionApp.Services
 
         private void CreateSampleExchangeHandler(string exchangeDir)
         {
-            var sampleHandler = new
-            {
-                id = "sample-regex-handler",
-                name = "Sample Regex Handler",
-                version = "1.0.0",
-                author = "Contextualizer Team",
-                description = "A sample regex handler that processes email addresses from clipboard content",
-                tags = new[] { "sample", "regex", "hello" },
-                handlerJson = new
+                var sampleHandler = new
                 {
-                    name = "Hello",
-                    title = "First handler",
-                    type = "regex",
-                    screen_id = "markdown2",
-                    bring_window_to_front = true,
-                    auto_focus_tab = true,
-                    regex = @"\b\w{3,}\b",
-                    actions = new[]
+                    id = "sample-regex-handler",
+                    name = "Örnek Regex Handler",
+                    version = "1.0.0",
+                    author = "Contextualizer Ekibi",
+                    description = "Panodaki içeriği işleyen örnek bir regex handler",
+                    tags = new[] { "örnek", "regex", "merhaba" },
+                    handlerJson = new
                     {
-                        new
+                        name = "Merhaba",
+                        title = "İlk Handler",
+                        type = "regex",
+                        screen_id = "markdown2",
+                        bring_window_to_front = true,
+                        auto_focus_tab = true,
+                        regex = @"\b\w{3,}\b",
+                        actions = new[]
                         {
-                            name = "show_window",
-                            key = "_formatted_output"
-                        }
-                    },
-                    output_format = "👋 Hello $(_match)<br>Welcome!!"
-                }
-            };
+                            new
+                            {
+                                name = "show_window",
+                                key = "_formatted_output"
+                            }
+                        },
+                        output_format = "👋 Merhaba $func:{{$(_match) | string.upper}}<br>Hoş geldiniz!!"
+                    }
+                };
 
             var options = new JsonSerializerOptions 
             { 

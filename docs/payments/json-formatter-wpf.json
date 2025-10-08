@@ -1,0 +1,45 @@
+{
+  "id": "json-formatter-wpf",
+  "name": "Json formatter wpf",
+  "version": "1.0.0",
+  "author": "Murat",
+  "description": "JSON içeriğini formatlar ve doğrular",
+  "tags": [
+    "custom",
+    "json",
+    "formatter",
+    "validator"
+  ],
+  "dependencies": [
+    "simple_print_key",
+    "copytoclipboard",
+    "show_notification"
+  ],
+  "handlerJson": {
+    "name": "Json formatter wpf",
+    "type": "custom",
+    "context_provider": "jsonvalidator",
+    "validator": "jsonvalidator",
+    "screen_id": "jsonformatter",
+    "title": "JSON Formatter",
+    "actions": [
+      {
+        "name": "simple_print_key",
+        "key": "_input"
+      },
+      {
+        "name": "copytoclipboard",
+        "key": "_formatted_output"
+      },
+      {
+        "name": "show_notification",
+        "key": "_formatted_output"
+      }
+    ]
+  },
+  "metadata": {
+    "category": "Utility",
+    "handlerType": "custom"
+  }
+}
+

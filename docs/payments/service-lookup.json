@@ -1,0 +1,57 @@
+{
+  "id": "service-lookup",
+  "name": "Service Lookup",
+  "version": "1.0.0",
+  "author": "Murat",
+  "description": "Core servis bilgilerini arar ve Eclipse'de açar",
+  "tags": [
+    "lookup",
+    "service",
+    "eclipse",
+    "core"
+  ],
+  "dependencies": [
+    "open_eclipse"
+  ],
+  "handlerJson": {
+    "name": "Service Lookup",
+    "type": "lookup",
+    "screen_id": "markdown2",
+    "title": "Service Markdown",
+    "path": "D:\\Contextualizer\\pre-defined\\services.txt",
+    "delimiter": "|~#~|",
+    "key_names": [
+      "servicename"
+    ],
+    "value_names": [
+      "host_name",
+      "formatted_date",
+      "servicename",
+      "description",
+      "groupcode",
+      "componentname",
+      "classname",
+      "class_description",
+      "methodname",
+      "batchnames"
+    ],
+    "seeder": {
+      "delayMs": "500",
+      "openTypeDelayMs": "1250",
+      "processname": "eclipse.exe"
+    },
+    "actions": [
+      {
+        "name": "open_eclipse",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "$file:D:\\Contextualizer\\markdown_templates\\service_core_template.md"
+  },
+  "metadata": {
+    "category": "Lookup",
+    "handlerType": "lookup",
+    "targetApp": "Eclipse"
+  }
+}
+

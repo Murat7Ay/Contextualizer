@@ -1,0 +1,485 @@
+{
+  "handlers": [
+    {
+      "name": "Json formatter wpf",
+      "type": "custom",
+      "context_provider": "jsonvalidator",
+      "validator": "jsonvalidator",
+      "screen_id": "jsonformatter",
+      "title": "JSON Formatter",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_input"
+        },
+        {
+          "name": "copytoclipboard",
+          "key": "_formatted_output"
+        },
+        {
+          "name": "show_notification",
+          "key": "_formatted_output"
+        }
+      ]
+    },
+    {
+      "name": "Xml formatter wpf",
+      "type": "custom",
+      "context_provider": "xmlvalidator",
+      "screen_id": "xmlformatter",
+      "validator": "xmlvalidator",
+      "title": "XML Formatter",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_input"
+        }
+      ]
+    },
+    {
+      "name": "Branchapp Page Access",
+      "requires_confirmation": false,
+      "screen_id": "markdown2",
+      "regex": "(NYT|URN|KRD)[0-9]{5}$",
+      "title": "Ekrana yetkisi olan kullanıcı",
+      "description": "Core test ekranına yetkisi olan kullanıcıyı getirir.",
+      "type": "database",
+      "connectionString": ""$config:database.connection_string"",
+      "connector": "plsql",
+      "query": "SELECT * FROM ( SELECT DISTINCT k.KULLANICIKODU , k.ORGANIZASYONKODU, k.BIRIMKODU, k.GISEYETKILISI, k.HESAPYETKILISI, k.UYGKODU, k.AYGKODU FROM URN.PLM_MENU_HAKLARI a, URN.ORG_KULLANICI_VW k WHERE a.menuoid IN ( SELECT oid FROM urn.org_menu WHERE status = 1 AND ekranadi = :p_input) AND k.kullanicikodu = a.KULLANICIKODU ORDER BY k.KULLANICIKODU ) WHERE ROWNUM <= 20",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_formatted_output"
+        }
+      ]
+    },
+    {
+      "name": "Stack Trace Analysis",
+      "type": "regex",
+      "title": "Stack Trace",
+      "screen_id": "jsonformatter",
+      "regex": "at\\s+([\\w\\.]+)\\.([\\w]+)\\(([\\w]+\\.java):(\\d+)\\)",
+      "groups": [
+        "classname",
+        "methodname",
+        "filename",
+        "linenumber"
+      ],
+      "seeder": {
+        "delayMs": "500",
+        "openTypeDelayMs": "1250",
+        "processname": "eclipse.exe"
+      },
+      "actions": [
+        {
+          "name": "open_eclipse",
+          "key": "_self"
+        }
+      ]
+    },
+    {
+      "name": "Product Modeler",
+      "requires_confirmation": false,
+      "screen_id": "markdown2",
+      "title": "Product modeler servisleri",
+      "regex": "^(?=.{1,80}$)(?!.*[\\s\\n\\r\\t])[A-Z_]+_[A-Z_]+$",
+      "description": "PreAction, main, final action servislerini gösterir",
+      "type": "database",
+      "connectionString": ""$config:database.connection_string"",
+      "connector": "plsql",
+      "query": "SELECT  pmtd.TRANSACTIONCODE || ' - ' || pmtd.TRANSACTIONNAME || '<br>' ||  'STARTER: ' || ds.SERVICENAME || '<br>' ||  'MAINSERVICE: ' || ds2.SERVICENAME || '<br>' ||  'PREACTION SERVICE: ' || NVL(ds3.SERVICENAME, '-') || '<br>' ||  'CONTROL SERVICE: ' || NVL(ds4.SERVICENAME, '-') || '<br>' ||  'UNDO PREACTION SERVICE: ' || NVL(ds5.SERVICENAME, '-') || '<br>' ||  'FINAL ACTION SERVICE: ' || NVL(ds6.SERVICENAME, '-') AS FORMATTED_RESULT FROM URN.PRD_MODELER_TRX_DEF pmtd JOIN GEN.DAD_SERVICES ds ON ds.OID = pmtd.SERVICEOID AND ds.STATUS = 1 JOIN GEN.DAD_SERVICES ds2 ON ds2.OId = pmtd.MAINSERVICEOID AND ds2.STATUS = 1 LEFT JOIN GEN.DAD_SERVICES ds3 ON ds3.OID = pmtd.PREACTIONSERVICEOID AND ds3.STATUS = 1 LEFT JOIN GEN.DAD_SERVICES ds4 ON ds4.OID = pmtd.CONTROLSERVICEOID AND ds4.STATUS = 1 LEFT JOIN GEN.DAD_SERVICES ds5 ON ds5.OID = pmtd.UNDOPREACTIONSERVICEOID AND ds5.STATUS = 1 LEFT JOIN GEN.DAD_SERVICES ds6 ON ds6.OID = pmtd.FINALACTIONSERVICEOID AND ds6.STATUS = 1 WHERE (SELECT OID FROM GEN.DAD_SERVICES ds7 WHERE ds7.STATUS = 1 AND ds7.SERVICENAME = :p_input) IN (pmtd.SERVICEOID, pmtd.MAINSERVICEOID, pmtd.PREACTIONSERVICEOID, pmtd.CONTROLSERVICEOID, pmtd.UNDOPREACTIONSERVICEOID, pmtd.FINALACTIONSERVICEOID)",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_formatted_output"
+        }
+      ]
+    },
+    {
+      "name": "LGX Detail Query",
+      "type": "regex",
+      "regex": "(\\d+)\\t(\\d+)\\t(\\d{8})",
+      "title": "LGX Detail Query Clipboard",
+      "screen_id": "jsonformatter",
+      "groups": [
+        "oid",
+        "trxid",
+        "processdate"
+      ],
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_self"
+        },
+        {
+          "name": "copytoclipboard",
+          "key": "_formatted_output"
+        }
+      ],
+      "output_format": "SELECT * FROM LGX.SMG_TRANSACTION_LOGEXT stl WHERE stl.TRANSACTIONLOGOID =$(oid) AND stl.TRXID = $(trxid) AND stl.PROCESSDATE = $(processdate)"
+    },
+    {
+      "name": "Query Lookup",
+      "type": "lookup",
+      "screen_id": "plsql_editor",
+      "title": "Core Query Viewer",
+      "path": "D:\\Contextualizer\\pre-defined\\queries.txt",
+      "delimiter": "|#|",
+      "key_names": [
+        "name"
+      ],
+      "value_names": [
+        "name",
+        "componentname",
+        "query"
+      ],
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "query"
+        }
+      ]
+    },
+    {
+      "name": "Service Lookup",
+      "type": "lookup",
+      "screen_id": "markdown2",
+      "title": "Service Markdown",
+      "path": "D:\\Contextualizer\\pre-defined\\services.txt",
+      "delimiter": "|~#~|",
+      "key_names": [
+        "servicename"
+      ],
+      "value_names": [
+        "host_name",
+        "formatted_date",
+        "servicename",
+        "description",
+        "groupcode",
+        "componentname",
+        "classname",
+        "class_description",
+        "methodname",
+        "batchnames"
+      ],
+      "seeder": {
+        "delayMs": "500",
+        "openTypeDelayMs": "1250",
+        "processname": "eclipse.exe"
+      },
+      "actions": [
+        {
+          "name": "open_eclipse",
+          "key": "_formatted_output"
+        }
+      ],
+      "output_format": "$file:D:\\Contextualizer\\markdown_templates\\service_core_template.md"
+    },
+    {
+      "name": "Batch Lookup",
+      "type": "lookup",
+      "screen_id": "markdown2",
+      "title": "Batch Markdown",
+      "path": "D:\\Contextualizer\\pre-defined\\batches.txt",
+      "delimiter": "|~#~|",
+      "key_names": [
+        "name"
+      ],
+      "value_names": [
+        "host_name",
+        "formatted_date",
+        "name",
+        "description",
+        "servicename",
+        "threadcount",
+        "commitcharge",
+        "batchclassname",
+        "tablename",
+        "responsible",
+        "componentname",
+        "classname",
+        "methodname"
+      ],
+      "seeder": {
+        "delayMs": "500",
+        "openTypeDelayMs": "1250",
+        "processname": "eclipse.exe"
+      },
+      "actions": [
+        {
+          "name": "open_eclipse",
+          "key": "_formatted_output"
+        }
+      ],
+      "output_format": "$file:D:\\Contextualizer\\markdown_templates\\batch_core_template.md"
+    },
+    {
+      "name": "Certificate import",
+      "type": "file",
+      "actions": [
+        {
+          "name": "import_cert"
+        }
+      ],
+      "user_inputs": [
+        {
+          "key": "alias",
+          "title": "Alias",
+          "message": "Enter Alias:",
+          "is_required": true
+        },
+        {
+          "key": "storepass",
+          "title": "Storepass",
+          "message": "Enter Storepass:",
+          "is_required": true,
+          "is_password": true
+        }
+      ],
+      "seeder": {
+        "command1": "D:\\Java\\JDK\\64Bit\\1.8.0_25\\bin\\keytool.exe -importcert -file $(FullPath0) -alias $(alias) -keystore \"D:\\Java\\JDK\\64Bit\\1.8.0_25\\bin\\cacerts\" -storepass $(storepass)",
+        "command2": "D:\\Java\\JDK\\64Bit\\1.8.0_25\\bin\\keytool.exe -importcert -file $(FullPath0) -alias $(alias) -keystore \"D:\\Java\\JDK\\64Bit\\1.8.0_25\\jre\\lib\\security\\cacerts\" -storepass $(storepass)"
+      },
+      "file_extensions": [
+        ".crt",
+        ".cer"
+      ]
+    },
+    {
+      "name": "Core Table Lookup",
+      "type": "lookup",
+      "screen_id": "markdown2",
+      "title": "EXT Schema Tables",
+      "path": "D:\\Contextualizer\\pre-defined\\tables.txt",
+      "delimiter": "¯\\_(ツ)_/¯",
+      "key_names": [
+        "table_name"
+      ],
+      "value_names": [
+        "table_name",
+        "_formatted_output"
+      ],
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_formatted_output"
+        }
+      ]
+    },
+    {
+      "name": "Corp Lookup Basic",
+      "type": "lookup",
+      "screen_id": "markdown2",
+      "title": "Corp Basic",
+      "path": "D:\\Contextualizer\\pre-defined\\corporates.txt",
+      "delimiter": "|~#~|",
+      "key_names": [
+        "kurumoid",
+        "kodu"
+      ],
+      "value_names": [
+        "kurumoid",
+        "unvankodu",
+        "kodu",
+        "tahsilatturuadi"
+      ],
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "_formatted_output"
+        },
+        {
+          "name": "copytoclipboard",
+          "key": "kurumoid",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "field": "_selector_key",
+                "operator": "equals",
+                "value": "kodu"
+              }
+            ]
+          }
+        },
+        {
+          "name": "copytoclipboard",
+          "key": "kodu",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "field": "_selector_key",
+                "operator": "equals",
+                "value": "kurumoid"
+              }
+            ]
+          }
+        }
+      ],
+      "output_format": "$file:D:\\Contextualizer\\markdown_templates\\corp_template.md"
+    },
+    {
+      "name": "Compare Wsdl",
+      "type": "file",
+      "screen_id": "markdown2",
+      "title": "Compare Result",
+      "description": "Seçilen 2 wsdl dosyasını karşılaştırır.",
+      "actions": [
+        {
+          "name": "compare_wsdls",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "field": "_count",
+                "operator": "equals",
+                "value": "2"
+              }
+            ]
+          }
+        }
+      ],
+      "file_extensions": [
+        ".wsdl"
+      ]
+    },
+    {
+      "name": "Bagkey Lookup",
+      "type": "lookup",
+      "path": "D:\\Contextualizer\\pre-defined\\bagkeys.txt",
+      "delimiter": "|~#~|",
+      "key_names": [
+        "id",
+        "name"
+      ],
+      "value_names": [
+        "id",
+        "name"
+      ],
+      "actions": [
+        {
+          "name": "show_notification",
+          "key": "id",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "field": "_selector_key",
+                "operator": "equals",
+                "value": "name"
+              }
+            ]
+          },
+          "seeder": {
+            "_notification_title": "Bag key name"
+          }
+        },
+        {
+          "name": "show_notification",
+          "key": "name",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "field": "_selector_key",
+                "operator": "equals",
+                "value": "id"
+              }
+            ]
+          },
+          "seeder": {
+            "_notification_title": "Bag key id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transaction Viewer - IBTools",
+      "type": "regex",
+      "regex": "^\\d{16}$",
+      "title": "Transaction Viewer - IBTools",
+      "screen_id": "url_viewer",
+      "requires_confirmation": true,
+      "groups": [
+        "trxid"
+      ],
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "url"
+        }
+      ],
+      "seeder": {
+        "environmentId": "1",
+        "shared_webview_profile": "D:\\Contextualizer\\sharedviewprofile",
+        "url": "https://ibtools-opensol-dev-smggeneric.apps.ocptstinf01.finansbank.com.tr/transactionview?trxid=$(trxid)&environmentId=$(environmentId)"
+      }
+    },
+    {
+      "name": "Elastic Maestro Prod",
+      "title": "Maestro Error",
+      "type": "Api",
+      "screen_id": "jsonformatter",
+      "description": "Maestro prod hatasini getirir",
+      "requires_confirmation": false,
+      "regex": "^\\d{16}$",
+      "groups": [
+        "operationId"
+      ],
+      "url": "http://localhost:5678/webhook/maestro-operationid?operationId=$(_match)",
+      "method": "GET",
+      "headers": {
+        "User-Agent": "Contextualizer"
+      },
+      "actions": [
+        {
+          "name": "show_window",
+          "key": "RawResponse"
+        }
+      ]
+    },
+    {
+      "name": "IB Dev Tools",
+      "type": "manual",
+      "screen_id": "url_viewer",
+      "title": "IBTools",
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "url"
+        }
+      ],
+      "seeder": {
+        "shared_webview_profile": "D:\\Contextualizer\\sharedviewprofile",
+        "url": "https://ibtools-opensol-dev-smggeneric.apps.ocptstinf01.finansbank.com.tr/"
+      }
+    },
+    {
+      "name": "Bag Expose - IBTools",
+      "type": "regex",
+      "regex": "^(?<service>[^~]+)(?<rest>~.+)$",
+      "title": "Bag Expose - IBTools",
+      "screen_id": "url_viewer",
+      "requires_confirmation": true,
+      "groups": [
+        "service",
+        "rest"
+      ],
+      "actions": [
+        {
+          "name": "simple_print_key",
+          "key": "url"
+        }
+      ],
+      "constant_seeder": {
+        "environmentId": "1",
+        "shared_webview_profile": "D:\\Contextualizer\\sharedviewprofile"
+      },
+      "seeder": {
+        "url": "https://ibtools-opensol-dev-smggeneric.apps.ocptstinf01.finansbank.com.tr/servicetester?service=$(s… | url.encode}}&environmentId=$(environmentId)"
+      }
+    }
+  ]
+}

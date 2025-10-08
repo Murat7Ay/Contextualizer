@@ -1,0 +1,44 @@
+{
+  "id": "transaction-viewer-ibtools",
+  "name": "Transaction Viewer - IBTools",
+  "version": "1.0.0",
+  "author": "Murat",
+  "description": "16 haneli transaction ID ile IBTools transaction viewer'ı açar",
+  "tags": [
+    "regex",
+    "ibtools",
+    "transaction",
+    "viewer"
+  ],
+  "dependencies": [
+    "simple_print_key"
+  ],
+  "handlerJson": {
+    "name": "Transaction Viewer - IBTools",
+    "type": "regex",
+    "regex": "^\\d{16}$",
+    "title": "Transaction Viewer - IBTools",
+    "screen_id": "url_viewer",
+    "requires_confirmation": true,
+    "groups": [
+      "trxid"
+    ],
+    "actions": [
+      {
+        "name": "simple_print_key",
+        "key": "url"
+      }
+    ],
+    "seeder": {
+      "environmentId": "1",
+      "shared_webview_profile": "D:\\Contextualizer\\sharedviewprofile",
+      "url": "https://ibtools-opensol-dev-smggeneric.apps.ocptstinf01.finansbank.com.tr/transactionview?trxid=$(trxid)&environmentId=$(environmentId)"
+    }
+  },
+  "metadata": {
+    "category": "Web Tool",
+    "handlerType": "regex",
+    "targetApp": "IBTools"
+  }
+}
+

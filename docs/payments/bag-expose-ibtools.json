@@ -1,0 +1,47 @@
+{
+  "id": "bag-expose-ibtools",
+  "name": "Bag Expose - IBTools",
+  "version": "1.0.0",
+  "author": "Murat",
+  "description": "Servis adını ve bag parametrelerini parse ederek IBTools service tester'da açar",
+  "tags": [
+    "regex",
+    "ibtools",
+    "service",
+    "bag"
+  ],
+  "dependencies": [
+    "simple_print_key"
+  ],
+  "handlerJson": {
+    "name": "Bag Expose - IBTools",
+    "type": "regex",
+    "regex": "^(?<service>[^~]+)(?<rest>~.+)$",
+    "title": "Bag Expose - IBTools",
+    "screen_id": "url_viewer",
+    "requires_confirmation": true,
+    "groups": [
+      "service",
+      "rest"
+    ],
+    "actions": [
+      {
+        "name": "simple_print_key",
+        "key": "url"
+      }
+    ],
+    "constant_seeder": {
+      "environmentId": "1",
+      "shared_webview_profile": "D:\\Contextualizer\\sharedviewprofile"
+    },
+    "seeder": {
+      "url": "https://ibtools-opensol-dev-smggeneric.apps.ocptstinf01.finansbank.com.tr/servicetester?service=$(service)$(rest | url.encode}}&environmentId=$(environmentId)"
+    }
+  },
+  "metadata": {
+    "category": "Web Tool",
+    "handlerType": "regex",
+    "targetApp": "IBTools"
+  }
+}
+
