@@ -137,26 +137,26 @@ namespace WpfInteractionApp.Services
                 {
                     new
                     {
-                        name = "Welcome Handler",
+                        name = "Hoş Geldiniz",
                         type = "manual",
-                        description = "This is a sample handler to get you started. You can create your own handlers or install them from the exchange.",
+                        description = "Başlangıç için örnek bir handler. Kendi handler'larınızı oluşturabilir veya exchange'den yükleyebilirsiniz.",
                         actions = new[]
                         {
                             new
                             {
                                 name = "show_notification",
-                                message = "Welcome to Contextualizer! 🎉\n\nThis portable installation is ready to use.\n\nYou can:\n- Create custom handlers\n- Install handlers from exchange\n- Configure settings\n- View activity logs",
-                                title = "Welcome",
+                                message = "Contextualizer'a Hoş Geldiniz! 🎉\n\nTaşınabilir kurulum kullanıma hazır.\n\nYapabilecekleriniz:\n- Özel handler'lar oluşturun\n- Exchange'den handler yükleyin\n- Ayarları yapılandırın\n- Aktivite loglarını görüntüleyin",
+                                title = "Hoş Geldiniz",
                                 duration = 10
                             }
                         }
                     },
                     new
                     {
-                        name = "Documentation",
+                        name = "Dokümantasyon",
                         type = "manual",
                         screen_id = "url_viewer",
-                        title = "Documentation",
+                        title = "Dokümantasyon",
                         actions = new[]
                         {
                             new
