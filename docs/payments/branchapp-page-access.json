@@ -21,7 +21,7 @@
     "title": "Ekrana yetkisi olan kullanıcı",
     "description": "Core test ekranına yetkisi olan kullanıcıyı getirir.",
     "type": "database",
-    "connectionString": ""$config:database.connection_string"",
+    "connectionString": "$config:database.connection_string",
     "connector": "plsql",
     "query": "SELECT * FROM ( SELECT DISTINCT k.KULLANICIKODU , k.ORGANIZASYONKODU, k.BIRIMKODU, k.GISEYETKILISI, k.HESAPYETKILISI, k.UYGKODU, k.AYGKODU FROM URN.PLM_MENU_HAKLARI a, URN.ORG_KULLANICI_VW k WHERE a.menuoid IN ( SELECT oid FROM urn.org_menu WHERE status = 1 AND ekranadi = :p_input) AND k.kullanicikodu = a.KULLANICIKODU ORDER BY k.KULLANICIKODU ) WHERE ROWNUM <= 20",
     "actions": [
