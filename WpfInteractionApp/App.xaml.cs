@@ -77,7 +77,7 @@ namespace WpfInteractionApp
                 ServiceLocator.Register<IUserInteractionService>(userInteractionService);
 
                 // Initialize network update service
-                var networkUpdateService = new Services.NetworkUpdateService(_settingsService.Settings.UISettings.NetworkUpdateSettings.NetworkUpdatePath);
+                var networkUpdateService = new Services.NetworkUpdateService(_settingsService, _settingsService.Settings.UISettings.NetworkUpdateSettings.NetworkUpdatePath);
                 ServiceLocator.Register<Services.NetworkUpdateService>(networkUpdateService);
                 
                 // Check for network updates after UI is loaded (async, non-blocking)

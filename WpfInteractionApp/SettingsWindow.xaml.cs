@@ -299,6 +299,23 @@ namespace WpfInteractionApp
             }
         }
 
+        private void BrowseUpdateScriptPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Select Update Script",
+                Filter = "Batch Files (*.bat)|*.bat|All Files (*.*)|*.*",
+                FileName = Path.GetFileName(_settings.UISettings.NetworkUpdateSettings.UpdateScriptPath),
+                InitialDirectory = Path.GetDirectoryName(_settings.UISettings.NetworkUpdateSettings.UpdateScriptPath)
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                _settings.UISettings.NetworkUpdateSettings.UpdateScriptPath = dialog.FileName;
+                OnPropertyChanged("UISettings");
+            }
+        }
+
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;

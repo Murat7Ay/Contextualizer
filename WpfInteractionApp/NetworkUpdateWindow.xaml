@@ -5,14 +5,41 @@
         Height="550" Width="650"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="{DynamicResource Carbon.Brush.Background}"
+        Background="{DynamicResource Carbon.Brush.Background.Secondary}"
         WindowStyle="SingleBorderWindow">
     
     <Window.Resources>
-        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Padding" Value="15,8"/>
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="MinWidth" Value="120"/>
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="MinWidth" Value="140"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.85"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Opacity" Value="0.7"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
@@ -27,13 +54,23 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
-            <TextBlock Text="🏢" FontSize="24" Margin="0,0,10,0"/>
-            <TextBlock Text="Corporate Update Available" 
-                       FontSize="18" 
-                       FontWeight="Bold"
-                       Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
-        </StackPanel>
+        <Border Grid.Row="0" 
+                Background="{DynamicResource Carbon.Brush.Interactive.Primary}"
+                CornerRadius="8"
+                Padding="20,15"
+                Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="📦 Update Available" 
+                           FontSize="22" 
+                           FontWeight="Bold"
+                           Foreground="White"/>
+                <TextBlock Text="A new version of Contextualizer is ready to install" 
+                           FontSize="13"
+                           Foreground="White"
+                           Opacity="0.9"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
 
         <!-- Version Info -->
         <Grid Grid.Row="1" Margin="0,0,0,15">
@@ -83,7 +120,7 @@
 
         <!-- Mandatory Update Notice -->
         <Border Grid.Row="2" 
-                Background="{DynamicResource Carbon.Brush.Warning}"
+                Background="{DynamicResource Carbon.Brush.Support.Warning}"
                 Padding="15,10"
                 CornerRadius="5"
                 Margin="0,0,0,15"
@@ -93,7 +130,7 @@
                 <TextBlock Text="⚠️" FontSize="16" Margin="0,0,10,0"/>
                 <TextBlock Text="This is a mandatory update. The application must be updated to continue."
                            FontWeight="SemiBold"
-                           Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                           Foreground="#161616"
                            TextWrapping="Wrap"/>
             </StackPanel>
         </Border>
@@ -105,15 +142,18 @@
                        Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
                        DockPanel.Dock="Top"/>
             
-            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled"
-                          Background="{DynamicResource Carbon.Brush.Background.Subtle}"
-                          Padding="15">
-                <TextBlock x:Name="ReleaseNotesText" 
-                           TextWrapping="Wrap"
-                           Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
-                           LineHeight="22"/>
-            </ScrollViewer>
+            <Border Background="{DynamicResource Carbon.Brush.Background.Tertiary}"
+                    CornerRadius="6"
+                    Padding="0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="15">
+                    <TextBlock x:Name="ReleaseNotesText" 
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                               LineHeight="22"/>
+                </ScrollViewer>
+            </Border>
         </DockPanel>
 
         <!-- Progress Section -->
@@ -123,8 +163,8 @@
                        Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
             <ProgressBar x:Name="CopyProgressBar" 
                          Height="10" 
-                         Background="{DynamicResource Carbon.Brush.Background.Subtle}"
-                         Foreground="{DynamicResource Carbon.Brush.Success}"/>
+                         Background="{DynamicResource Carbon.Brush.Background.Tertiary}"
+                         Foreground="{DynamicResource Carbon.Brush.Support.Success}"/>
             <TextBlock x:Name="ProgressDetailText" 
                        Text=""
                        Margin="0,5,0,0"
@@ -133,30 +173,44 @@
         </StackPanel>
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="5" 
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Right" 
-                    Margin="0,20,0,0">
+        <Grid Grid.Row="5" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
             
-            <!-- Network Test Button -->
-            <Button x:Name="TestNetworkButton" 
-                    Content="Test Network" 
+            <!-- Network Test Button - Left -->
+            <Button Grid.Column="0"
+                    x:Name="TestNetworkButton" 
+                    Content="🔌 Test Network" 
                     Click="TestNetworkButton_Click"
-                    Background="{DynamicResource Carbon.Brush.Background.Subtle}"
+                    Background="{DynamicResource Carbon.Brush.Background.Active}"
+                    Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                    Style="{StaticResource ModernButton}"
+                    Margin="0"
                     ToolTip="Test network connectivity to update server"/>
             
-            <!-- Remind Later (only for non-mandatory) -->
-            <Button x:Name="RemindLaterButton" 
-                    Content="Remind Later" 
-                    Click="RemindLaterButton_Click"
-                    Background="{DynamicResource Carbon.Brush.Background.Subtle}"/>
-            
-            <!-- Install Update -->
-            <Button x:Name="InstallUpdateButton" 
-                    Content="Install Update" 
-                    Click="InstallUpdateButton_Click"
-                    Background="{DynamicResource Carbon.Brush.Success}"
-                    IsDefault="True"/>
-        </StackPanel>
+            <!-- Right Buttons -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <!-- Remind Later (only for non-mandatory) -->
+                <Button x:Name="RemindLaterButton" 
+                        Content="Remind Later" 
+                        Click="RemindLaterButton_Click"
+                        Background="{DynamicResource Carbon.Brush.Interactive.Secondary}"
+                        Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                        Style="{StaticResource ModernButton}"
+                        Margin="0"/>
+                
+                <!-- Install Update -->
+                <Button x:Name="InstallUpdateButton" 
+                        Content="✓ Install Update" 
+                        Click="InstallUpdateButton_Click"
+                        Background="{DynamicResource Carbon.Brush.Interactive.Primary}"
+                        Foreground="White"
+                        Style="{StaticResource ModernButton}"
+                        IsDefault="True"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

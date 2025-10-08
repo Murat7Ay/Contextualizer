@@ -211,6 +211,9 @@ namespace WpfInteractionApp.Settings
         [JsonPropertyName("network_update_path")]
         public string NetworkUpdatePath { get; set; } = @"\\server\share\Contextualizer\Updates";
 
+        [JsonPropertyName("update_script_path")]
+        public string UpdateScriptPath { get; set; } = @"C:\temp\Contextualizer\Updates\install_update.bat";
+
         [JsonPropertyName("check_interval_hours")]
         public int CheckIntervalHours { get; set; } = 24;
 

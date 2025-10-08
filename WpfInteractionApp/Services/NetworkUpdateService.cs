@@ -16,9 +16,11 @@ namespace WpfInteractionApp.Services
         private readonly string _networkUpdatePath;
         private readonly string _versionInfoFile = "version.json";
         private readonly string _changeLogFile = "changelog.txt";
+        private readonly SettingsService _settingsService;
 
-        public NetworkUpdateService(string networkUpdatePath = @"\\server\share\Contextualizer\Updates")
+        public NetworkUpdateService(SettingsService settingsService, string networkUpdatePath = @"\\server\share\Contextualizer\Updates")
         {
+            _settingsService = settingsService;
             _currentVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "1.0.0.0";
             _networkUpdatePath = networkUpdatePath;
         }
@@ -200,46 +202,21 @@ namespace WpfInteractionApp.Services
             try
             {
                 var backupPath = currentExePath + ".backup";
-                var updateScript = Path.Combine(Path.GetTempPath(), "contextualizer_network_update.bat");
-
-                // Create network update script
-                var script = $@"
-@echo off
-echo Starting Contextualizer Network Update...
-timeout /t 2 /nobreak > nul
-
-echo Terminating current application...
-taskkill /f /im ""{Path.GetFileName(currentExePath)}"" > nul 2>&1
-timeout /t 1 /nobreak > nul
-
-echo Creating backup...
-copy ""{currentExePath}"" ""{backupPath}"" > nul 2>&1
-
-echo Installing update...
-copy ""{tempUpdatePath}"" ""{currentExePath}"" > nul 2>&1
-
-if errorlevel 1 (
-    echo Update failed! Restoring backup...
-    copy ""{backupPath}"" ""{currentExePath}"" > nul 2>&1
-    echo Update installation failed.
-    pause
-    exit /b 1
-)
-
-echo Cleaning up...
-del ""{backupPath}"" > nul 2>&1
-del ""{tempUpdatePath}"" > nul 2>&1
-
-echo Update completed successfully!
-echo Restarting application...
-start """" ""{currentExePath}""
-
-echo Cleaning up update script...
-timeout /t 2 /nobreak > nul
-del ""{updateScript}"" > nul 2>&1
-";
-
-                await File.WriteAllTextAsync(updateScript, script);
+                
+                // Get network update script path from settings
+                var networkScriptPath = _settingsService.Settings.UISettings.NetworkUpdateSettings.UpdateScriptPath;
+                
+                // Check if network script exists
+                if (!File.Exists(networkScriptPath))
+                {
+                    MessageBox.Show(
+                        $"Network update script not found:\n{networkScriptPath}\n\n" +
+                        "Please contact IT support.",
+                        "Update Script Missing",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    return false;
+                }
 
                 // Show update confirmation
                 var result = MessageBox.Show(
@@ -252,9 +229,11 @@ del ""{updateScript}"" > nul 2>&1
 
                 if (result == MessageBoxResult.Yes)
                 {
+                    // Run network update script with parameters
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = updateScript,
+                        FileName = networkScriptPath,
+                        Arguments = $"\"{currentExePath}\" \"{tempUpdatePath}\" \"{backupPath}\"",
                         UseShellExecute = true,
                         Verb = "runas" // Run as administrator if needed
                     });
