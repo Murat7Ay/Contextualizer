@@ -12,7 +12,7 @@
     "sql"
   ],
   "dependencies": [
-    "simple_print_key"
+    "show_window"
   ],
   "handlerJson": {
     "name": "Kullanıcı Sorgusu - Dosyadan",
@@ -27,7 +27,7 @@
     "query": "$file:D:\\Contextualizer\\queries\\user_query.sql",
     "actions": [
       {
-        "name": "simple_print_key",
+        "name": "show_window",
         "key": "_formatted_output"
       }
     ]

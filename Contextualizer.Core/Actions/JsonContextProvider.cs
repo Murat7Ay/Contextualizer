@@ -1,4 +1,5 @@
 using Contextualizer.PluginContracts;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -17,11 +18,12 @@ namespace Contextualizer.Core.Actions
             {
                 using (JsonDocument doc = JsonDocument.Parse(clipboardContent.Text))
                 {
-                    var options = new JsonSerializerOptions
-                    {
-                        WriteIndented = true
-                    };
-                    string formattedJson = JsonSerializer.Serialize(doc.RootElement, options);
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+                string formattedJson = JsonSerializer.Serialize(doc.RootElement, options);
                     context[ContextKey._formatted_output] = formattedJson;
                 }
             }

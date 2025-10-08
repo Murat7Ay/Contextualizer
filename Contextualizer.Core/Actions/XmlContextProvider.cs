@@ -22,7 +22,8 @@ namespace Contextualizer.Core.Actions
                     Indent = true,
                     IndentChars = "  ",
                     NewLineChars = "\n",
-                    NewLineHandling = NewLineHandling.Replace
+                    NewLineHandling = NewLineHandling.Replace,
+                    Encoding = Encoding.UTF8
                 };
 
                 using (var stringWriter = new StringWriter())

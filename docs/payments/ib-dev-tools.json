@@ -10,7 +10,7 @@
     "web"
   ],
   "dependencies": [
-    "simple_print_key"
+    "show_window"
   ],
   "handlerJson": {
     "name": "IB Dev Tools",
@@ -19,7 +19,7 @@
     "title": "IBTools",
     "actions": [
       {
-        "name": "simple_print_key",
+        "name": "show_window",
         "key": "url"
       }
     ],

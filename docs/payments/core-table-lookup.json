@@ -11,7 +11,7 @@
     "schema"
   ],
   "dependencies": [
-    "simple_print_key"
+    "show_window"
   ],
   "handlerJson": {
     "name": "Core Table Lookup",
@@ -29,7 +29,7 @@
     ],
     "actions": [
       {
-        "name": "simple_print_key",
+        "name": "show_window",
         "key": "_formatted_output"
       }
     ]

@@ -10,7 +10,7 @@
     "plsql"
   ],
   "dependencies": [
-    "simple_print_key"
+    "show_window"
   ],
   "handlerJson": {
     "name": "Query Lookup",
@@ -29,7 +29,7 @@
     ],
     "actions": [
       {
-        "name": "simple_print_key",
+        "name": "show_window",
         "key": "query"
       }
     ]

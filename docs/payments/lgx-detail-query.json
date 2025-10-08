@@ -11,7 +11,7 @@
     "lgx"
   ],
   "dependencies": [
-    "simple_print_key",
+    "show_window",
     "copytoclipboard"
   ],
   "handlerJson": {
@@ -27,7 +27,7 @@
     ],
     "actions": [
       {
-        "name": "simple_print_key",
+        "name": "show_window",
         "key": "_self"
       },
       {

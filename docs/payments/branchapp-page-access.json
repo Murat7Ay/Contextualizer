@@ -11,7 +11,7 @@
     "authorization"
   ],
   "dependencies": [
-    "simple_print_key"
+    "show_window"
   ],
   "handlerJson": {
     "name": "Branchapp Page Access",
@@ -26,7 +26,7 @@
     "query": "SELECT * FROM ( SELECT DISTINCT k.KULLANICIKODU , k.ORGANIZASYONKODU, k.BIRIMKODU, k.GISEYETKILISI, k.HESAPYETKILISI, k.UYGKODU, k.AYGKODU FROM URN.PLM_MENU_HAKLARI a, URN.ORG_KULLANICI_VW k WHERE a.menuoid IN ( SELECT oid FROM urn.org_menu WHERE status = 1 AND ekranadi = :p_input) AND k.kullanicikodu = a.KULLANICIKODU ORDER BY k.KULLANICIKODU ) WHERE ROWNUM <= 20",
     "actions": [
       {
-        "name": "simple_print_key",
+        "name": "show_window",
         "key": "_formatted_output"
       }
     ]
