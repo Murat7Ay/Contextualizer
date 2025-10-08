@@ -62,9 +62,20 @@ namespace Contextualizer.Core
             if (!clipboardContent.IsText
                 || string.IsNullOrEmpty(clipboardContent.Text)
                 || string.IsNullOrEmpty(HandlerConfig.Query)
-                || !IsSafeSqlQuery(HandlerConfig.Query)
                 || string.IsNullOrEmpty(HandlerConfig.ConnectionString)
                 || string.IsNullOrEmpty(HandlerConfig.Connector))
+            {
+                return false;
+            }
+
+            // Resolve $file: and $config: patterns in query for validation
+            string resolvedQuery = HandlerContextProcessor.ReplaceDynamicValues(
+                HandlerConfig.Query, 
+                new Dictionary<string, string>() // Empty context for file/config resolution
+            );
+            
+            // Validate the resolved query
+            if (!IsSafeSqlQuery(resolvedQuery))
             {
                 return false;
             }
@@ -190,9 +201,15 @@ namespace Contextualizer.Core
             using IDbConnection connection = CreateConnection();
             DynamicParameters dynamicParameters = CreateDynamicParameters();
             
+            // Resolve $file: and $config: patterns in query
+            string resolvedQuery = HandlerContextProcessor.ReplaceDynamicValues(
+                HandlerConfig.Query, 
+                new Dictionary<string, string>() // Empty context for file/config resolution
+            );
+            
             // Use configurable command timeout, default to 30 seconds instead of 3
             int commandTimeout = HandlerConfig.CommandTimeoutSeconds ?? 30;
-            var queryResults = await connection.QueryAsync(HandlerConfig.Query, dynamicParameters, commandTimeout: commandTimeout);
+            var queryResults = await connection.QueryAsync(resolvedQuery, dynamicParameters, commandTimeout: commandTimeout);
             int rowCount = queryResults.Count();
 
             if (rowCount == 0)
@@ -206,7 +223,7 @@ namespace Contextualizer.Core
                 string parametersJson = JsonSerializer.Serialize(parameters, options);
 
                 UserFeedback.ShowWarning($"No records found matching the criteria.{Environment.NewLine}" +
-                    $"Query: {HandlerConfig.Query}{Environment.NewLine}" +
+                    $"Query: {resolvedQuery}{Environment.NewLine}" +
                     $"Parameters:{Environment.NewLine}{parametersJson}");
             }
 

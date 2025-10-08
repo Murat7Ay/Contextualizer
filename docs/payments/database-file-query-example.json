@@ -1,0 +1,61 @@
+{
+  "id": "database-file-query-example",
+  "name": "Database Handler - Dosyadan Query Örneği",
+  "version": "1.0.0",
+  "author": "Contextualizer Ekibi",
+  "description": "SQL sorgusu dosyadan okunarak çalıştırılan database handler örneği",
+  "tags": [
+    "örnek",
+    "database",
+    "oracle",
+    "file-query",
+    "sql"
+  ],
+  "dependencies": [
+    "simple_print_key"
+  ],
+  "handlerJson": {
+    "name": "Kullanıcı Sorgusu - Dosyadan",
+    "type": "database",
+    "regex": "^[A-Z]{3}\\d{5}$",
+    "title": "Kullanıcı Bilgileri",
+    "description": "SQL sorgusu external dosyadan okunur",
+    "requires_confirmation": false,
+    "screen_id": "markdown2",
+    "connectionString": "$config:database.connection_string",
+    "connector": "plsql",
+    "query": "$file:D:\\Contextualizer\\queries\\user_query.sql",
+    "actions": [
+      {
+        "name": "simple_print_key",
+        "key": "_formatted_output"
+      }
+    ]
+  },
+  "metadata": {
+    "category": "Database",
+    "handlerType": "database",
+    "features": "file-query, config-pattern",
+    "example_query_file": "D:\\Contextualizer\\queries\\user_query.sql"
+  },
+  "template_user_inputs": [
+    {
+      "key": "query_file_path",
+      "title": "SQL Query Dosya Yolu",
+      "message": "SQL query dosyasının tam yolunu girin:",
+      "is_required": true,
+      "is_file_picker": true,
+      "default_value": "D:\\Contextualizer\\queries\\user_query.sql"
+    },
+    {
+      "key": "connection_string",
+      "title": "Connection String",
+      "message": "Oracle database connection string'ini girin:",
+      "is_required": true,
+      "is_multi_line": true,
+      "config_target": "database.connection_string",
+      "default_value": ""$config:database.connection_string""
+    }
+  ]
+}
+
