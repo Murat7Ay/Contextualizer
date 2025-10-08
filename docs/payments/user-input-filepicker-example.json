@@ -1,0 +1,58 @@
+{
+  "id": "user-input-filepicker-example",
+  "name": "Kullanıcı Girişi - Dosya Seçici Örneği",
+  "version": "1.0.0",
+  "author": "Contextualizer Ekibi",
+  "description": "Dosya seçme ve yükleme örneği",
+  "tags": [
+    "örnek",
+    "manual",
+    "user-input",
+    "file-picker"
+  ],
+  "dependencies": [
+    "show_window"
+  ],
+  "handlerJson": {
+    "name": "Dosya Yükleme Formu",
+    "type": "manual",
+    "screen_id": "markdown2",
+    "title": "Dosya Yükle",
+    "description": "Yüklenecek dosyaları seçin",
+    "user_inputs": [
+      {
+        "key": "proje_adi",
+        "title": "Proje Adı",
+        "message": "Proje adını girin:",
+        "is_required": true
+      },
+      {
+        "key": "dokuman_dosyasi",
+        "title": "Doküman Dosyası",
+        "message": "Doküman dosyasını seçin:",
+        "is_required": true,
+        "is_file_picker": true
+      },
+      {
+        "key": "aciklama",
+        "title": "Açıklama",
+        "message": "Dosya hakkında kısa açıklama:",
+        "is_required": false,
+        "is_multi_line": true
+      }
+    ],
+    "actions": [
+      {
+        "name": "show_window",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "# 📁 Dosya Yükleme Özeti\n\n**Proje:** $(proje_adi)\n\n**Dosya Yolu:** `$(dokuman_dosyasi)`\n\n**Açıklama:**\n> $(aciklama)\n\n---\n\n**Yükleme Tarihi:** $func:{{now | format(dd.MM.yyyy HH:mm:ss)}}\n\n**İşlem ID:** $func:{{guid | string.upper | string.substring(0,12)}}\n\n---\n\n*Dosya başarıyla işlendi.* ✅"
+  },
+  "metadata": {
+    "category": "Örnek",
+    "handlerType": "manual",
+    "inputTypes": "file-picker, multi-line"
+  }
+}
+

@@ -1,0 +1,112 @@
+{
+  "id": "user-input-multiselect-example",
+  "name": "Kullanıcı Girişi - Çoklu Seçim Örneği",
+  "version": "1.0.0",
+  "author": "Contextualizer Ekibi",
+  "description": "Çoklu seçim listesi örneği",
+  "tags": [
+    "örnek",
+    "manual",
+    "user-input",
+    "multi-select"
+  ],
+  "dependencies": [
+    "show_window"
+  ],
+  "handlerJson": {
+    "name": "İlgi Alanları Anketi",
+    "type": "manual",
+    "screen_id": "markdown2",
+    "title": "İlgi Alanları",
+    "description": "İlgilendiğiniz konuları seçin",
+    "user_inputs": [
+      {
+        "key": "ad",
+        "title": "Adınız",
+        "message": "Adınızı girin:",
+        "is_required": true
+      },
+      {
+        "key": "hobiler",
+        "title": "Hobiler",
+        "message": "Hobilerinizi seçin (birden fazla seçebilirsiniz):",
+        "is_required": true,
+        "is_selection_list": true,
+        "is_multi_select": true,
+        "selection_items": [
+          {
+            "value": "spor",
+            "display": "⚽ Spor"
+          },
+          {
+            "value": "muzik",
+            "display": "🎵 Müzik"
+          },
+          {
+            "value": "okuma",
+            "display": "📖 Okuma"
+          },
+          {
+            "value": "seyahat",
+            "display": "✈️ Seyahat"
+          },
+          {
+            "value": "fotograf",
+            "display": "📷 Fotoğrafçılık"
+          },
+          {
+            "value": "yemek",
+            "display": "🍳 Yemek Yapmak"
+          },
+          {
+            "value": "teknoloji",
+            "display": "💻 Teknoloji"
+          }
+        ]
+      },
+      {
+        "key": "diller",
+        "title": "Bildiğiniz Diller",
+        "message": "Hangi dilleri biliyorsunuz?",
+        "is_required": true,
+        "is_selection_list": true,
+        "is_multi_select": true,
+        "selection_items": [
+          {
+            "value": "turkce",
+            "display": "🇹🇷 Türkçe"
+          },
+          {
+            "value": "ingilizce",
+            "display": "🇬🇧 İngilizce"
+          },
+          {
+            "value": "almanca",
+            "display": "🇩🇪 Almanca"
+          },
+          {
+            "value": "fransizca",
+            "display": "🇫🇷 Fransızca"
+          },
+          {
+            "value": "ispanyolca",
+            "display": "🇪🇸 İspanyolca"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "name": "show_window",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "# 📝 Anket Sonuçları\n\n**Ad:** $(ad)\n\n## Seçilen Hobiler\n$(hobiler)\n\n## Bilinen Diller\n$(diller)\n\n---\n\n**Toplam Hobi:** $func:{{$(hobiler) | string.split(,) | array.length}}\n\n**Toplam Dil:** $func:{{$(diller) | string.split(,) | array.length}}\n\n**Anket ID:** $func:{{guid | string.substring(0,8) | string.upper}}\n\n---\n\n*Anketiniz kaydedildi. Teşekkürler!* 🎉"
+  },
+  "metadata": {
+    "category": "Örnek",
+    "handlerType": "manual",
+    "inputTypes": "multi-select"
+  }
+}
+

@@ -1,0 +1,62 @@
+{
+  "id": "user-input-text-example",
+  "name": "Kullanıcı Girişi - Metin Örneği",
+  "version": "1.0.0",
+  "author": "Contextualizer Ekibi",
+  "description": "Basit metin girişi ve regex validasyon örneği",
+  "tags": [
+    "örnek",
+    "manual",
+    "user-input",
+    "validation"
+  ],
+  "dependencies": [
+    "show_window"
+  ],
+  "handlerJson": {
+    "name": "Kullanıcı Bilgileri Formu",
+    "type": "manual",
+    "screen_id": "markdown2",
+    "title": "Kullanıcı Bilgileri",
+    "description": "Ad, email ve telefon bilgilerini girin",
+    "user_inputs": [
+      {
+        "key": "ad_soyad",
+        "title": "Ad Soyad",
+        "message": "Lütfen ad ve soyadınızı girin:",
+        "is_required": true,
+        "validation_regex": "^[A-Za-zÇçĞğİıÖöŞşÜü\\s]{3,}$",
+        "default_value": ""
+      },
+      {
+        "key": "email",
+        "title": "E-posta",
+        "message": "E-posta adresinizi girin:",
+        "is_required": true,
+        "validation_regex": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+        "default_value": ""
+      },
+      {
+        "key": "telefon",
+        "title": "Telefon",
+        "message": "Telefon numaranızı girin (5XX XXX XX XX):",
+        "is_required": false,
+        "validation_regex": "^5\\d{2}\\s?\\d{3}\\s?\\d{2}\\s?\\d{2}$",
+        "default_value": ""
+      }
+    ],
+    "actions": [
+      {
+        "name": "show_window",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "# 📋 Kullanıcı Bilgileri\n\n**Ad Soyad:** $(ad_soyad)\n\n**E-posta:** $(email)\n\n**Telefon:** $(telefon)\n\n---\n\n*Girilen bilgiler başarıyla kaydedildi.* ✅"
+  },
+  "metadata": {
+    "category": "Örnek",
+    "handlerType": "manual",
+    "inputTypes": "text, validation"
+  }
+}
+

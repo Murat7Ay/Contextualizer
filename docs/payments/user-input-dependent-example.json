@@ -1,0 +1,145 @@
+{
+  "id": "user-input-dependent-example",
+  "name": "Kullanıcı Girişi - Bağımlı Seçim Örneği",
+  "version": "1.0.0",
+  "author": "Contextualizer Ekibi",
+  "description": "Dinamik bağımlı seçim listesi örneği",
+  "tags": [
+    "örnek",
+    "manual",
+    "user-input",
+    "dependent",
+    "dynamic"
+  ],
+  "dependencies": [
+    "show_window"
+  ],
+  "handlerJson": {
+    "name": "Araç Kiralama Formu",
+    "type": "manual",
+    "screen_id": "markdown2",
+    "title": "Araç Kiralama",
+    "description": "Marka ve modele göre araç seçin",
+    "user_inputs": [
+      {
+        "key": "arac_marka",
+        "title": "Araç Markası",
+        "message": "Araç markasını seçin:",
+        "is_required": true,
+        "is_selection_list": true,
+        "selection_items": [
+          {
+            "value": "toyota",
+            "display": "🚗 Toyota"
+          },
+          {
+            "value": "bmw",
+            "display": "🏎️ BMW"
+          },
+          {
+            "value": "mercedes",
+            "display": "🚙 Mercedes"
+          },
+          {
+            "value": "volkswagen",
+            "display": "🚐 Volkswagen"
+          }
+        ]
+      },
+      {
+        "key": "arac_model",
+        "title": "Araç Modeli",
+        "message": "Araç modelini seçin:",
+        "is_required": true,
+        "is_selection_list": true,
+        "dependent_key": "arac_marka",
+        "dependent_selection_item_map": {
+          "toyota": {
+            "selection_items": [
+              {
+                "value": "corolla",
+                "display": "Corolla"
+              },
+              {
+                "value": "camry",
+                "display": "Camry"
+              },
+              {
+                "value": "rav4",
+                "display": "RAV4"
+              }
+            ]
+          },
+          "bmw": {
+            "selection_items": [
+              {
+                "value": "3_serisi",
+                "display": "3 Serisi"
+              },
+              {
+                "value": "5_serisi",
+                "display": "5 Serisi"
+              },
+              {
+                "value": "x5",
+                "display": "X5"
+              }
+            ]
+          },
+          "mercedes": {
+            "selection_items": [
+              {
+                "value": "c_class",
+                "display": "C-Class"
+              },
+              {
+                "value": "e_class",
+                "display": "E-Class"
+              },
+              {
+                "value": "gle",
+                "display": "GLE"
+              }
+            ]
+          },
+          "volkswagen": {
+            "selection_items": [
+              {
+                "value": "golf",
+                "display": "Golf"
+              },
+              {
+                "value": "passat",
+                "display": "Passat"
+              },
+              {
+                "value": "tiguan",
+                "display": "Tiguan"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "key": "kiralama_suresi",
+        "title": "Kiralama Süresi",
+        "message": "Kaç gün kiralamak istiyorsunuz?",
+        "is_required": true,
+        "validation_regex": "^[1-9][0-9]*$"
+      }
+    ],
+    "actions": [
+      {
+        "name": "show_window",
+        "key": "_formatted_output"
+      }
+    ],
+    "output_format": "# 🚗 Araç Kiralama Özeti\n\n## Araç Bilgileri\n\n**Marka:** $func:{{$(arac_marka) | string.upper}}\n\n**Model:** $func:{{$(arac_model) | string.upper}}\n\n**Süre:** $(kiralama_suresi) gün\n\n---\n\n## Fiyat Bilgisi\n\n**Günlük Ücret:** 500 TL\n\n**Toplam Tutar:** $func:{{math.multiply(500,$(kiralama_suresi))}} TL\n\n---\n\n**Rezervasyon No:** $func:{{guid | string.upper | string.substring(0,10)}}\n\n**Tarih:** $func:{{now | format(dd.MM.yyyy HH:mm)}}\n\n---\n\n*Rezervasyonunuz oluşturuldu.* ✅"
+  },
+  "metadata": {
+    "category": "Örnek",
+    "handlerType": "manual",
+    "inputTypes": "dependent-selection, dynamic"
+  }
+}
+
