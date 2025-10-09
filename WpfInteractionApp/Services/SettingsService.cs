@@ -115,11 +115,13 @@ namespace WpfInteractionApp.Services
                     CreateDefaultHandlersFile(handlersPath);
                 }
 
-                // Create sample exchange handler if exchange directory is empty
+                // Create sample exchange handlers if exchange directory is empty
                 var exchangeDir = Path.Combine(baseDir, "Data", "Exchange");
                 if (!Directory.GetFiles(exchangeDir, "*.json").Any())
                 {
                     CreateSampleExchangeHandler(exchangeDir);
+                    CreateJsonFormatterExchangeHandler(exchangeDir);
+                    CreateXmlFormatterExchangeHandler(exchangeDir);
                 }
             }
             catch (Exception ex)
@@ -171,7 +173,51 @@ namespace WpfInteractionApp.Services
                         },
                         constant_seeder = new
                         {
-                            url = "file:///C:/Users/murat/source/repos/Contextualizer/docs/index.html"
+                            url = "file:///G:/_IBTECHOrtak/Nakit Yönetimi/Contextualizer/docs/index.html"
+                        }
+                    },
+                    new
+                    {
+                        name = "Json formatter wpf",
+                        type = "custom",
+                        context_provider = "jsonvalidator",
+                        validator = "jsonvalidator",
+                        screen_id = "jsonformatter",
+                        title = "JSON Formatter",
+                        actions = new[]
+                        {
+                            new
+                            {
+                                name = "show_window",
+                                key = "_input"
+                            },
+                            new
+                            {
+                                name = "copytoclipboard",
+                                key = "_formatted_output"
+                            }
+                        }
+                    },
+                    new
+                    {
+                        name = "Xml formatter wpf",
+                        type = "custom",
+                        context_provider = "xmlvalidator",
+                        screen_id = "xmlformatter",
+                        validator = "xmlvalidator",
+                        title = "XML Formatter",
+                        actions = new[]
+                        {
+                            new
+                            {
+                                name = "show_window",
+                                key = "_input"
+                            },
+                            new
+                            {
+                                name = "copytoclipboard",
+                                key = "_formatted_output"
+                            }
                         }
                     }
                 }
@@ -228,6 +274,124 @@ namespace WpfInteractionApp.Services
             var json = JsonSerializer.Serialize(sampleHandler, options);
             var samplePath = Path.Combine(exchangeDir, "sample-regex-handler.json");
             File.WriteAllText(samplePath, json);
+        }
+
+        private void CreateJsonFormatterExchangeHandler(string exchangeDir)
+        {
+            var jsonFormatterHandler = new
+            {
+                id = "json-formatter-wpf",
+                name = "Json formatter wpf",
+                version = "1.0.0",
+                author = "Murat",
+                description = "JSON içeriğini formatlar ve doğrular",
+                tags = new[] { "custom", "json", "formatter", "validator" },
+                dependencies = new[] { "show_window", "copytoclipboard", "show_notification" },
+                handlerJson = new
+                {
+                    name = "Json formatter wpf",
+                    type = "custom",
+                    context_provider = "jsonvalidator",
+                    validator = "jsonvalidator",
+                    screen_id = "jsonformatter",
+                    title = "JSON Formatter",
+                    actions = new[]
+                    {
+                        new
+                        {
+                            name = "show_window",
+                            key = "_input"
+                        },
+                        new
+                        {
+                            name = "copytoclipboard",
+                            key = "_formatted_output"
+                        }
+                    }
+                },
+                metadata = new
+                {
+                    category = "Utility",
+                    handlerType = "custom"
+                }
+            };
+
+            var options = new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            
+            var json = JsonSerializer.Serialize(jsonFormatterHandler, options);
+            
+            // Exchange klasörüne yaz
+            var exchangeFilePath = Path.Combine(exchangeDir, "json-formatter-wpf.json");
+            File.WriteAllText(exchangeFilePath, json);
+            
+            // Installed klasörüne de yaz (yüklenmiş gibi görünsün)
+            var installedDir = Path.Combine(Path.GetDirectoryName(exchangeDir), "Installed");
+            var installedFilePath = Path.Combine(installedDir, "json-formatter-wpf.json");
+            File.WriteAllText(installedFilePath, json);
+        }
+
+        private void CreateXmlFormatterExchangeHandler(string exchangeDir)
+        {
+            var xmlFormatterHandler = new
+            {
+                id = "xml-formatter-wpf",
+                name = "Xml formatter wpf",
+                version = "1.0.0",
+                author = "Murat",
+                description = "XML içeriğini formatlar ve doğrular",
+                tags = new[] { "custom", "xml", "formatter", "validator" },
+                dependencies = new[] { "show_window" },
+                handlerJson = new
+                {
+                    name = "Xml formatter wpf",
+                    type = "custom",
+                    context_provider = "xmlvalidator",
+                    screen_id = "xmlformatter",
+                    validator = "xmlvalidator",
+                    title = "XML Formatter",
+                    actions = new[]
+                    {
+                        new
+                        {
+                            name = "show_window",
+                            key = "_input"
+                        },
+                        new
+                        {
+                            name = "copytoclipboard",
+                            key = "_formatted_output"
+                        }
+                    }
+                },
+                metadata = new
+                {
+                    category = "Utility",
+                    handlerType = "custom"
+                }
+            };
+
+            var options = new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            
+            var json = JsonSerializer.Serialize(xmlFormatterHandler, options);
+            
+            // Exchange klasörüne yaz
+            var exchangeFilePath = Path.Combine(exchangeDir, "xml-formatter-wpf.json");
+            File.WriteAllText(exchangeFilePath, json);
+            
+            // Installed klasörüne de yaz (yüklenmiş gibi görünsün)
+            var installedDir = Path.Combine(Path.GetDirectoryName(exchangeDir), "Installed");
+            var installedFilePath = Path.Combine(installedDir, "xml-formatter-wpf.json");
+            File.WriteAllText(installedFilePath, json);
         }
     }
 } 

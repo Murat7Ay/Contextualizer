@@ -161,7 +161,7 @@ namespace WpfInteractionApp.Settings
         public string LocalLogPath { get; set; } = @"C:\PortableApps\Contextualizer\Data\Logs";
 
         [JsonPropertyName("usage_endpoint_url")]
-        public string? UsageEndpointUrl { get; set; } = "http://localhost:5678/webhook/api/usage";
+        public string? UsageEndpointUrl { get; set; } = "https://coe-n8n.seip-vip-tst-ocpdev51.qnb.com.tr/webhook/contextualizer/api/usage";
 
         [JsonPropertyName("minimum_log_level")]
         public LogLevel MinimumLogLevel { get; set; } = LogLevel.Info;
@@ -209,11 +209,10 @@ namespace WpfInteractionApp.Settings
         public bool EnableNetworkUpdates { get; set; } = true;
 
         [JsonPropertyName("network_update_path")]
-        public string NetworkUpdatePath { get; set; } = @"\\server\share\Contextualizer\Updates";
-
+        public string NetworkUpdatePath { get; set; } = @"G:\_IBTECHOrtak\Nakit Yönetimi\Contextualizer\Updates";
+ 
         [JsonPropertyName("update_script_path")]
-        public string UpdateScriptPath { get; set; } = @"C:\temp\Contextualizer\Updates\install_update.bat";
-
+        public string UpdateScriptPath { get; set; } = @"G:\_IBTECHOrtak\Nakit Yönetimi\Contextualizer\Updates\install_update.bat";
         [JsonPropertyName("check_interval_hours")]
         public int CheckIntervalHours { get; set; } = 24;
 
