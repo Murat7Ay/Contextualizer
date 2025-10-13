@@ -37,6 +37,17 @@ New-Item -ItemType Directory -Path $distPath -Force | Out-Null
 # Copy and rename executable
 Copy-Item ".\publish\win-x64\WpfInteractionApp.exe" "$distPath\Contextualizer.exe"
 
+# Copy Assets folder (required for WebView2 controls like PlSqlEditor)
+Write-Host "Copying Assets folder..." -ForegroundColor Yellow
+$assetsSource = ".\WpfInteractionApp\Assets"
+$assetsTarget = "$distPath\Assets"
+if (Test-Path $assetsSource) {
+    Copy-Item -Path $assetsSource -Destination $assetsTarget -Recurse -Force
+    Write-Host "Assets folder copied successfully" -ForegroundColor Green
+} else {
+    Write-Host "Warning: Assets folder not found at $assetsSource" -ForegroundColor Yellow
+}
+
 # Note: Application will auto-create Config, Data, and Plugins directories on first run
 
 # Create ZIP package

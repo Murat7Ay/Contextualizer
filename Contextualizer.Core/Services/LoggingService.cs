@@ -485,14 +485,24 @@ namespace Contextualizer.Core.Services
 
             try
             {
-                // Stop accepting new log entries
+                // Stop accepting new log entries first
                 _logWriter.Complete();
                 
-                // Wait for background task to finish processing remaining entries
-                _backgroundLoggingTask.Wait(TimeSpan.FromSeconds(5));
+                // Give time for remaining entries to be processed
+                var completedTask = Task.WhenAny(_backgroundLoggingTask, Task.Delay(TimeSpan.FromSeconds(3)));
+                completedTask.Wait();
                 
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
+                if (!_backgroundLoggingTask.IsCompleted)
+                {
+                    // Cancel if still running after grace period
+                    _cancellationTokenSource.Cancel();
+                    
+                    // Give it a short time to respond to cancellation
+                    if (!_backgroundLoggingTask.Wait(TimeSpan.FromSeconds(2)))
+                    {
+                        Console.WriteLine("Background logging task did not complete within timeout");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -500,7 +510,15 @@ namespace Contextualizer.Core.Services
             }
             finally
             {
-                _httpClient?.Dispose();
+                try
+                {
+                    _cancellationTokenSource?.Dispose();
+                    _httpClient?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error disposing resources: {ex.Message}");
+                }
             }
         }
 

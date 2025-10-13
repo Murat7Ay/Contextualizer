@@ -9,11 +9,12 @@ using WpfInteractionApp.Services;
 
 namespace WpfInteractionApp
 {
-    public partial class MarkdownViewer2 : UserControl, IDynamicScreen, IThemeAware
+    public partial class MarkdownViewer2 : UserControl, IDynamicScreen, IThemeAware, IDisposable
     {
         private readonly MarkdownPipeline _pipeline;
         private bool _isWebViewInitialized;
         private string _currentTheme = "light";
+        private bool _disposed = false;
 
         public MarkdownViewer2()
         {
@@ -26,6 +27,15 @@ namespace WpfInteractionApp
             _currentTheme = ThemeManager.Instance.CurrentTheme.ToLower();
             _isWebViewInitialized = false;
             InitializeWebView();
+            
+            // Subscribe to Unloaded event for cleanup
+            this.Unloaded += MarkdownViewer2_Unloaded;
+        }
+
+        private void MarkdownViewer2_Unloaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            // Cleanup when control is unloaded
+            Dispose();
         }
 
         public void OnThemeChanged(string theme)
@@ -272,6 +282,44 @@ namespace WpfInteractionApp
                 return;
             }
             Text = body;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    try
+                    {
+                        if (_isWebViewInitialized && WebView != null)
+                        {
+                            if (WebView.CoreWebView2 != null)
+                            {
+                                WebView.CoreWebView2.Stop();
+                            }
+                            
+                            // Close the WebView2 control to ensure browser processes are terminated
+                            try
+                            {
+                                WebView.Dispose();
+                            }
+                            catch { /* Ignore disposal errors */ }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error disposing MarkdownViewer2: {ex.Message}");
+                    }
+                }
+                _disposed = true;
+            }
         }
     }
 }

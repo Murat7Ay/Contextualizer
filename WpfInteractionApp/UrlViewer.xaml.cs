@@ -8,15 +8,25 @@ using System.Windows.Controls;
 
 namespace WpfInteractionApp
 {
-    public partial class UrlViewer : UserControl, IDynamicScreen
+    public partial class UrlViewer : UserControl, IDynamicScreen, IDisposable
     {
         private bool _isWebViewInitialized;
         private string _sharedProfilePath;
+        private bool _disposed = false;
 
         public UrlViewer()
         {
             InitializeComponent();
             _isWebViewInitialized = false;
+            
+            // Subscribe to Unloaded event for cleanup
+            this.Unloaded += UrlViewer_Unloaded;
+        }
+
+        private void UrlViewer_Unloaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            // Cleanup when control is unloaded
+            Dispose();
         }
 
         private async void InitializeWebView()
@@ -134,6 +144,45 @@ namespace WpfInteractionApp
             if (!_isWebViewInitialized)
             {
                 InitializeWebView();
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    try
+                    {
+                        if (_isWebViewInitialized && WebView != null)
+                        {
+                            if (WebView.CoreWebView2 != null)
+                            {
+                                WebView.CoreWebView2.WebMessageReceived -= WebView_WebMessageReceived;
+                                WebView.CoreWebView2.Stop();
+                            }
+                            
+                            // Close the WebView2 control to ensure browser processes are terminated
+                            try
+                            {
+                                WebView.Dispose();
+                            }
+                            catch { /* Ignore disposal errors */ }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error disposing UrlViewer: {ex.Message}");
+                    }
+                }
+                _disposed = true;
             }
         }
     }

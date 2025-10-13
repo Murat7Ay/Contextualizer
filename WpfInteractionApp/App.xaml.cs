@@ -159,7 +159,7 @@ namespace WpfInteractionApp
                         System.Diagnostics.Debug.WriteLine($"Error saving settings on exit: {ex.Message}");
                     }
 
-                    // Dispose services in reverse order
+                    // Dispose services in reverse order with timeout protection
                     try
                     {
                         _handlerManager?.Dispose();
@@ -168,17 +168,73 @@ namespace WpfInteractionApp
                     catch (Exception ex)
                     {
                         _loggingService?.LogError("Error disposing HandlerManager", ex);
+                        System.Diagnostics.Debug.WriteLine($"Error disposing HandlerManager: {ex.Message}");
                     }
 
                     try
                     {
-                        _cronScheduler?.Stop().Wait();
-                        _cronScheduler?.Dispose();
-                        _loggingService?.LogInfo("CronScheduler stopped and disposed");
+                        if (_cronScheduler != null)
+                        {
+                            var stopTask = _cronScheduler.Stop();
+                            // Use timeout to prevent hanging
+                            if (!stopTask.Wait(TimeSpan.FromSeconds(5)))
+                            {
+                                _loggingService?.LogWarning("CronScheduler stop timed out");
+                                System.Diagnostics.Debug.WriteLine("CronScheduler stop timed out");
+                            }
+                            
+                            _cronScheduler.Dispose();
+                            _loggingService?.LogInfo("CronScheduler stopped and disposed");
+                        }
                     }
                     catch (Exception ex)
                     {
                         _loggingService?.LogError("Error disposing CronScheduler", ex);
+                        System.Diagnostics.Debug.WriteLine($"Error disposing CronScheduler: {ex.Message}");
+                    }
+
+                    // Dispose MainWindow and its WebView2 controls
+                    try
+                    {
+                        _mainWindow?.Close();
+                        _loggingService?.LogInfo("MainWindow closed");
+                    }
+                    catch (Exception ex)
+                    {
+                        _loggingService?.LogError("Error closing MainWindow", ex);
+                        System.Diagnostics.Debug.WriteLine($"Error closing MainWindow: {ex.Message}");
+                    }
+
+                    // Force garbage collection to ensure all finalizers run
+                    try
+                    {
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        GC.Collect();
+                        _loggingService?.LogInfo("Garbage collection completed");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error during GC: {ex.Message}");
+                    }
+
+                    // Wait for WebView2 browser processes to terminate gracefully
+                    try
+                    {
+                        // First wait after MainWindow cleanup
+                        System.Threading.Thread.Sleep(500);
+                        
+                        // Force one more GC cycle to ensure WebView2 finalizers run
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        
+                        // Extended wait for all WebView2 sub-processes (GPU, Renderer, etc.)
+                        System.Threading.Thread.Sleep(1000);
+                        _loggingService?.LogInfo("Waited for WebView2 processes to terminate");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error waiting for WebView2: {ex.Message}");
                     }
 
                     _loggingService?.LogInfo("Application shutdown completed");

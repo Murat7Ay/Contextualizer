@@ -67,7 +67,20 @@ namespace Contextualizer.Core.Services
 
             try
             {
-                await _scheduler.Shutdown();
+                // Shutdown the scheduler gracefully with a timeout
+                var shutdownTask = _scheduler.Shutdown(true); // true = wait for jobs to complete
+                var completedTask = await Task.WhenAny(shutdownTask, Task.Delay(TimeSpan.FromSeconds(5)));
+                
+                if (completedTask != shutdownTask)
+                {
+                    // Timeout occurred, force shutdown
+                    ServiceLocator.Get<IUserInteractionService>()?.Log(
+                        LogType.Warning, 
+                        "CronScheduler: Graceful shutdown timed out, forcing shutdown"
+                    );
+                    await _scheduler.Shutdown(false); // false = don't wait for jobs
+                }
+                
                 _isRunning = false;
 
                 ServiceLocator.Get<IUserInteractionService>()?.Log(
@@ -364,7 +377,25 @@ namespace Contextualizer.Core.Services
         {
             if (_isRunning)
             {
-                Stop().Wait();
+                try
+                {
+                    // Use a timeout when waiting for Stop to complete
+                    var stopTask = Stop();
+                    if (!stopTask.Wait(TimeSpan.FromSeconds(10)))
+                    {
+                        ServiceLocator.Get<IUserInteractionService>()?.Log(
+                            LogType.Warning, 
+                            "CronScheduler: Dispose timeout, scheduler may not have stopped cleanly"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ServiceLocator.Get<IUserInteractionService>()?.Log(
+                        LogType.Error, 
+                        $"CronScheduler: Error during dispose: {ex.Message}"
+                    );
+                }
             }
         }
     }

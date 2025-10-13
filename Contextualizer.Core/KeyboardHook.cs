@@ -18,6 +18,8 @@ namespace Contextualizer.Core
         private IGlobalHook? _hook;
         private bool _isDisposed;
         private ISettingsService _settingsService;
+        private Task? _hookTask;
+        private CancellationTokenSource? _cancellationTokenSource;
 
         public KeyboardHook(ISettingsService settingsService)
         {
@@ -42,6 +44,7 @@ namespace Contextualizer.Core
         {
             if (_hook != null) throw new InvalidOperationException("Hook is already started.");
 
+            _cancellationTokenSource = new CancellationTokenSource();
             _hook = new SimpleGlobalHook();
             _hook.KeyPressed += OnKeyPressed;
 
@@ -56,16 +59,55 @@ namespace Contextualizer.Core
                 : _settingsService.ShortcutKey;
 
             Log(LogType.Info, $"Press {shortcutText} to capture selected text...");
-            return _hook.RunAsync();
+            
+            // Start the hook on a background thread and store the task
+            _hookTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await _hook.RunAsync();
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when stopping
+                }
+                catch (Exception ex)
+                {
+                    Log(LogType.Error, $"Hook error: {ex.Message}");
+                }
+            });
+
+            return Task.CompletedTask;
         }
 
         public void Stop()
         {
+            try
+            {
+                // Cancel the hook task
+                _cancellationTokenSource?.Cancel();
+
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-            _hook.KeyPressed -= OnKeyPressed;
+                _hook.KeyPressed -= OnKeyPressed;
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-            _hook?.Dispose(); // Important: Dispose of the hook
-            _hook = null;
+                
+                // Dispose of the hook (this should stop RunAsync)
+                _hook?.Dispose();
+                _hook = null;
+
+                // Wait for the hook task to complete with timeout
+                if (_hookTask != null && !_hookTask.IsCompleted)
+                {
+                    if (!_hookTask.Wait(TimeSpan.FromSeconds(2)))
+                    {
+                        Log(LogType.Warning, "Hook task did not complete within timeout");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(LogType.Error, $"Error stopping hook: {ex.Message}");
+            }
         }
 
         private void OnKeyPressed(object? sender, KeyboardHookEventArgs args)
@@ -176,6 +218,8 @@ namespace Contextualizer.Core
                 {
                     Stop(); // Stop the hook
                     _semaphore.Dispose();
+                    _cancellationTokenSource?.Dispose();
+                    _hookTask?.Dispose();
                 }
 
                 _isDisposed = true;

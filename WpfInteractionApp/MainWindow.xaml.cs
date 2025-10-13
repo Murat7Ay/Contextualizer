@@ -42,6 +42,65 @@ namespace WpfInteractionApp
             this.SizeChanged += MainWindow_SizeChanged;
             this.LocationChanged += MainWindow_LocationChanged;
             this.StateChanged += MainWindow_StateChanged;
+            this.Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Dispose all open tabs and their contents
+            try
+            {
+                Debug.WriteLine($"MainWindow_Closing: Disposing {_tabs.Count} tabs");
+                
+                foreach (var tabKvp in _tabs.ToList())
+                {
+                    var tabItem = tabKvp.Value;
+                    try
+                    {
+                        if (tabItem.Content is Grid grid && grid.Children.Count > 0)
+                        {
+                            // The first child is the UserControl
+                            var userControl = grid.Children[0];
+                            Debug.WriteLine($"Disposing tab '{tabKvp.Key}', UserControl: {userControl.GetType().Name}");
+                            
+                            // Clear children to trigger Unloaded event
+                            grid.Children.Clear();
+                            
+                            // Then dispose the UserControl
+                            if (userControl is IDisposable disposable)
+                            {
+                                disposable.Dispose();
+                                Debug.WriteLine($"Disposed {userControl.GetType().Name} for tab: {tabKvp.Key}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error disposing tab '{tabKvp.Key}': {ex.Message}");
+                    }
+                }
+                
+                _tabs.Clear();
+                TabControl?.Items.Clear();
+                
+                Debug.WriteLine("MainWindow_Closing: All tabs disposed, forcing GC...");
+                
+                // Force GC to clean up WebView2 controls
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect(); // Second pass to clean up finalized objects
+                
+                Debug.WriteLine("MainWindow_Closing: GC completed, waiting for WebView2 cleanup...");
+                
+                // Give WebView2 processes time to terminate
+                System.Threading.Thread.Sleep(500);
+                
+                Debug.WriteLine("MainWindow_Closing: Cleanup completed");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error during MainWindow closing: {ex.Message}");
+            }
         }
 
         public void InitializeHandlerManager(HandlerManager handlerManager)
@@ -221,6 +280,31 @@ namespace WpfInteractionApp
             string key = _tabs.FirstOrDefault(x => x.Value == tabItem).Key;
             if (!string.IsNullOrEmpty(key))
             {
+                try
+                {
+                    // TabItem.Content is a Grid that contains the UserControl
+                    if (tabItem.Content is Grid grid && grid.Children.Count > 0)
+                    {
+                        // The first child should be the UserControl (MarkdownViewer2, UrlViewer, etc.)
+                        var userControl = grid.Children[0];
+                        Debug.WriteLine($"Closing tab '{key}', UserControl type: {userControl.GetType().Name}");
+                        
+                        // Remove from parent to trigger Unloaded event
+                        grid.Children.Clear();
+                        
+                        // Dispose the UserControl if it implements IDisposable
+                        if (userControl is IDisposable disposable)
+                        {
+                            disposable.Dispose();
+                            Debug.WriteLine($"Disposed {userControl.GetType().Name} for tab: {key}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error disposing tab content: {ex.Message}");
+                }
+
                 _tabs.Remove(key);
                 TabControl.Items.Remove(tabItem);
                 

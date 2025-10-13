@@ -8,10 +8,11 @@ using WpfInteractionApp.Services;
 
 namespace WpfInteractionApp
 {
-    public partial class PlSqlEditor : UserControl, IDynamicScreen, IThemeAware
+    public partial class PlSqlEditor : UserControl, IDynamicScreen, IThemeAware, IDisposable
     {
         private bool _isWebViewInitialized;
         private string _currentTheme = "light";
+        private bool _disposed = false;
 
         public PlSqlEditor()
         {
@@ -19,6 +20,15 @@ namespace WpfInteractionApp
             _isWebViewInitialized = false;
             _currentTheme = ThemeManager.Instance.CurrentTheme.ToLower();
             InitializeWebView();
+            
+            // Subscribe to Unloaded event for cleanup
+            this.Unloaded += PlSqlEditor_Unloaded;
+        }
+
+        private void PlSqlEditor_Unloaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            // Cleanup when control is unloaded
+            Dispose();
         }
 
         public void OnThemeChanged(string theme)
@@ -37,7 +47,22 @@ namespace WpfInteractionApp
             try
             {
                 await WebView.EnsureCoreWebView2Async();
-                string aceFolderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "ace");
+                
+                // Get the Assets/ace folder path (next to the executable)
+                string aceFolderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Ace");
+                
+                // Verify the folder exists
+                if (!System.IO.Directory.Exists(aceFolderPath))
+                {
+                    // Try lowercase 'ace' folder as fallback
+                    aceFolderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "ace");
+                    
+                    if (!System.IO.Directory.Exists(aceFolderPath))
+                    {
+                        throw new System.IO.DirectoryNotFoundException($"Assets folder not found at: {aceFolderPath}");
+                    }
+                }
+                
                 WebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
                     "local", // virtual hostname
                     aceFolderPath,
@@ -54,7 +79,7 @@ namespace WpfInteractionApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"WebView2 initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"WebView2 initialization failed: {ex.Message}\n\nPlease ensure Assets folder exists next to the executable.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -192,6 +217,45 @@ namespace WpfInteractionApp
                 return;
             }
             Text = body;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    try
+                    {
+                        if (_isWebViewInitialized && WebView != null)
+                        {
+                            if (WebView.CoreWebView2 != null)
+                            {
+                                WebView.WebMessageReceived -= WebView_WebMessageReceived;
+                                WebView.CoreWebView2.Stop();
+                            }
+                            
+                            // Close the WebView2 control to ensure browser processes are terminated
+                            try
+                            {
+                                WebView.Dispose();
+                            }
+                            catch { /* Ignore disposal errors */ }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error disposing PlSqlEditor: {ex.Message}");
+                    }
+                }
+                _disposed = true;
+            }
         }
     }
 } 
