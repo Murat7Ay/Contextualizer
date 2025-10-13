@@ -433,24 +433,22 @@ namespace WpfInteractionApp
                     return;
                 }
 
-                // Ask user if they want to reload plugins too
+                // Confirm reload
                 var result = MessageBox.Show(
-                    "Reload plugins too?\n\n(NO = only handlers)",
-                    "Reload Handlers",
+                    "Reload handlers and plugins?",
+                    "Reload",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
 
-                bool reloadPlugins = result == MessageBoxResult.Yes;
+                if (result != MessageBoxResult.Yes)
+                    return;
 
-                // Perform reload
-                var (handlersReloaded, newPluginsLoaded) = _handlerManager.ReloadHandlers(reloadPlugins);
+                // Perform reload (always reload plugins)
+                var (handlersReloaded, newPluginsLoaded) = _handlerManager.ReloadHandlers(reloadPlugins: true);
 
                 // Show result
-                string message = reloadPlugins
-                    ? $"✅ Reloaded {handlersReloaded} handlers and {newPluginsLoaded} new plugins"
-                    : $"✅ Reloaded {handlersReloaded} handlers";
-
-                MessageBox.Show(message, "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"✅ Reloaded: {handlersReloaded} handlers, {newPluginsLoaded} plugins", 
+                    "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
