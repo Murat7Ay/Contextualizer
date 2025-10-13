@@ -24,6 +24,9 @@ namespace WpfInteractionApp.Services
             // Ensure portable directories exist
             CreatePortableDirectories();
             LoadSettings();
+            
+            // Perform initial deployment from network path (first run only)
+            PerformInitialDeployment();
         }
 
         public AppSettings Settings => _settings;
@@ -116,8 +119,11 @@ namespace WpfInteractionApp.Services
                 }
 
                 // Create sample exchange handlers if exchange directory is empty
+                // Only create samples if initial deployment is not enabled or completed
                 var exchangeDir = Path.Combine(baseDir, "Data", "Exchange");
-                if (!Directory.GetFiles(exchangeDir, "*.json").Any())
+                if (!Directory.GetFiles(exchangeDir, "*.json").Any() && 
+                    (!_settings.UISettings.InitialDeploymentSettings.Enabled || 
+                     _settings.UISettings.InitialDeploymentSettings.IsCompleted))
                 {
                     CreateSampleExchangeHandler(exchangeDir);
                     CreateJsonFormatterExchangeHandler(exchangeDir);
@@ -129,6 +135,114 @@ namespace WpfInteractionApp.Services
                 // Log error but don't crash the application
                 System.Diagnostics.Debug.WriteLine($"Failed to create portable directory structure: {ex.Message}");
             }
+        }
+
+        private void PerformInitialDeployment()
+        {
+            var deploymentSettings = _settings.UISettings.InitialDeploymentSettings;
+            
+            // Skip if disabled, already completed, or source path is empty
+            if (!deploymentSettings.Enabled || deploymentSettings.IsCompleted || string.IsNullOrWhiteSpace(deploymentSettings.SourcePath))
+            {
+                return;
+            }
+
+            try
+            {
+                const string baseDir = @"C:\PortableApps\Contextualizer";
+                var sourcePath = deploymentSettings.SourcePath;
+
+                // Check if source path exists
+                if (!Directory.Exists(sourcePath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Initial deployment source path not found: {sourcePath}");
+                    System.Diagnostics.Debug.WriteLine($"Skipping initial deployment. Files will not be copied from network.");
+                    // Mark as completed so it doesn't try again (network path might be temporarily unavailable)
+                    deploymentSettings.IsCompleted = true;
+                    SaveSettings();
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Starting initial deployment from: {sourcePath}");
+                int filesCopied = 0;
+
+                // Copy Exchange handlers
+                if (deploymentSettings.CopyExchangeHandlers)
+                {
+                    var sourceExchangeDir = Path.Combine(sourcePath, "Exchange");
+                    var targetExchangeDir = Path.Combine(baseDir, "Data", "Exchange");
+                    filesCopied += CopyDirectory(sourceExchangeDir, targetExchangeDir, "*.json");
+                }
+
+                // Copy Installed handlers
+                if (deploymentSettings.CopyInstalledHandlers)
+                {
+                    var sourceInstalledDir = Path.Combine(sourcePath, "Installed");
+                    var targetInstalledDir = Path.Combine(baseDir, "Data", "Installed");
+                    filesCopied += CopyDirectory(sourceInstalledDir, targetInstalledDir, "*.json");
+                }
+
+                // Copy Plugins
+                if (deploymentSettings.CopyPlugins)
+                {
+                    var sourcePluginsDir = Path.Combine(sourcePath, "Plugins");
+                    var targetPluginsDir = Path.Combine(baseDir, "Plugins");
+                    filesCopied += CopyDirectory(sourcePluginsDir, targetPluginsDir, "*.dll");
+                }
+
+                // Mark deployment as completed
+                deploymentSettings.IsCompleted = true;
+                SaveSettings();
+
+                System.Diagnostics.Debug.WriteLine($"Initial deployment completed. {filesCopied} files copied.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Initial deployment failed: {ex.Message}");
+                // Don't crash the app, just log the error
+            }
+        }
+
+        private int CopyDirectory(string sourceDir, string targetDir, string searchPattern)
+        {
+            int filesCopied = 0;
+
+            try
+            {
+                if (!Directory.Exists(sourceDir))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Source directory not found: {sourceDir}");
+                    return 0;
+                }
+
+                // Ensure target directory exists
+                if (!Directory.Exists(targetDir))
+                {
+                    Directory.CreateDirectory(targetDir);
+                }
+
+                // Copy all matching files
+                var files = Directory.GetFiles(sourceDir, searchPattern);
+                foreach (var sourceFile in files)
+                {
+                    var fileName = Path.GetFileName(sourceFile);
+                    var targetFile = Path.Combine(targetDir, fileName);
+
+                    // Only copy if file doesn't exist in target
+                    if (!File.Exists(targetFile))
+                    {
+                        File.Copy(sourceFile, targetFile, overwrite: false);
+                        filesCopied++;
+                        System.Diagnostics.Debug.WriteLine($"Copied: {fileName} -> {targetDir}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error copying from {sourceDir}: {ex.Message}");
+            }
+
+            return filesCopied;
         }
 
         private void CreateDefaultHandlersFile(string handlersPath)

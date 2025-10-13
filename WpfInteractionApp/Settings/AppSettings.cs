@@ -147,6 +147,30 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("network_update_settings")]
         public NetworkUpdateSettings NetworkUpdateSettings { get; set; } = new NetworkUpdateSettings();
+
+        [JsonPropertyName("initial_deployment_settings")]
+        public InitialDeploymentSettings InitialDeploymentSettings { get; set; } = new InitialDeploymentSettings();
+    }
+
+    public class InitialDeploymentSettings
+    {
+        [JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = true;
+
+        [JsonPropertyName("source_path")]
+        public string SourcePath { get; set; } = @"G:\_IBTECHOrtak\Nakit Yönetimi\Contextualizer\InitialFiles";
+
+        [JsonPropertyName("is_completed")]
+        public bool IsCompleted { get; set; } = false;
+
+        [JsonPropertyName("copy_exchange_handlers")]
+        public bool CopyExchangeHandlers { get; set; } = true;
+
+        [JsonPropertyName("copy_installed_handlers")]
+        public bool CopyInstalledHandlers { get; set; } = true;
+
+        [JsonPropertyName("copy_plugins")]
+        public bool CopyPlugins { get; set; } = true;
     }
 
     public class LoggingSettings
