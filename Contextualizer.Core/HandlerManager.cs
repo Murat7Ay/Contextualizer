@@ -321,6 +321,61 @@ namespace Contextualizer.Core
             }
         }
 
+        /// <summary>
+        /// Reloads handlers from handlers.json and optionally loads new plugins.
+        /// Note: Existing plugins cannot be unloaded without app restart due to .NET Framework limitations.
+        /// </summary>
+        /// <param name="reloadPlugins">If true, scans for new plugins (cannot unload existing ones)</param>
+        /// <returns>Tuple of (handlers reloaded, new plugins loaded)</returns>
+        public (int handlersReloaded, int newPluginsLoaded) ReloadHandlers(bool reloadPlugins = false)
+        {
+            var logger = ServiceLocator.SafeGet<ILoggingService>();
+            logger?.LogInfo("Starting handler reload");
+
+            int newPluginsCount = 0;
+            
+            // Reload plugins if requested (only new plugins will be added)
+            if (reloadPlugins)
+            {
+                var beforeCount = AppDomain.CurrentDomain.GetAssemblies().Length;
+                DynamicAssemblyLoader.LoadAssembliesFromFolder(_settingsService.PluginsDirectory);
+                var afterCount = AppDomain.CurrentDomain.GetAssemblies().Length;
+                newPluginsCount = afterCount - beforeCount;
+
+                if (newPluginsCount > 0)
+                {
+                    // Re-register ActionService to pick up new actions
+                    IActionService actionService = new ActionService();
+                    ServiceLocator.Register<IActionService>(actionService);
+                    logger?.LogInfo($"Reloaded ActionService, {newPluginsCount} new assemblies loaded");
+                }
+            }
+
+            // Dispose existing handlers
+            foreach (var handler in _handlers.OfType<IDisposable>())
+            {
+                try { handler.Dispose(); } catch { /* ignore */ }
+            }
+            foreach (var handler in _manualHandlers.OfType<IDisposable>())
+            {
+                try { handler.Dispose(); } catch { /* ignore */ }
+            }
+
+            // Clear existing handlers
+            _handlers.Clear();
+            _manualHandlers.Clear();
+
+            // Reload handlers from JSON
+            List<IHandler> handlers = HandlerLoader.Load(_settingsService.HandlersFilePath);
+            _handlers.AddRange(handlers.Where(h => h is not ITriggerableHandler));
+            _manualHandlers.AddRange(handlers.Where(h => h is ITriggerableHandler));
+
+            int totalHandlers = _handlers.Count + _manualHandlers.Count;
+            logger?.LogInfo($"Handler reload completed: {totalHandlers} handlers loaded, {newPluginsCount} new plugins");
+            
+            return (totalHandlers, newPluginsCount);
+        }
+
         public void Dispose()
         {
             _hook.TextCaptured -= OnTextCaptured;

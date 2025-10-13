@@ -422,6 +422,65 @@ namespace WpfInteractionApp
             }
         }
 
+        private void ReloadHandlers_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_handlerManager == null)
+                {
+                    MessageBox.Show("Handler manager is not initialized.", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Ask user if they want to reload plugins too
+                var result = MessageBox.Show(
+                    "Reload handlers and plugins?\n\n" +
+                    "• Handlers: Will be fully reloaded from handlers.json\n" +
+                    "• Plugins: New plugins will be loaded (existing ones cannot be unloaded)\n\n" +
+                    "Click YES to reload both, NO to reload only handlers, or CANCEL to abort.",
+                    "Reload Handlers",
+                    MessageBoxButton.YesNoCancel,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Cancel)
+                    return;
+
+                bool reloadPlugins = result == MessageBoxResult.Yes;
+
+                // Perform reload
+                var (handlersReloaded, newPluginsLoaded) = _handlerManager.ReloadHandlers(reloadPlugins);
+
+                // Show result
+                string message;
+                if (reloadPlugins)
+                {
+                    message = $"✅ Reload completed!\n\n" +
+                             $"Handlers: {handlersReloaded}\n" +
+                             $"New Plugins: {newPluginsLoaded}";
+                    
+                    if (newPluginsLoaded > 0)
+                    {
+                        message += "\n\nNote: Plugin changes may require app restart for full effect.";
+                    }
+                }
+                else
+                {
+                    message = $"✅ Reload completed!\n\nHandlers: {handlersReloaded}";
+                }
+
+                MessageBox.Show(message, "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to reload handlers: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                
+                ServiceLocator.SafeExecute<ILoggingService>(logger => 
+                    logger.LogError("Failed to reload handlers", ex));
+            }
+        }
+
         private void OpenHandlerExchange_Click(object sender, RoutedEventArgs e)
         {
             var exchangeWindow = new HandlerExchangeWindow();

@@ -172,6 +172,10 @@
                        Click="ManualHandlersButton_Click" ToolTip="Manual Handlers"/>
                 <Separator Margin="4,0"/>
                 
+                <!-- Reload Handlers -->
+                <Button Content="🔃" Style="{DynamicResource Carbon.Button.Icon}" 
+                       ToolTip="Reload Handlers &amp; Plugins" Click="ReloadHandlers_Click"/>
+                
                 <!-- Settings & Exit -->
                 <Button Content="⚙️" Style="{DynamicResource Carbon.Button.Icon}" 
                        ToolTip="Logging Settings" Click="LoggingSettingsMenuItem_Click"/>

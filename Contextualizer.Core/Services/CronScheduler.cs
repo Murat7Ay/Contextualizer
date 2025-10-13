@@ -38,7 +38,7 @@ namespace Contextualizer.Core.Services
                 await _scheduler.Start();
                 _isRunning = true;
 
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Info, 
                     "CronScheduler: Quartz scheduler started successfully"
                 );
@@ -49,7 +49,7 @@ namespace Contextualizer.Core.Services
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Error, 
                     $"CronScheduler: Failed to start scheduler: {ex.Message}"
                 );
@@ -74,7 +74,7 @@ namespace Contextualizer.Core.Services
                 if (completedTask != shutdownTask)
                 {
                     // Timeout occurred, force shutdown
-                    ServiceLocator.Get<IUserInteractionService>()?.Log(
+                    ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                         LogType.Warning, 
                         "CronScheduler: Graceful shutdown timed out, forcing shutdown"
                     );
@@ -83,14 +83,14 @@ namespace Contextualizer.Core.Services
                 
                 _isRunning = false;
 
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Info, 
                     "CronScheduler: Scheduler stopped"
                 );
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Error, 
                     $"CronScheduler: Error stopping scheduler: {ex.Message}"
                 );
@@ -99,7 +99,7 @@ namespace Contextualizer.Core.Services
 
         public bool ScheduleJob(string jobId, string cronExpression, HandlerConfig handlerConfig, string timezone = null)
         {
-            ServiceLocator.Get<IUserInteractionService>()?.Log(
+            ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                 LogType.Info, 
                 $"CronScheduler: Attempting to schedule job '{jobId}' with expression '{cronExpression}'"
             );
@@ -109,6 +109,18 @@ namespace Contextualizer.Core.Services
 
             try
             {
+                // ✅ CRITICAL FIX: Unschedule existing job if it exists (for handler reload scenarios)
+                var jobKey = new JobKey(jobId);
+                if (_scheduler.CheckExists(jobKey).Result)
+                {
+                    ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
+                        LogType.Info, 
+                        $"CronScheduler: Job '{jobId}' already exists, unscheduling before re-scheduling"
+                    );
+                    _scheduler.DeleteJob(jobKey).Wait();
+                    _jobs.TryRemove(jobId, out _);
+                }
+
                 // Create job info
                 var jobInfo = new CronJobInfo
                 {
@@ -146,7 +158,7 @@ namespace Contextualizer.Core.Services
                 // Schedule the job
                 _scheduler.ScheduleJob(job, trigger).Wait();
 
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Info, 
                     $"CronScheduler: Successfully scheduled job '{jobId}'. Next execution: {trigger.GetNextFireTimeUtc()?.DateTime:yyyy-MM-dd HH:mm:ss} UTC. Total jobs: {_jobs.Count}"
                 );
@@ -155,7 +167,7 @@ namespace Contextualizer.Core.Services
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Error, 
                     $"CronScheduler: Error scheduling job '{jobId}': {ex.Message}"
                 );
@@ -270,7 +282,7 @@ namespace Contextualizer.Core.Services
 
             try
             {
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Info, 
                     $"CronScheduler: Executing job '{jobId}'"
                 );
@@ -285,7 +297,7 @@ namespace Contextualizer.Core.Services
                 var duration = DateTime.UtcNow - startTime;
                 jobInfo.LastError = null;
 
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Info, 
                     $"CronScheduler: Job '{jobId}' completed successfully in {duration.TotalMilliseconds}ms"
                 );
@@ -304,7 +316,7 @@ namespace Contextualizer.Core.Services
                 var duration = DateTime.UtcNow - startTime;
                 jobInfo.LastError = ex.Message;
 
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Error, 
                     $"CronScheduler: Job '{jobId}' failed after {duration.TotalMilliseconds}ms: {ex.Message}"
                 );
@@ -383,7 +395,7 @@ namespace Contextualizer.Core.Services
                     var stopTask = Stop();
                     if (!stopTask.Wait(TimeSpan.FromSeconds(10)))
                     {
-                        ServiceLocator.Get<IUserInteractionService>()?.Log(
+                        ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                             LogType.Warning, 
                             "CronScheduler: Dispose timeout, scheduler may not have stopped cleanly"
                         );
@@ -391,7 +403,7 @@ namespace Contextualizer.Core.Services
                 }
                 catch (Exception ex)
                 {
-                    ServiceLocator.Get<IUserInteractionService>()?.Log(
+                    ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                         LogType.Error, 
                         $"CronScheduler: Error during dispose: {ex.Message}"
                     );
@@ -419,7 +431,7 @@ namespace Contextualizer.Core.Services
             }
             catch (Exception ex)
             {
-                ServiceLocator.Get<IUserInteractionService>()?.Log(
+                ServiceLocator.Get<IUserInteractionService>()?.ShowActivityFeedback(
                     LogType.Error, 
                     $"CronHandlerJob: Error executing job '{jobId}': {ex.Message}"
                 );

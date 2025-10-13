@@ -109,7 +109,7 @@ namespace WpfInteractionApp
                 }
                 catch (Exception ex)
                 {
-                    Log(LogType.Error, $"Sekme açılamadı: {ex.Message}");
+                    ShowActivityFeedback(LogType.Error, $"Sekme açılamadı: {ex.Message}");
                 }
             });
         }
@@ -161,7 +161,7 @@ namespace WpfInteractionApp
             catch (Exception ex)
             {
                 // Log the error with a more specific message and include the title/message.
-                Log(LogType.Error, $"Failed to show confirmation dialog. Title: {title}, Message: {message}, Error: {ex.Message}");
+                ShowActivityFeedback(LogType.Error, $"Failed to show confirmation dialog. Title: {title}, Message: {message}, Error: {ex.Message}");
                 return false; // Return a default value indicating failure.
             }
         }
@@ -184,7 +184,7 @@ namespace WpfInteractionApp
                 }
                 catch (Exception ex)
                 {
-                    Log(LogType.Error, $"Bildirim gösterilemedi: {ex.Message}");
+                    ShowActivityFeedback(LogType.Error, $"Bildirim gösterilemedi: {ex.Message}");
                 }
             });
         }
@@ -200,7 +200,7 @@ namespace WpfInteractionApp
                 }
                 catch (Exception ex)
                 {
-                    Log(LogType.Error, $"Bildirim gösterilemedi: {ex.Message}");
+                    ShowActivityFeedback(LogType.Error, $"Bildirim gösterilemedi: {ex.Message}");
                 }
             });
         }
@@ -219,7 +219,7 @@ namespace WpfInteractionApp
                 }
                 catch (Exception ex)
                 {
-                    Log(LogType.Error, $"Eyleme bağlı bildirim gösterilemedi: {ex.Message}");
+                    ShowActivityFeedback(LogType.Error, $"Eyleme bağlı bildirim gösterilemedi: {ex.Message}");
                 }
             });
         }
@@ -235,7 +235,7 @@ namespace WpfInteractionApp
                 }
                 catch (Exception ex)
                 {
-                    Log(LogType.Error, $"Kullanıcı girişi alınamadı: {ex.Message}");
+                    ShowActivityFeedback(LogType.Error, $"Kullanıcı girişi alınamadı: {ex.Message}");
                     return null;
                 }
             });
@@ -257,7 +257,7 @@ namespace WpfInteractionApp
                 }
                 catch (Exception ex)
                 {
-                    Log(LogType.Error, $"Navigation kullanıcı girişi alınamadı: {ex.Message}");
+                    ShowActivityFeedback(LogType.Error, $"Navigation kullanıcı girişi alınamadı: {ex.Message}");
                     return new NavigationResult { Action = NavigationAction.Cancel };
                 }
             });
