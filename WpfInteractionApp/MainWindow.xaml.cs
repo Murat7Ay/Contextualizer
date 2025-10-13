@@ -435,16 +435,10 @@ namespace WpfInteractionApp
 
                 // Ask user if they want to reload plugins too
                 var result = MessageBox.Show(
-                    "Reload handlers and plugins?\n\n" +
-                    "• Handlers: Will be fully reloaded from handlers.json\n" +
-                    "• Plugins: New plugins will be loaded (existing ones cannot be unloaded)\n\n" +
-                    "Click YES to reload both, NO to reload only handlers, or CANCEL to abort.",
+                    "Reload plugins too?\n\n(NO = only handlers)",
                     "Reload Handlers",
-                    MessageBoxButton.YesNoCancel,
+                    MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.Cancel)
-                    return;
 
                 bool reloadPlugins = result == MessageBoxResult.Yes;
 
@@ -452,22 +446,9 @@ namespace WpfInteractionApp
                 var (handlersReloaded, newPluginsLoaded) = _handlerManager.ReloadHandlers(reloadPlugins);
 
                 // Show result
-                string message;
-                if (reloadPlugins)
-                {
-                    message = $"✅ Reload completed!\n\n" +
-                             $"Handlers: {handlersReloaded}\n" +
-                             $"New Plugins: {newPluginsLoaded}";
-                    
-                    if (newPluginsLoaded > 0)
-                    {
-                        message += "\n\nNote: Plugin changes may require app restart for full effect.";
-                    }
-                }
-                else
-                {
-                    message = $"✅ Reload completed!\n\nHandlers: {handlersReloaded}";
-                }
+                string message = reloadPlugins
+                    ? $"✅ Reloaded {handlersReloaded} handlers and {newPluginsLoaded} new plugins"
+                    : $"✅ Reloaded {handlersReloaded} handlers";
 
                 MessageBox.Show(message, "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
