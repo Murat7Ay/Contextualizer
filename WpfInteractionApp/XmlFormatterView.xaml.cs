@@ -41,9 +41,21 @@ namespace WpfInteractionApp
             {
                 var doc = new XmlDocument();
                 doc.LoadXml(xml);
+                
+                // ✅ Use UTF-8 encoding for Turkish characters
                 var stringWriter = new System.IO.StringWriter();
-                var xmlTextWriter = new XmlTextWriter(stringWriter) { Formatting = Formatting.Indented };
-                doc.WriteTo(xmlTextWriter);
+                var settings = new XmlWriterSettings
+                {
+                    Indent = true,
+                    IndentChars = "  ",
+                    NewLineChars = "\r\n",
+                    NewLineHandling = NewLineHandling.Replace,
+                    Encoding = System.Text.Encoding.UTF8
+                };
+                using (var xmlWriter = XmlWriter.Create(stringWriter, settings))
+                {
+                    doc.Save(xmlWriter);
+                }
                 FormattedXmlBox.Text = stringWriter.ToString();
                 
                 // Also prepare tree view for later
@@ -111,9 +123,21 @@ namespace WpfInteractionApp
                     {
                         var doc = new XmlDocument();
                         doc.LoadXml(_lastXml);
+                        
+                        // ✅ Use UTF-8 encoding for Turkish characters
                         var stringWriter = new System.IO.StringWriter();
-                        var xmlTextWriter = new XmlTextWriter(stringWriter) { Formatting = Formatting.Indented };
-                        doc.WriteTo(xmlTextWriter);
+                        var settings = new XmlWriterSettings
+                        {
+                            Indent = true,
+                            IndentChars = "  ",
+                            NewLineChars = "\r\n",
+                            NewLineHandling = NewLineHandling.Replace,
+                            Encoding = System.Text.Encoding.UTF8
+                        };
+                        using (var xmlWriter = XmlWriter.Create(stringWriter, settings))
+                        {
+                            doc.Save(xmlWriter);
+                        }
                         FormattedXmlBox.Text = stringWriter.ToString();
                     }
                     catch (Exception ex)

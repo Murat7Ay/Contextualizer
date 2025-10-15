@@ -40,7 +40,11 @@ namespace WpfInteractionApp
             try
             {
                 using var doc = JsonDocument.Parse(json);
-                var formatted = JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { WriteIndented = true });
+                var formatted = JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions 
+                { 
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                });
                 FormattedJsonBox.Text = formatted;
                 
                 // Also prepare tree view for later
@@ -102,7 +106,11 @@ namespace WpfInteractionApp
                     try
                     {
                         using var doc = JsonDocument.Parse(_lastJson);
-                        var formatted = JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { WriteIndented = true });
+                        var formatted = JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions 
+                        { 
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        });
                         FormattedJsonBox.Text = formatted;
                     }
                     catch (Exception ex)
