@@ -47,7 +47,7 @@ namespace WpfInteractionApp.Services
             {
                 try
                 {
-                    var content = await File.ReadAllTextAsync(file);
+                    var content = await File.ReadAllTextAsync(file, System.Text.Encoding.UTF8);
                     var package = JsonSerializer.Deserialize<HandlerPackage>(content, _jsonOptions);
                     
                     // Arama ve tag filtreleme
@@ -115,7 +115,7 @@ namespace WpfInteractionApp.Services
             if (!File.Exists(filePath))
                 return null;
 
-            var content = await File.ReadAllTextAsync(filePath);
+            var content = await File.ReadAllTextAsync(filePath, System.Text.Encoding.UTF8);
             var package = JsonSerializer.Deserialize<HandlerPackage>(content, _jsonOptions);
             package.IsInstalled = File.Exists(Path.Combine(_installedHandlersPath, $"{handlerId}.json"));
             return package;
@@ -142,7 +142,7 @@ namespace WpfInteractionApp.Services
             }
 
             // Handler'ı handlers.json'a ekle
-            var currentHandlers = await File.ReadAllTextAsync(_handlersFilePath);
+            var currentHandlers = await File.ReadAllTextAsync(_handlersFilePath, System.Text.Encoding.UTF8);
             using var handlersDoc = JsonDocument.Parse(currentHandlers);
             var handlersElement = handlersDoc.RootElement.GetProperty("handlers");
             
@@ -168,12 +168,13 @@ namespace WpfInteractionApp.Services
             };
             
             await File.WriteAllTextAsync(_handlersFilePath, 
-                JsonSerializer.Serialize(updatedHandlers, options));
+                JsonSerializer.Serialize(updatedHandlers, options), System.Text.Encoding.UTF8);
 
             // Kurulum kaydını oluştur
             await File.WriteAllTextAsync(
                 Path.Combine(_installedHandlersPath, $"{package.Id}.json"),
-                JsonSerializer.Serialize(package, _jsonOptions)
+                JsonSerializer.Serialize(package, _jsonOptions),
+                System.Text.Encoding.UTF8
             );
 
             return true;
@@ -187,7 +188,7 @@ namespace WpfInteractionApp.Services
             var installedPath = Path.Combine(_installedHandlersPath, $"{handlerId}.json");
             if (!File.Exists(installedPath)) return false;
 
-            var installedJson = await File.ReadAllTextAsync(installedPath);
+            var installedJson = await File.ReadAllTextAsync(installedPath, System.Text.Encoding.UTF8);
             var installedPackage = JsonSerializer.Deserialize<HandlerPackage>(installedJson, _jsonOptions);
             if (installedPackage == null) return false;
 
@@ -220,7 +221,7 @@ namespace WpfInteractionApp.Services
             if (package == null) return false;
 
             // handlers.json'dan kaldır
-            var currentHandlers = await File.ReadAllTextAsync(_handlersFilePath);
+            var currentHandlers = await File.ReadAllTextAsync(_handlersFilePath, System.Text.Encoding.UTF8);
             using var handlersDoc = JsonDocument.Parse(currentHandlers);
             var handlersElement = handlersDoc.RootElement.GetProperty("handlers");
             
@@ -249,7 +250,7 @@ namespace WpfInteractionApp.Services
             };
             
             await File.WriteAllTextAsync(_handlersFilePath, 
-                JsonSerializer.Serialize(updatedHandlers, options));
+                JsonSerializer.Serialize(updatedHandlers, options), System.Text.Encoding.UTF8);
 
             // Kurulum kaydını sil
             var installedPath = Path.Combine(_installedHandlersPath, $"{handlerId}.json");
@@ -266,7 +267,7 @@ namespace WpfInteractionApp.Services
 
             var filePath = Path.Combine(_exchangePath, $"{package.Id}.json");
             await File.WriteAllTextAsync(filePath, 
-                JsonSerializer.Serialize(package, _jsonOptions));
+                JsonSerializer.Serialize(package, _jsonOptions), System.Text.Encoding.UTF8);
             return true;
         }
 
@@ -337,7 +338,7 @@ namespace WpfInteractionApp.Services
             {
                 try
                 {
-                    var json = await File.ReadAllTextAsync(file);
+                    var json = await File.ReadAllTextAsync(file, System.Text.Encoding.UTF8);
                     var handler = JsonSerializer.Deserialize<HandlerPackage>(json, _jsonOptions);
 
                     if (handler != null)
@@ -389,7 +390,7 @@ namespace WpfInteractionApp.Services
             {
                 try
                 {
-                    var json = await File.ReadAllTextAsync(file);
+                    var json = await File.ReadAllTextAsync(file, System.Text.Encoding.UTF8);
                     var handler = JsonSerializer.Deserialize<HandlerPackage>(json, _jsonOptions);
                     if (handler != null)
                     {

@@ -90,10 +90,16 @@ namespace WpfInteractionApp
                             _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, content, autoFocus);
                         }
                         
-                        // Bring window to front if requested
+                        // ✅ Always bring window to front when a new tab is created
+                        // If bringToFront is true, use the aggressive method
+                        // Otherwise, just activate the window (softer approach)
                         if (bringToFront)
                         {
                             _mainWindow.BringToFront();
+                        }
+                        else
+                        {
+                            _mainWindow.Activate();
                         }
                         return;
                     }
@@ -101,10 +107,14 @@ namespace WpfInteractionApp
                     var fallback = new TextBlock { Text = $"Ekran bulunamadı: {screenId}" };
                     _mainWindow.AddOrUpdateTab($"{screenId}_{title}", title, fallback, autoFocus);
                     
-                    // Bring window to front if requested
+                    // ✅ Also bring window to front for fallback case
                     if (bringToFront)
                     {
                         _mainWindow.BringToFront();
+                    }
+                    else
+                    {
+                        _mainWindow.Activate();
                     }
                 }
                 catch (Exception ex)

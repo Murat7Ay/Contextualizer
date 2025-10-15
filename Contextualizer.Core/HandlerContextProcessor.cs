@@ -159,7 +159,7 @@ namespace Contextualizer.Core
                 if (input.StartsWith("$file:"))
                 {
                     var filePath = input.Substring(6); // Remove "$file:"
-                    var fileContent = File.ReadAllText(filePath);
+                    var fileContent = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
                     input = fileContent;
                 }
 

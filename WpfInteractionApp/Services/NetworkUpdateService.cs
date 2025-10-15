@@ -53,7 +53,7 @@ namespace WpfInteractionApp.Services
                 }
 
                 // Read version info from network
-                var versionJson = await File.ReadAllTextAsync(versionFilePath);
+                var versionJson = await File.ReadAllTextAsync(versionFilePath, System.Text.Encoding.UTF8);
                 var versionInfo = JsonSerializer.Deserialize<NetworkVersionInfo>(versionJson);
 
                 if (versionInfo != null && !string.IsNullOrEmpty(versionInfo.Version))
@@ -71,7 +71,7 @@ namespace WpfInteractionApp.Services
                             
                             if (File.Exists(changelogPath))
                             {
-                                changelog = await File.ReadAllTextAsync(changelogPath);
+                                changelog = await File.ReadAllTextAsync(changelogPath, System.Text.Encoding.UTF8);
                             }
 
                             var fileInfo = new FileInfo(executablePath);
@@ -308,7 +308,7 @@ namespace WpfInteractionApp.Services
                 if (!File.Exists(versionFilePath))
                     return $"⚠️ Version file missing: {versionFilePath}";
 
-                var versionJson = await File.ReadAllTextAsync(versionFilePath);
+                var versionJson = await File.ReadAllTextAsync(versionFilePath, System.Text.Encoding.UTF8);
                 var versionInfo = JsonSerializer.Deserialize<NetworkVersionInfo>(versionJson);
 
                 if (versionInfo != null)

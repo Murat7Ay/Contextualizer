@@ -46,7 +46,7 @@ namespace Contextualizer.Core
                         new Dictionary<string, IReadOnlyDictionary<string, string>>());
                 }
 
-                using var reader = new StreamReader(resolvedPath);
+                using var reader = new StreamReader(resolvedPath, System.Text.Encoding.UTF8);
                 string? line;
                 var lineNumber = 0;
                 

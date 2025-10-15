@@ -182,7 +182,7 @@ log_level=Info
 ; ""connectionString"": ""$config:database.connection_string""
 ";
 
-                File.WriteAllText(_settings.ConfigFilePath, defaultConfig);
+                File.WriteAllText(_settings.ConfigFilePath, defaultConfig, System.Text.Encoding.UTF8);
             }
 
             // Create secrets.ini if it doesn't exist
@@ -210,7 +210,7 @@ log_level=Info
 ; ""connectionString"": ""$config:connections.database_connection""
 ";
 
-                File.WriteAllText(_settings.SecretsFilePath, defaultSecrets);
+                File.WriteAllText(_settings.SecretsFilePath, defaultSecrets, System.Text.Encoding.UTF8);
             }
         }
 
@@ -235,7 +235,7 @@ log_level=Info
         {
             try
             {
-                var lines = File.ReadAllLines(filePath);
+                var lines = File.ReadAllLines(filePath, System.Text.Encoding.UTF8);
                 string currentSection = "";
 
                 foreach (var line in lines)
@@ -280,7 +280,7 @@ log_level=Info
                 if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                     Directory.CreateDirectory(directory);
                 
-                var lines = File.Exists(filePath) ? File.ReadAllLines(filePath).ToList() : new List<string>();
+                var lines = File.Exists(filePath) ? File.ReadAllLines(filePath, System.Text.Encoding.UTF8).ToList() : new List<string>();
                 
                 int sectionIndex = -1;
                 int keyIndex = -1;
@@ -324,7 +324,7 @@ log_level=Info
                     lines.Add($"{key}={value}");
                 }
                 
-                File.WriteAllLines(filePath, lines);
+                File.WriteAllLines(filePath, lines, System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {

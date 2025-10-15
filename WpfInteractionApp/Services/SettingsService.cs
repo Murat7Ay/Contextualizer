@@ -52,7 +52,7 @@ namespace WpfInteractionApp.Services
             {
                 if (File.Exists(_settingsPath))
                 {
-                    var json = File.ReadAllText(_settingsPath);
+                    var json = File.ReadAllText(_settingsPath, System.Text.Encoding.UTF8);
                     _settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
                     
                     // Ensure nested objects are initialized (for backward compatibility with old config files)
@@ -96,7 +96,7 @@ namespace WpfInteractionApp.Services
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
                 };
                 var json = JsonSerializer.Serialize(_settings, options);
-                File.WriteAllText(_settingsPath, json);
+                File.WriteAllText(_settingsPath, json, System.Text.Encoding.UTF8);
             }
             catch (Exception ex)
             {
@@ -289,7 +289,7 @@ namespace WpfInteractionApp.Services
                     return;
                 }
 
-                var handlersJson = File.ReadAllText(handlersJsonPath);
+                var handlersJson = File.ReadAllText(handlersJsonPath, System.Text.Encoding.UTF8);
                 var handlersDoc = JsonSerializer.Deserialize<JsonDocument>(handlersJson);
                 if (handlersDoc == null)
                 {
@@ -320,7 +320,7 @@ namespace WpfInteractionApp.Services
                 {
                     try
                     {
-                        var installedJson = File.ReadAllText(installedFile);
+                        var installedJson = File.ReadAllText(installedFile, System.Text.Encoding.UTF8);
                         var installedDoc = JsonSerializer.Deserialize<JsonDocument>(installedJson);
 
                         if (installedDoc != null && installedDoc.RootElement.TryGetProperty("handlerJson", out var handlerJson))
@@ -369,7 +369,7 @@ namespace WpfInteractionApp.Services
                     };
 
                     var updatedJson = JsonSerializer.Serialize(updatedConfig, options);
-                    File.WriteAllText(handlersJsonPath, updatedJson);
+                    File.WriteAllText(handlersJsonPath, updatedJson, System.Text.Encoding.UTF8);
 
                     System.Diagnostics.Debug.WriteLine($"Updated handlers.json: {handlersAdded} new handlers added");
                 }
@@ -484,7 +484,7 @@ namespace WpfInteractionApp.Services
             };
             
             var json = JsonSerializer.Serialize(defaultHandlers, options);
-            File.WriteAllText(handlersPath, json);
+            File.WriteAllText(handlersPath, json, System.Text.Encoding.UTF8);
         }
 
         private void CreateSampleExchangeHandler(string exchangeDir)
@@ -528,7 +528,7 @@ namespace WpfInteractionApp.Services
             
             var json = JsonSerializer.Serialize(sampleHandler, options);
             var samplePath = Path.Combine(exchangeDir, "sample-regex-handler.json");
-            File.WriteAllText(samplePath, json);
+            File.WriteAllText(samplePath, json, System.Text.Encoding.UTF8);
         }
 
         private void CreateJsonFormatterExchangeHandler(string exchangeDir)
@@ -583,12 +583,12 @@ namespace WpfInteractionApp.Services
             
             // Exchange klasörüne yaz
             var exchangeFilePath = Path.Combine(exchangeDir, "json-formatter-wpf.json");
-            File.WriteAllText(exchangeFilePath, json);
+            File.WriteAllText(exchangeFilePath, json, System.Text.Encoding.UTF8);
             
             // Installed klasörüne de yaz (yüklenmiş gibi görünsün)
             var installedDir = Path.Combine(Path.GetDirectoryName(exchangeDir), "Installed");
             var installedFilePath = Path.Combine(installedDir, "json-formatter-wpf.json");
-            File.WriteAllText(installedFilePath, json);
+            File.WriteAllText(installedFilePath, json, System.Text.Encoding.UTF8);
         }
 
         private void CreateXmlFormatterExchangeHandler(string exchangeDir)
@@ -643,12 +643,12 @@ namespace WpfInteractionApp.Services
             
             // Exchange klasörüne yaz
             var exchangeFilePath = Path.Combine(exchangeDir, "xml-formatter-wpf.json");
-            File.WriteAllText(exchangeFilePath, json);
+            File.WriteAllText(exchangeFilePath, json, System.Text.Encoding.UTF8);
             
             // Installed klasörüne de yaz (yüklenmiş gibi görünsün)
             var installedDir = Path.Combine(Path.GetDirectoryName(exchangeDir), "Installed");
             var installedFilePath = Path.Combine(installedDir, "xml-formatter-wpf.json");
-            File.WriteAllText(installedFilePath, json);
+            File.WriteAllText(installedFilePath, json, System.Text.Encoding.UTF8);
         }
     }
 } 

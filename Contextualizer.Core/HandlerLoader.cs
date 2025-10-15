@@ -12,7 +12,7 @@ namespace Contextualizer.Core
     {
         internal static List<IHandler> Load(string configPath)
         {
-            string json = File.ReadAllText(configPath);
+            string json = File.ReadAllText(configPath, System.Text.Encoding.UTF8);
             var config = JsonSerializer.Deserialize<JsonDocument>(json);
 
             List<IHandler> handlers = new List<IHandler>();

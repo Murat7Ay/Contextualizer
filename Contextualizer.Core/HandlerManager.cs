@@ -341,7 +341,7 @@ namespace Contextualizer.Core
             };
             
             var json = System.Text.Json.JsonSerializer.Serialize(handlersObject, options);
-            System.IO.File.WriteAllText(_settingsService.HandlersFilePath, json);
+            System.IO.File.WriteAllText(_settingsService.HandlersFilePath, json, System.Text.Encoding.UTF8);
         }
 
         public async Task ExecuteManualHandlerAsync(string handlerName)

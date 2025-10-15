@@ -211,10 +211,11 @@ namespace WpfInteractionApp
                 {
                     Children = { content }
                 };
+                // ✅ Focus only if autoFocus is true (handler-based behavior)
                 if (autoFocus)
                 {
                     _tabs[key].IsSelected = true;
-                    TabControl.SelectedItem = _tabs[key]; // Explicitly set the selected item
+                    TabControl.SelectedItem = _tabs[key];
                 }
             }
             else
@@ -225,6 +226,7 @@ namespace WpfInteractionApp
                     {
                         Children = { content }
                     },
+                    // ✅ Respect handler's AutoFocusTab setting
                     IsSelected = autoFocus,
                 };
 
@@ -256,9 +258,10 @@ namespace WpfInteractionApp
                 TabControl.Items.Add(tabItem);
                 _tabs.Add(key, tabItem);
                 
+                // ✅ Explicitly set the selected item only if autoFocus is true
                 if (autoFocus)
                 {
-                    TabControl.SelectedItem = tabItem; // Explicitly set the selected item for new tabs
+                    TabControl.SelectedItem = tabItem;
                 }
             }
             

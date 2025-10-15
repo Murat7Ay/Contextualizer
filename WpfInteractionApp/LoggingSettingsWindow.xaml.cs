@@ -355,7 +355,7 @@ namespace WpfInteractionApp
                         WriteIndented = true
                     });
 
-                    File.WriteAllText(dialog.FileName, json);
+                    File.WriteAllText(dialog.FileName, json, System.Text.Encoding.UTF8);
                     System.Windows.MessageBox.Show("Configuration exported successfully.", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
