@@ -189,7 +189,7 @@
                 <RowDefinition Height="*" MinHeight="200"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="120" MinHeight="80" MaxHeight="200"/>
+                <RowDefinition Height="100" MinHeight="80" MaxHeight="200"/>
             </Grid.RowDefinitions>
 
             <!-- ✨ Welcome Dashboard (shown when no tabs) -->

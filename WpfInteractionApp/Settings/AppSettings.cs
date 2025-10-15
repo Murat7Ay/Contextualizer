@@ -104,7 +104,7 @@ namespace WpfInteractionApp.Settings
         public string WindowState { get; set; } = "Normal";
 
         [JsonPropertyName("grid_splitter_position")]
-        public double GridSplitterPosition { get; set; } = 200;
+        public double GridSplitterPosition { get; set; } = 100;
 
         [JsonPropertyName("settings_window")]
         public WindowPosition SettingsWindow { get; set; } = new WindowPosition();
