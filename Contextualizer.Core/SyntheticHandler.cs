@@ -17,13 +17,16 @@ namespace Contextualizer.Core
 
         public SyntheticHandler(HandlerConfig handlerConfig) : base(handlerConfig)
         {
+            // ✅ Only create embedded handler if ActualType is specified
+            // If ReferenceHandler is used, handler will be resolved at execution time
             if (!string.IsNullOrEmpty(handlerConfig.ActualType))
             {
                 try
                 {
-                    // Create a copy of the config with the actual type
-                    handlerConfig.Type = handlerConfig.ActualType;
-                    _actualHandler = HandlerFactory.Create(handlerConfig);
+                    // ✅ CRITICAL FIX: Create a NEW config copy, don't modify the original
+                    // This prevents Type corruption when Enable/Disable or Save happens
+                    var actualConfig = CloneConfigWithActualType(handlerConfig);
+                    _actualHandler = HandlerFactory.Create(actualConfig);
                     
                     if (_actualHandler == null)
                     {
@@ -35,6 +38,75 @@ namespace Contextualizer.Core
                     UserFeedback.ShowError($"SyntheticHandler '{handlerConfig.Name}': Error creating actual handler - {ex.Message}");
                 }
             }
+        }
+
+        /// <summary>
+        /// Creates a deep clone of HandlerConfig with Type set to ActualType
+        /// This prevents corruption of the original config when Enable/Disable happens
+        /// </summary>
+        private HandlerConfig CloneConfigWithActualType(HandlerConfig original)
+        {
+            return new HandlerConfig
+            {
+                Name = original.Name,
+                Type = original.ActualType,  // ✅ Use ActualType as the Type for embedded handler
+                Description = original.Description,
+                Title = original.Title,
+                ScreenId = original.ScreenId,
+                Validator = original.Validator,
+                ContextProvider = original.ContextProvider,
+                
+                // Copy all type-specific properties
+                Regex = original.Regex,
+                Groups = original.Groups,
+                ConnectionString = original.ConnectionString,
+                Query = original.Query,
+                Connector = original.Connector,
+                CommandTimeoutSeconds = original.CommandTimeoutSeconds,
+                ConnectionTimeoutSeconds = original.ConnectionTimeoutSeconds,
+                MaxPoolSize = original.MaxPoolSize,
+                MinPoolSize = original.MinPoolSize,
+                DisablePooling = original.DisablePooling,
+                
+                Url = original.Url,
+                Method = original.Method,
+                Headers = original.Headers,
+                RequestBody = original.RequestBody,
+                ContentType = original.ContentType,
+                TimeoutSeconds = original.TimeoutSeconds,
+                
+                Path = original.Path,
+                Delimiter = original.Delimiter,
+                KeyNames = original.KeyNames,
+                ValueNames = original.ValueNames,
+                FileExtensions = original.FileExtensions,
+                
+                // Copy action/output properties
+                Actions = original.Actions,
+                OutputFormat = original.OutputFormat,
+                Seeder = original.Seeder,
+                ConstantSeeder = original.ConstantSeeder,
+                UserInputs = original.UserInputs,
+                RequiresConfirmation = original.RequiresConfirmation,
+                
+                // Copy synthetic properties (keep for reference)
+                ReferenceHandler = original.ReferenceHandler,
+                ActualType = original.ActualType,
+                SyntheticInput = original.SyntheticInput,
+                
+                // Copy cron properties
+                CronJobId = original.CronJobId,
+                CronExpression = original.CronExpression,
+                CronTimezone = original.CronTimezone,
+                CronEnabled = original.CronEnabled,
+                
+                // Copy UI behavior properties
+                AutoFocusTab = original.AutoFocusTab,
+                BringWindowToFront = original.BringWindowToFront,
+                
+                // Copy state properties
+                Enabled = original.Enabled
+            };
         }
 
         protected override async Task<bool> CanHandleAsync(ClipboardContent clipboardContent)

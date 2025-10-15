@@ -12,11 +12,14 @@ namespace Contextualizer.Core.Actions
         public Task<Dictionary<string, string>> CreateContext(ClipboardContent clipboardContent)
         {
             Dictionary<string, string> context = new Dictionary<string, string>();
-            context[ContextKey._input] = clipboardContent.Text;
+            
+            // ✅ Trim input to match validator behavior and handle whitespace/newlines
+            var input = clipboardContent.Text?.Trim() ?? string.Empty;
+            context[ContextKey._input] = input;
 
             try
             {
-                XDocument xDoc = XDocument.Parse(clipboardContent.Text);
+                XDocument xDoc = XDocument.Parse(input);
                 var settings = new XmlWriterSettings
                 {
                     Indent = true,

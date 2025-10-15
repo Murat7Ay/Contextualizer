@@ -104,8 +104,8 @@ namespace Contextualizer.Core
                 int totalHandlers = _handlers.Count;
                 var handlerTasks = new List<Task<bool>>();
 
-                // ✅ Start all handlers in parallel
-                foreach (var handler in _handlers)
+                // ✅ Start all ENABLED handlers in parallel
+                foreach (var handler in _handlers.Where(h => h.HandlerConfig.Enabled))
                 {
                     var handlerTask = ExecuteHandlerAsync(handler, e.ClipboardContent, logger, contentLength);
                     handlerTasks.Add(handlerTask);
@@ -281,12 +281,82 @@ namespace Contextualizer.Core
             return _handlers.Count + _manualHandlers.Count;
         }
 
+        /// <summary>
+        /// Gets all handlers (both automatic and manual) with their configurations
+        /// </summary>
+        public List<HandlerConfig> GetAllHandlerConfigs()
+        {
+            var allConfigs = new List<HandlerConfig>();
+            allConfigs.AddRange(_handlers.Select(h => h.HandlerConfig));
+            allConfigs.AddRange(_manualHandlers.Select(h => h.HandlerConfig));
+            return allConfigs;
+        }
+
+        /// <summary>
+        /// Updates the enabled state of a handler and persists to handlers.json
+        /// </summary>
+        public bool UpdateHandlerEnabledState(string handlerName, bool enabled)
+        {
+            // Find handler in both lists
+            var handler = _handlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase))
+                         ?? _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase));
+
+            if (handler == null)
+            {
+                return false;
+            }
+
+            // Update the enabled state
+            handler.HandlerConfig.Enabled = enabled;
+
+            // Save to handlers.json
+            try
+            {
+                SaveHandlersToFile();
+                var logger = ServiceLocator.SafeGet<ILoggingService>();
+                logger?.LogInfo($"Handler '{handlerName}' {(enabled ? "enabled" : "disabled")}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                var logger = ServiceLocator.SafeGet<ILoggingService>();
+                logger?.LogError($"Failed to save handler state: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Saves all current handlers to handlers.json file
+        /// </summary>
+        private void SaveHandlersToFile()
+        {
+            var allConfigs = GetAllHandlerConfigs();
+            var handlersObject = new { handlers = allConfigs };
+            
+            var options = new System.Text.Json.JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            };
+            
+            var json = System.Text.Json.JsonSerializer.Serialize(handlersObject, options);
+            System.IO.File.WriteAllText(_settingsService.HandlersFilePath, json);
+        }
+
         public async Task ExecuteManualHandlerAsync(string handlerName)
         {
             var handler = _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase));
             if (handler == null)
             {
                 UserFeedback.ShowWarning($"Handler not found: {handlerName}");
+                return;
+            }
+
+            // Check if handler is enabled
+            if (!handler.HandlerConfig.Enabled)
+            {
+                UserFeedback.ShowWarning($"Handler is disabled: {handlerName}");
                 return;
             }
 

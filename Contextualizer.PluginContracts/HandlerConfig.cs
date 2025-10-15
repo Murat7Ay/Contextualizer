@@ -123,6 +123,10 @@ namespace Contextualizer.PluginContracts
         public bool AutoFocusTab { get; set; } = false;
         [JsonPropertyName("bring_window_to_front")]
         public bool BringWindowToFront { get; set; } = false;
+
+        // Handler state properties
+        [JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = true;
     }
 
 }

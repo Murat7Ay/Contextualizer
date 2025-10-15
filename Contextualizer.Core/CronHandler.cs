@@ -68,7 +68,8 @@ namespace Contextualizer.Core
 
         private HandlerConfig CreateActualHandlerConfig()
         {
-            // Create a new config based on the actual handler type
+            // ✅ Create a new config based on the actual handler type
+            // This config is used by CronScheduler and should have complete properties
             var actualConfig = new HandlerConfig
             {
                 Name = HandlerConfig.Name,
@@ -76,38 +77,59 @@ namespace Contextualizer.Core
                 Description = HandlerConfig.Description,
                 Title = HandlerConfig.Title,
                 ScreenId = HandlerConfig.ScreenId,
+                Validator = HandlerConfig.Validator,
+                ContextProvider = HandlerConfig.ContextProvider,
                 
-                // Copy all properties for different handler types
+                // Copy all type-specific properties
                 Regex = HandlerConfig.Regex,
                 Groups = HandlerConfig.Groups,
                 ConnectionString = HandlerConfig.ConnectionString,
                 Query = HandlerConfig.Query,
                 Connector = HandlerConfig.Connector,
+                CommandTimeoutSeconds = HandlerConfig.CommandTimeoutSeconds,
+                ConnectionTimeoutSeconds = HandlerConfig.ConnectionTimeoutSeconds,
+                MaxPoolSize = HandlerConfig.MaxPoolSize,
+                MinPoolSize = HandlerConfig.MinPoolSize,
+                DisablePooling = HandlerConfig.DisablePooling,
+                
                 Url = HandlerConfig.Url,
                 Method = HandlerConfig.Method,
                 Headers = HandlerConfig.Headers,
                 RequestBody = HandlerConfig.RequestBody,
                 ContentType = HandlerConfig.ContentType,
+                TimeoutSeconds = HandlerConfig.TimeoutSeconds,
+                
                 Path = HandlerConfig.Path,
                 Delimiter = HandlerConfig.Delimiter,
                 KeyNames = HandlerConfig.KeyNames,
                 ValueNames = HandlerConfig.ValueNames,
+                FileExtensions = HandlerConfig.FileExtensions,
                 
-                // Copy synthetic properties
-                ReferenceHandler = HandlerConfig.ReferenceHandler,
-                ActualType = HandlerConfig.ActualType,
-                SyntheticInput = HandlerConfig.SyntheticInput,
-                
-                // Copy other properties
+                // Copy action/output properties
                 Actions = HandlerConfig.Actions,
                 OutputFormat = HandlerConfig.OutputFormat,
                 Seeder = HandlerConfig.Seeder,
                 ConstantSeeder = HandlerConfig.ConstantSeeder,
                 UserInputs = HandlerConfig.UserInputs,
-                FileExtensions = HandlerConfig.FileExtensions,
                 RequiresConfirmation = HandlerConfig.RequiresConfirmation,
-                Validator = HandlerConfig.Validator,
-                ContextProvider = HandlerConfig.ContextProvider
+                
+                // Copy synthetic properties (keep for reference)
+                ReferenceHandler = HandlerConfig.ReferenceHandler,
+                ActualType = HandlerConfig.ActualType,
+                SyntheticInput = HandlerConfig.SyntheticInput,
+                
+                // Copy cron properties (keep for reference)
+                CronJobId = HandlerConfig.CronJobId,
+                CronExpression = HandlerConfig.CronExpression,
+                CronTimezone = HandlerConfig.CronTimezone,
+                CronEnabled = HandlerConfig.CronEnabled,
+                
+                // Copy UI behavior properties
+                AutoFocusTab = HandlerConfig.AutoFocusTab,
+                BringWindowToFront = HandlerConfig.BringWindowToFront,
+                
+                // ✅ Copy state properties (IMPORTANT for Enable/Disable functionality)
+                Enabled = HandlerConfig.Enabled
             };
 
             return actualConfig;

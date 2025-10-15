@@ -514,9 +514,10 @@ namespace WpfInteractionApp
                 if (this.FindName("GridSplitter") is GridSplitter splitter)
                 {
                     var grid = splitter.Parent as Grid;
-                    if (grid != null && grid.RowDefinitions.Count > 2)
+                    if (grid != null && grid.RowDefinitions.Count > 3)
                     {
-                        grid.RowDefinitions[2].Height = new GridLength(windowSettings.GridSplitterPosition);
+                        // ✅ Activity Log is Row 3 (Row 0: TabControl, Row 1: Splitter, Row 2: Header, Row 3: Content)
+                        grid.RowDefinitions[3].Height = new GridLength(windowSettings.GridSplitterPosition);
                     }
                 }
             }
@@ -550,9 +551,10 @@ namespace WpfInteractionApp
                 if (this.FindName("GridSplitter") is GridSplitter splitter)
                 {
                     var grid = splitter.Parent as Grid;
-                    if (grid != null && grid.RowDefinitions.Count > 2)
+                    if (grid != null && grid.RowDefinitions.Count > 3)
                     {
-                        windowSettings.GridSplitterPosition = grid.RowDefinitions[2].Height.Value;
+                        // ✅ Activity Log is Row 3 (Row 0: TabControl, Row 1: Splitter, Row 2: Header, Row 3: Content)
+                        windowSettings.GridSplitterPosition = grid.RowDefinitions[3].Height.Value;
                     }
                 }
 
@@ -587,8 +589,27 @@ namespace WpfInteractionApp
         // ✨ Dashboard Event Handlers
         private void ManageHandlers_Click(object sender, RoutedEventArgs e)
         {
-            // Open handler management (existing functionality)
-            SettingsMenuItem_Click(sender, e);
+            // Open the new Handler Management window
+            try
+            {
+                var handlerManagementWindow = new HandlerManagementWindow
+                {
+                    Owner = this
+                };
+                handlerManagementWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error opening Handler Management: {ex.Message}", 
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                
+                AddLog(new LogEntry
+                {
+                    Type = LogType.Error,
+                    Message = $"Failed to open Handler Management: {ex.Message}",
+                    Timestamp = DateTime.Now
+                });
+            }
         }
 
         private void CronManager_Click(object sender, RoutedEventArgs e)

@@ -90,7 +90,11 @@ namespace WpfInteractionApp.Services
                     Directory.CreateDirectory(directory);
                 }
 
-                var options = new JsonSerializerOptions { WriteIndented = true };
+                var options = new JsonSerializerOptions 
+                { 
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                };
                 var json = JsonSerializer.Serialize(_settings, options);
                 File.WriteAllText(_settingsPath, json);
             }
@@ -360,7 +364,8 @@ namespace WpfInteractionApp.Services
                     var options = new JsonSerializerOptions 
                     { 
                         WriteIndented = true,
-                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
                     };
 
                     var updatedJson = JsonSerializer.Serialize(updatedConfig, options);
@@ -474,7 +479,8 @@ namespace WpfInteractionApp.Services
             var options = new JsonSerializerOptions 
             { 
                 WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             };
             
             var json = JsonSerializer.Serialize(defaultHandlers, options);
@@ -516,7 +522,8 @@ namespace WpfInteractionApp.Services
             { 
                 WriteIndented = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             };
             
             var json = JsonSerializer.Serialize(sampleHandler, options);
@@ -568,7 +575,8 @@ namespace WpfInteractionApp.Services
             { 
                 WriteIndented = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             };
             
             var json = JsonSerializer.Serialize(jsonFormatterHandler, options);
@@ -627,7 +635,8 @@ namespace WpfInteractionApp.Services
             { 
                 WriteIndented = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             };
             
             var json = JsonSerializer.Serialize(xmlFormatterHandler, options);

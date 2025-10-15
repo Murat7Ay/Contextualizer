@@ -14,11 +14,30 @@ namespace Contextualizer.Core.Actions
                 return Task.FromResult(false);
             }
 
+            var input = clipboardContent.Text.Trim();
+            
+            // ✅ Aggressive validation: Must start with { or [ and end with } or ]
+            // This ensures we only accept JSON objects or arrays, not primitives (numbers, strings, booleans, null)
+            bool startsCorrectly = input.StartsWith("{") || input.StartsWith("[");
+            bool endsCorrectly = input.EndsWith("}") || input.EndsWith("]");
+            
+            if (!startsCorrectly || !endsCorrectly)
+            {
+                return Task.FromResult(false);
+            }
+
             try
             {
-                using (JsonDocument doc = JsonDocument.Parse(clipboardContent.Text))
+                using (JsonDocument doc = JsonDocument.Parse(input))
                 {
-                    return Task.FromResult(true);
+                    // Additional check: Root element must be an object or array
+                    var rootKind = doc.RootElement.ValueKind;
+                    if (rootKind == JsonValueKind.Object || rootKind == JsonValueKind.Array)
+                    {
+                        return Task.FromResult(true);
+                    }
+                    
+                    return Task.FromResult(false);
                 }
             }
             catch (JsonException)

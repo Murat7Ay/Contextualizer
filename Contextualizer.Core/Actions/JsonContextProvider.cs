@@ -12,11 +12,14 @@ namespace Contextualizer.Core.Actions
         public Task<Dictionary<string, string>> CreateContext(ClipboardContent clipboardContent)
         {
             Dictionary<string, string> context = new Dictionary<string, string>();
-            context[ContextKey._input] = clipboardContent.Text;
+            
+            // ✅ Trim input to match validator behavior and handle whitespace/newlines
+            var input = clipboardContent.Text?.Trim() ?? string.Empty;
+            context[ContextKey._input] = input;
 
             try
             {
-                using (JsonDocument doc = JsonDocument.Parse(clipboardContent.Text))
+                using (JsonDocument doc = JsonDocument.Parse(input))
                 {
                 var options = new JsonSerializerOptions
                 {
