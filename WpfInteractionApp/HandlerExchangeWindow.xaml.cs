@@ -38,6 +38,13 @@ namespace WpfInteractionApp
             // Restore window position and setup closing event
             RestoreWindowPosition();
             Closing += HandlerExchangeWindow_Closing;
+            
+            // ✅ When closing, bring MainWindow back to front
+            Closed += (s, e) =>
+            {
+                Owner?.Activate();
+                Owner?.Focus();
+            };
         }
 
         private async void HandlerExchangeWindow_Loaded(object sender, RoutedEventArgs e)

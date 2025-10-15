@@ -2,6 +2,7 @@ using Contextualizer.PluginContracts;
 using Contextualizer.Core;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -30,12 +31,18 @@ namespace WpfInteractionApp
             
             LoadJobs();
             UpdateSchedulerStatus();
+            
+            // ✅ When closing, bring MainWindow back to front
+            this.Closed += (s, e) =>
+            {
+                Owner?.Activate();
+                Owner?.Focus();
+            };
         }
 
         public ICommand ToggleJobCommand => new RelayCommand<string>(ToggleJob);
         public ICommand TriggerJobCommand => new RelayCommand<string>(TriggerJob);
         public ICommand EditJobCommand => new RelayCommand<string>(EditJob);
-        public ICommand DeleteJobCommand => new RelayCommand<string>(DeleteJob);
 
         private void LoadJobs()
         {
@@ -167,23 +174,6 @@ namespace WpfInteractionApp
                           "Coming Soon", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private async void DeleteJob(string jobId)
-        {
-            if (string.IsNullOrEmpty(jobId)) return;
-
-            var confirmation = new ConfirmationDialog(
-                "Delete Cron Job", 
-                $"Are you sure you want to permanently delete the job '{jobId}'?\n\nThis action cannot be undone."
-            );
-            
-            if (await confirmation.ShowDialogAsync())
-            {
-                // TODO: Implement job deletion
-                MessageBox.Show($"Delete job functionality will be implemented soon.\nJob ID: {jobId}", 
-                              "Coming Soon", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             ApplyFilters();
@@ -202,49 +192,21 @@ namespace WpfInteractionApp
             StatusFilter.SelectedIndex = 0;
         }
 
-        private void AddJob_Click(object sender, RoutedEventArgs e)
-        {
-            // TODO: Implement add job dialog
-            MessageBox.Show("Add new job functionality will be implemented soon.", 
-                          "Coming Soon", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void ShowStatistics_Click(object sender, RoutedEventArgs e)
-        {
-            var activeJobs = _jobs.Count(j => j.Enabled);
-            var disabledJobs = _jobs.Count(j => !j.Enabled);
-            var totalExecutions = _jobs.Sum(j => j.ExecutionCount);
-            var failedJobs = _jobs.Count(j => !string.IsNullOrEmpty(j.LastError));
-
-            var stats = $"📊 Cron Job Statistics\n\n" +
-                       $"Total Jobs: {_jobs.Count}\n" +
-                       $"Active Jobs: {activeJobs}\n" +
-                       $"Disabled Jobs: {disabledJobs}\n" +
-                       $"Total Executions: {totalExecutions}\n" +
-                       $"Jobs with Errors: {failedJobs}";
-
-            MessageBox.Show(stats, "Statistics", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void RefreshJobs_Click(object sender, RoutedEventArgs e)
-        {
-            LoadJobs();
-            UpdateSchedulerStatus();
-        }
-
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
     }
 
-    public class CronJobViewModel
+    public class CronJobViewModel : INotifyPropertyChanged
     {
+        private bool _enabled;
+
         public CronJobViewModel(CronJobInfo jobInfo)
         {
             JobId = jobInfo.JobId;
             CronExpression = jobInfo.CronExpression;
-            Enabled = jobInfo.Enabled;
+            _enabled = jobInfo.Enabled;
             NextExecution = jobInfo.NextExecution;
             ExecutionCount = jobInfo.ExecutionCount;
             LastExecution = jobInfo.LastExecution;
@@ -253,11 +215,31 @@ namespace WpfInteractionApp
 
         public string JobId { get; set; }
         public string CronExpression { get; set; }
-        public bool Enabled { get; set; }
+        
+        public bool Enabled 
+        { 
+            get => _enabled;
+            set
+            {
+                if (_enabled != value)
+                {
+                    _enabled = value;
+                    OnPropertyChanged(nameof(Enabled));
+                }
+            }
+        }
+        
         public DateTime? NextExecution { get; set; }
         public int ExecutionCount { get; set; }
         public DateTime? LastExecution { get; set; }
         public string? LastError { get; set; }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
     // Simple RelayCommand implementation

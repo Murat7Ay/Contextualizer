@@ -186,28 +186,19 @@
                                FontSize="14"/>
                 </StackPanel>
                 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border x:Name="SchedulerStatusBorder"
-                            Style="{StaticResource StatusBadge}"
-                            Background="{DynamicResource Carbon.Brush.Success.Background}"
-                            BorderBrush="{DynamicResource Carbon.Brush.Success.Primary}"
-                            BorderThickness="1"
-                            Margin="0,0,12,0">
-                        <TextBlock x:Name="SchedulerStatusText"
-                                   Text="Scheduler: Running"
-                                   Foreground="{DynamicResource Carbon.Brush.Success.Primary}"
-                                   FontWeight="SemiBold"
-                                   FontSize="12"/>
-                    </Border>
-                    
-                    <Button Content="🔄 Refresh" 
-                            Click="RefreshJobs_Click"
-                            Style="{StaticResource Carbon.Button.Primary}"
-                            Margin="0,0,8,0"/>
-                    <Button Content="➕ Add Job" 
-                            Click="AddJob_Click"
-                            Style="{StaticResource Carbon.Button.Success}"/>
-                </StackPanel>
+                <Border x:Name="SchedulerStatusBorder"
+                        Grid.Column="1"
+                        Style="{StaticResource StatusBadge}"
+                        Background="{DynamicResource Carbon.Brush.Success.Background}"
+                        BorderBrush="{DynamicResource Carbon.Brush.Success.Primary}"
+                        BorderThickness="1"
+                        VerticalAlignment="Center">
+                    <TextBlock x:Name="SchedulerStatusText"
+                               Text="Scheduler: Running"
+                               Foreground="{DynamicResource Carbon.Brush.Success.Primary}"
+                               FontWeight="SemiBold"
+                               FontSize="12"/>
+                </Border>
             </Grid>
         </Border>
 
@@ -447,13 +438,8 @@
                                     <Button Content="▶️ Trigger"
                                             Command="{Binding DataContext.TriggerJobCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             CommandParameter="{Binding JobId}"
-                                            Style="{StaticResource Carbon.Button.Primary}"/>
-                                    
-                                    <Button Content="🗑️ Delete"
-                                            Command="{Binding DataContext.DeleteJobCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            CommandParameter="{Binding JobId}"
-                                            Style="{StaticResource Carbon.Button.Danger}"
-                                            Margin="8,0,0,0"/>
+                                            Style="{StaticResource Carbon.Button.Primary}"
+                                            Margin="0,0,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -492,20 +478,11 @@
                                FontSize="13"/>
                 </StackPanel>
                 
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="📊 Statistics" 
-                            Click="ShowStatistics_Click"
-                            Style="{StaticResource Carbon.Button.Secondary}"
-                            Margin="0,0,8,0"/>
-                    <Button Content="🔄 Refresh All" 
-                            Click="RefreshJobs_Click"
-                            Style="{StaticResource Carbon.Button.Secondary}"
-                            Margin="0,0,8,0"/>
-                    <Button Content="❌ Close" 
-                            Click="Close_Click"
-                            Style="{StaticResource Carbon.Button.Secondary}"
-                            IsCancel="True"/>
-                </StackPanel>
+                <Button Grid.Column="1"
+                        Content="❌ Close" 
+                        Click="Close_Click"
+                        Style="{StaticResource Carbon.Button.Secondary}"
+                        IsCancel="True"/>
             </Grid>
         </Border>
     </Grid>

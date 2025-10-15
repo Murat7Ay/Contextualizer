@@ -472,6 +472,7 @@ namespace WpfInteractionApp
         private void OpenHandlerExchange_Click(object sender, RoutedEventArgs e)
         {
             var exchangeWindow = new HandlerExchangeWindow();
+            exchangeWindow.Owner = this;
             exchangeWindow.Show();
         }
 
