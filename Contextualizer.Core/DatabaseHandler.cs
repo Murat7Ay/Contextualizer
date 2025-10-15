@@ -341,7 +341,7 @@ namespace Contextualizer.Core
         {
             if (resultSet[ContextKey._count] == "0")
             {
-                return $"No data available. {parameters["p_input"]}";
+                return $"No data available. {EscapeMarkdown(parameters["p_input"])}";
             }
 
             // Extract unique column headers from the keys
@@ -362,13 +362,14 @@ namespace Contextualizer.Core
             // Build the Markdown table
             var markdownBuilder = new StringBuilder();
 
-            markdownBuilder.AppendLine($"Captured Text:{parameters["p_input"]}");
+            markdownBuilder.AppendLine($"**Captured Text:** {EscapeMarkdown(parameters["p_input"])}");
             markdownBuilder.AppendLine();
             markdownBuilder.AppendLine("---");
+            markdownBuilder.AppendLine();
 
             // Add headers
             markdownBuilder.Append("| Row | ");
-            markdownBuilder.Append(string.Join(" | ", headers));
+            markdownBuilder.Append(string.Join(" | ", headers.Select(h => EscapeMarkdown(h))));
             markdownBuilder.AppendLine(" |");
 
             // Add header separator
@@ -383,13 +384,37 @@ namespace Contextualizer.Core
                 var rowValues = headers.Select(header =>
                 {
                     var key = $"{header}#{rowNumber}";
-                    return resultSet.ContainsKey(key) ? resultSet[key] : "";
+                    if (resultSet.ContainsKey(key))
+                    {
+                        var value = resultSet[key];
+                        // Escape special markdown characters in cell values
+                        return EscapeMarkdown(value);
+                    }
+                    return "";
                 });
                 markdownBuilder.Append(string.Join(" | ", rowValues));
                 markdownBuilder.AppendLine(" |");
             }
 
             return markdownBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Escapes special Markdown characters in table cells to prevent rendering issues
+        /// </summary>
+        private string EscapeMarkdown(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            // Replace pipe character which breaks markdown tables
+            text = text.Replace("|", "&#124;");
+            // Replace newlines with HTML break for better table rendering
+            text = text.Replace("\r\n", "<br>").Replace("\n", "<br>");
+            // Don't escape < and > as they are part of your data (like <PARAM=...)
+            // But we could optionally escape them if needed
+            // text = text.Replace("<", "&lt;").Replace(">", "&gt;");
+            return text;
         }
 
     }

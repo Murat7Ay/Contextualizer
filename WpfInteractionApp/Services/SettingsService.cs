@@ -21,9 +21,11 @@ namespace WpfInteractionApp.Services
                 SettingsFileName
             );
             
+            // Load settings first (creates default if not exists)
+            LoadSettings();
+            
             // Ensure portable directories exist
             CreatePortableDirectories();
-            LoadSettings();
             
             // Perform initial deployment from network path (first run only)
             PerformInitialDeployment();
@@ -52,6 +54,15 @@ namespace WpfInteractionApp.Services
                 {
                     var json = File.ReadAllText(_settingsPath);
                     _settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                    
+                    // Ensure nested objects are initialized (for backward compatibility with old config files)
+                    _settings.UISettings ??= new UISettings();
+                    _settings.UISettings.InitialDeploymentSettings ??= new InitialDeploymentSettings();
+                    _settings.UISettings.NetworkUpdateSettings ??= new NetworkUpdateSettings();
+                    _settings.WindowSettings ??= new WindowSettings();
+                    _settings.LoggingSettings ??= new LoggingSettings();
+                    _settings.ConfigSystem ??= new ConfigSystemSettings();
+                    _settings.KeyboardShortcut ??= new KeyboardShortcut();
                 }
                 else
                 {
@@ -62,6 +73,10 @@ namespace WpfInteractionApp.Services
             catch
             {
                 _settings = new AppSettings();
+                // Ensure nested objects are initialized even in error case
+                _settings.UISettings ??= new UISettings();
+                _settings.UISettings.InitialDeploymentSettings ??= new InitialDeploymentSettings();
+                _settings.UISettings.NetworkUpdateSettings ??= new NetworkUpdateSettings();
             }
         }
 
@@ -121,13 +136,18 @@ namespace WpfInteractionApp.Services
                 // Create sample exchange handlers if exchange directory is empty
                 // Only create samples if initial deployment is not enabled or completed
                 var exchangeDir = Path.Combine(baseDir, "Data", "Exchange");
+                var deploymentSettings = _settings?.UISettings?.InitialDeploymentSettings;
+                
                 if (!Directory.GetFiles(exchangeDir, "*.json").Any() && 
-                    (!_settings.UISettings.InitialDeploymentSettings.Enabled || 
-                     _settings.UISettings.InitialDeploymentSettings.IsCompleted))
+                    (deploymentSettings == null || !deploymentSettings.Enabled || deploymentSettings.IsCompleted))
                 {
                     CreateSampleExchangeHandler(exchangeDir);
                     CreateJsonFormatterExchangeHandler(exchangeDir);
                     CreateXmlFormatterExchangeHandler(exchangeDir);
+                    
+                    // Add sample handlers to handlers.json
+                    var installedDir = Path.Combine(baseDir, "Data", "Installed");
+                    AddInstalledHandlersToConfig(installedDir, handlersPath);
                 }
             }
             catch (Exception ex)
@@ -180,6 +200,9 @@ namespace WpfInteractionApp.Services
                     var sourceInstalledDir = Path.Combine(sourcePath, "Installed");
                     var targetInstalledDir = Path.Combine(baseDir, "Data", "Installed");
                     filesCopied += CopyDirectory(sourceInstalledDir, targetInstalledDir, "*.json");
+                    
+                    // Add installed handlers to handlers.json
+                    AddInstalledHandlersToConfig(targetInstalledDir, Path.Combine(baseDir, "Config", "handlers.json"));
                 }
 
                 // Copy Plugins
@@ -187,7 +210,7 @@ namespace WpfInteractionApp.Services
                 {
                     var sourcePluginsDir = Path.Combine(sourcePath, "Plugins");
                     var targetPluginsDir = Path.Combine(baseDir, "Plugins");
-                    filesCopied += CopyDirectory(sourcePluginsDir, targetPluginsDir, "*.dll");
+                    filesCopied += CopyDirectory(sourcePluginsDir, targetPluginsDir, "*.*");
                 }
 
                 // Mark deployment as completed
@@ -243,6 +266,117 @@ namespace WpfInteractionApp.Services
             }
 
             return filesCopied;
+        }
+
+        private void AddInstalledHandlersToConfig(string installedDir, string handlersJsonPath)
+        {
+            try
+            {
+                if (!Directory.Exists(installedDir))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Installed directory not found: {installedDir}");
+                    return;
+                }
+
+                // Read current handlers.json
+                if (!File.Exists(handlersJsonPath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"handlers.json not found: {handlersJsonPath}");
+                    return;
+                }
+
+                var handlersJson = File.ReadAllText(handlersJsonPath);
+                var handlersDoc = JsonSerializer.Deserialize<JsonDocument>(handlersJson);
+                if (handlersDoc == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to parse handlers.json");
+                    return;
+                }
+
+                // Get existing handlers array
+                var existingHandlers = new List<JsonElement>();
+                if (handlersDoc.RootElement.TryGetProperty("handlers", out var handlersArray))
+                {
+                    existingHandlers.AddRange(handlersArray.EnumerateArray());
+                }
+
+                // Get existing handler names for duplicate check
+                var existingHandlerNames = existingHandlers
+                    .Where(h => h.TryGetProperty("name", out _))
+                    .Select(h => h.GetProperty("name").GetString()?.ToLowerInvariant())
+                    .Where(name => !string.IsNullOrEmpty(name))
+                    .ToHashSet();
+
+                int handlersAdded = 0;
+                var newHandlers = new List<object>();
+
+                // Read all installed handler files
+                var installedFiles = Directory.GetFiles(installedDir, "*.json");
+                foreach (var installedFile in installedFiles)
+                {
+                    try
+                    {
+                        var installedJson = File.ReadAllText(installedFile);
+                        var installedDoc = JsonSerializer.Deserialize<JsonDocument>(installedJson);
+
+                        if (installedDoc != null && installedDoc.RootElement.TryGetProperty("handlerJson", out var handlerJson))
+                        {
+                            // Check if handler already exists (by name)
+                            if (handlerJson.TryGetProperty("name", out var nameElement))
+                            {
+                                var handlerName = nameElement.GetString()?.ToLowerInvariant();
+                                if (!string.IsNullOrEmpty(handlerName) && !existingHandlerNames.Contains(handlerName))
+                                {
+                                    // Convert JsonElement to object for serialization
+                                    var handlerObject = JsonSerializer.Deserialize<object>(handlerJson.GetRawText());
+                                    if (handlerObject != null)
+                                    {
+                                        newHandlers.Add(handlerObject);
+                                        existingHandlerNames.Add(handlerName);
+                                        handlersAdded++;
+                                        System.Diagnostics.Debug.WriteLine($"Added handler to config: {nameElement.GetString()}");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error processing installed handler {Path.GetFileName(installedFile)}: {ex.Message}");
+                    }
+                }
+
+                // If we have new handlers to add, update handlers.json
+                if (handlersAdded > 0)
+                {
+                    // Combine existing and new handlers
+                    var allHandlers = existingHandlers
+                        .Select(h => JsonSerializer.Deserialize<object>(h.GetRawText()))
+                        .Concat(newHandlers)
+                        .ToList();
+
+                    var updatedConfig = new { handlers = allHandlers };
+
+                    var options = new JsonSerializerOptions 
+                    { 
+                        WriteIndented = true,
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    };
+
+                    var updatedJson = JsonSerializer.Serialize(updatedConfig, options);
+                    File.WriteAllText(handlersJsonPath, updatedJson);
+
+                    System.Diagnostics.Debug.WriteLine($"Updated handlers.json: {handlersAdded} new handlers added");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("No new handlers to add to handlers.json");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error adding installed handlers to config: {ex.Message}");
+            }
         }
 
         private void CreateDefaultHandlersFile(string handlersPath)

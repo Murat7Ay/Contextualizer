@@ -207,10 +207,14 @@ namespace WpfInteractionApp
             string key = $"{screenId}_{title}";
             if (_tabs.ContainsKey(key))
             {
-                _tabs[key].Content = content;
+                _tabs[key].Content = new Grid
+                {
+                    Children = { content }
+                };
                 if (autoFocus)
                 {
                     _tabs[key].IsSelected = true;
+                    TabControl.SelectedItem = _tabs[key]; // Explicitly set the selected item
                 }
             }
             else
@@ -251,6 +255,11 @@ namespace WpfInteractionApp
 
                 TabControl.Items.Add(tabItem);
                 _tabs.Add(key, tabItem);
+                
+                if (autoFocus)
+                {
+                    TabControl.SelectedItem = tabItem; // Explicitly set the selected item for new tabs
+                }
             }
             
             // ✅ Update dashboard visibility when tabs change
@@ -722,25 +731,13 @@ namespace WpfInteractionApp
         }
 
         /// <summary>
-        /// Brings the main window to the front and activates it - only if needed (smart state checking)
+        /// Brings the main window to the front and activates it
         /// </summary>
         public void BringToFront()
         {
             try
             {
-                // Smart check: If window is already active and not minimized, do nothing
-                if (this.IsActive && this.WindowState != WindowState.Minimized)
-                {
-                    AddLog(new LogEntry
-                    {
-                        Type = LogType.Debug,
-                        Message = "Window is already active and visible - no action needed",
-                        Timestamp = DateTime.Now
-                    });
-                    return;
-                }
-
-                // If window is minimized, restore it
+                // If window is minimized, restore it first
                 if (this.WindowState == WindowState.Minimized)
                 {
                     this.WindowState = WindowState.Normal;
@@ -752,21 +749,18 @@ namespace WpfInteractionApp
                     });
                 }
 
-                // Bring window to front only if not already active
-                if (!this.IsActive)
+                // Always try to bring window to front when requested
+                // Don't skip if already active - another window might be on top
+                this.Activate();
+                this.Topmost = true;  // Temporarily set topmost
+                this.Topmost = false; // Then remove topmost to allow normal behavior
+                this.Focus();
+                AddLog(new LogEntry
                 {
-                    this.Activate();
-                    this.Topmost = true;  // Temporarily set topmost
-                    this.Topmost = false; // Then remove topmost to allow normal behavior
-                    this.Focus();
-                    
-                    AddLog(new LogEntry
-                    {
-                        Type = LogType.Debug,
-                        Message = "Window brought to front successfully",
-                        Timestamp = DateTime.Now
-                    });
-                }
+                    Type = LogType.Debug,
+                    Message = "Window brought to front",
+                    Timestamp = DateTime.Now
+                });
             }
             catch (Exception ex)
             {

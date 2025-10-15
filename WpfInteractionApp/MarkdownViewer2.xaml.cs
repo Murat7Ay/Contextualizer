@@ -28,14 +28,8 @@ namespace WpfInteractionApp
             _isWebViewInitialized = false;
             InitializeWebView();
             
-            // Subscribe to Unloaded event for cleanup
-            this.Unloaded += MarkdownViewer2_Unloaded;
-        }
-
-        private void MarkdownViewer2_Unloaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-            // Cleanup when control is unloaded
-            Dispose();
+            // Note: Unloaded event removed - disposal is handled by MainWindow when tab is closed
+            // Unloaded event fires when switching tabs, which would incorrectly dispose the WebView
         }
 
         public void OnThemeChanged(string theme)
@@ -74,7 +68,17 @@ namespace WpfInteractionApp
 
             if (string.IsNullOrEmpty(markdown))
             {
-                WebView.NavigateToString("<p>No content available</p>");
+                WebView.NavigateToString(@"
+<!DOCTYPE html>
+<html lang='tr'>
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+<meta charset='UTF-8'>
+</head>
+<body style='font-family: IBM Plex Sans, Segoe UI, system-ui, sans-serif; padding: 2rem;'>
+<p>No content available</p>
+</body>
+</html>");
                 return;
             }
 
@@ -82,9 +86,11 @@ namespace WpfInteractionApp
             {
                 var html = Markdig.Markdown.ToHtml(markdown, _pipeline);
                 var styledHtml = $@"
-                    <html>
+                    <!DOCTYPE html>
+                    <html lang='tr'>
                     <head>
-                        <meta charset='utf-8'>
+                        <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+                        <meta charset='UTF-8'>
                         <style>
                             body {{ 
                                 font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
@@ -175,28 +181,47 @@ namespace WpfInteractionApp
                                 margin: 2rem 0;
                             }}
                             
+                            .table-wrapper {{
+                                overflow-x: auto;
+                                margin: 1.5rem 0;
+                                border: 1px solid {(_currentTheme == "dark" ? "#393939" : _currentTheme == "dim" ? "#8D8D8D" : "#e0e0e0")};
+                                border-radius: 4px;
+                            }}
+                            
                             table {{
                                 border-collapse: collapse;
                                 width: 100%;
-                                margin: 1.5rem 0;
                                 background-color: {(_currentTheme == "dark" ? "#262626" : _currentTheme == "dim" ? "#5A5A5A" : "#ffffff")};
-                                border: 1px solid {(_currentTheme == "dark" ? "#393939" : _currentTheme == "dim" ? "#8D8D8D" : "#e0e0e0")};
+                                table-layout: auto;
+                                margin: 0;
                             }}
                             
                             th, td {{
                                 border: 1px solid {(_currentTheme == "dark" ? "#393939" : _currentTheme == "dim" ? "#8D8D8D" : "#e0e0e0")};
                                 padding: 0.875rem 1rem;
                                 text-align: left;
+                                word-wrap: break-word;
+                                word-break: break-word;
+                                overflow-wrap: break-word;
+                                max-width: 400px;
+                                white-space: normal;
                             }}
                             
                             th {{
                                 background-color: {(_currentTheme == "dark" ? "#393939" : _currentTheme == "dim" ? "#8D8D8D" : "#f4f4f4")};
                                 font-weight: 600;
                                 color: {(_currentTheme == "dark" ? "#f4f4f4" : _currentTheme == "dim" ? "#ffffff" : "#161616")};
+                                white-space: nowrap;
                             }}
                             
                             tr:nth-child(even) {{
                                 background-color: {(_currentTheme == "dark" ? "#2c2c2c" : _currentTheme == "dim" ? "#8D8D8D" : "#fafafa")};
+                            }}
+                            
+                            thead {{
+                                position: sticky;
+                                top: 0;
+                                z-index: 1;
                             }}
                             
                             img {{
@@ -231,6 +256,19 @@ namespace WpfInteractionApp
                                 color: {(_currentTheme == "dark" ? "#f4f4f4" : _currentTheme == "dim" ? "#ffffff" : "#161616")};
                             }}
                         </style>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {{
+                                // Wrap all tables in a scrollable wrapper
+                                document.querySelectorAll('table').forEach(function(table) {{
+                                    if (!table.parentElement.classList.contains('table-wrapper')) {{
+                                        var wrapper = document.createElement('div');
+                                        wrapper.className = 'table-wrapper';
+                                        table.parentNode.insertBefore(wrapper, table);
+                                        wrapper.appendChild(table);
+                                    }}
+                                }});
+                            }});
+                        </script>
                     </head>
                     <body>
                         {html}
@@ -241,9 +279,14 @@ namespace WpfInteractionApp
             catch (Exception ex)
             {
                 WebView.NavigateToString($@"
-                    <html>
+                    <!DOCTYPE html>
+                    <html lang='tr'>
+                    <head>
+                    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+                    <meta charset='UTF-8'>
+                    </head>
                     <body style='font-family: IBM Plex Sans, Segoe UI, system-ui, sans-serif; color: #da1e28; padding: 2rem;'>
-                        <p>Error processing markdown content: {ex.Message}</p>
+                    <p>Error processing markdown content: {ex.Message}</p>
                     </body>
                     </html>");
             }

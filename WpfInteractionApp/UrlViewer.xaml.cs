@@ -19,14 +19,8 @@ namespace WpfInteractionApp
             InitializeComponent();
             _isWebViewInitialized = false;
             
-            // Subscribe to Unloaded event for cleanup
-            this.Unloaded += UrlViewer_Unloaded;
-        }
-
-        private void UrlViewer_Unloaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-            // Cleanup when control is unloaded
-            Dispose();
+            // Note: Unloaded event removed - disposal is handled by MainWindow when tab is closed
+            // Unloaded event fires when switching tabs, which would incorrectly dispose the WebView
         }
 
         private async void InitializeWebView()
