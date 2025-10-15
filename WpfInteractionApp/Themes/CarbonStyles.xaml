@@ -561,15 +561,19 @@
                 <ControlTemplate TargetType="Button">
                     <Border Background="{TemplateBinding Background}"
                             CornerRadius="4">
-                        <Path Data="M 0,0 L 8,8 M 0,8 L 8,0"
-                              Stroke="{StaticResource Carbon.Brush.Text.Primary}"
-                              StrokeThickness="1.5"
+                        <Path x:Name="ClosePath"
+                              Data="M 0,0 L 8,8 M 0,8 L 8,0"
+                              Stroke="{DynamicResource Carbon.Brush.Text.Primary}"
+                              StrokeThickness="2"
                               HorizontalAlignment="Center"
-                              VerticalAlignment="Center"/>
+                              VerticalAlignment="Center"
+                              Opacity="0.7"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource Carbon.Brush.Background.Active}"/>
+                            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}"/>
+                            <Setter TargetName="ClosePath" Property="Opacity" Value="1"/>
+                            <Setter TargetName="ClosePath" Property="Stroke" Value="{DynamicResource Carbon.Brush.Danger.Primary}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
