@@ -143,6 +143,16 @@ namespace WpfInteractionApp
             }
         }
 
+        public McpSettings McpSettings
+        {
+            get => _settings.McpSettings;
+            set
+            {
+                _settings.McpSettings = value;
+                OnPropertyChanged(nameof(McpSettings));
+            }
+        }
+
         public int ClipboardWaitTimeout
         {
             get => _settings.ClipboardWaitTimeout;

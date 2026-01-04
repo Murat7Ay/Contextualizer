@@ -13,6 +13,92 @@ Contextualizer is a powerful Windows application that provides context-aware cli
 - **[💡 Examples](docs/examples.html)** - Real-world examples and use cases
 - **[🎨 UI Controls](docs/index.html#ui-controls)** - Master the interface features
 
+## MCP (Model Context Protocol) HTTP Server
+
+Contextualizer can expose your `handlers.json` handlers as **MCP tools** over HTTP (localhost), so MCP clients can call them programmatically.
+
+### Enable MCP server
+- Open **Settings** → **MCP Server**
+- Enable **“MCP HTTP server (localhost)”**
+- Choose a **Port** (default `5000`)
+
+Endpoint (SSE transport):
+- `http://127.0.0.1:<port>/mcp/sse`
+
+### Enable tools (per handler)
+- Open **Handler Management**
+- For any handler you want to expose via MCP, click **“MCP Enable”**
+
+Only handlers with `mcp_enabled: true` are returned by `tools/list`. This is **independent** of the handler’s `enabled` flag (so you can create MCP-only handlers).
+
+### Tool input (schema + template)
+Handlers can define their tool input using:
+- `mcp_input_schema`: JSON Schema object shown to the MCP client
+- `mcp_input_template`: builds the internal input string from tool arguments using `$(key)` placeholders (same engine as handler templates, supports `$config:` / `$file:` / `$func:`)
+
+Example (LLM sends structured JSON; Contextualizer builds the tab-delimited input for existing regex/database logic):
+
+```json
+{
+  "name": "LGX Detail Query",
+  "type": "database",
+  "mcp_enabled": true,
+  "mcp_tool_name": "lgx_detail_query",
+  "mcp_input_schema": {
+    "type": "object",
+    "properties": {
+      "oid": { "type": "string" },
+      "tarih": { "type": "string" },
+      "trxid": { "type": "string" }
+    },
+    "required": ["oid", "tarih", "trxid"]
+  },
+  "mcp_input_template": "$(oid)\t$(tarih)\t$(trxid)"
+}
+```
+
+### Tool output (return keys)
+By default, a tool call returns only:
+- `{ \"_formatted_output\": \"...\" }`
+
+Optionally, set:
+- `mcp_return_keys`: list of context keys to return as a JSON object (e.g. `["_formatted_output", "_count"]`)
+
+### Interactive behavior
+Tool calls run through the existing handler pipeline. That means:
+- `requires_confirmation` dialogs may appear
+- `user_inputs` dialogs may appear
+- actions like `show_window` / `copytoclipboard` can run
+
+If you want “headless” MCP execution later, we can add a per-handler MCP mode flag.
+
+### Built-in MCP UI tools (for background agents)
+These tools are always available (they do not depend on `handlers.json`):
+
+- `ui_confirm`
+  - **Purpose**: Ask the user to confirm something (Yes/No)
+  - **Arguments**: `{ "message": "…", "title": "…" }` (`title` optional)
+  - **Returns**: `{ "confirmed": true/false }`
+
+- `ui_user_inputs`
+  - **Purpose**: Show a wizard-style form (1+ steps) using the same `user_inputs` structure as handlers
+  - **Arguments**:
+    - `user_inputs`: array of `UserInputRequest` objects (required)
+    - `context`: optional seed context `{ "key": "value" }` (used for dependent selection lists, etc.)
+  - **Returns**: `{ "cancelled": true/false, "values": { ... } }`
+
+- `ui_notify`
+  - **Purpose**: Non-blocking notification/toast (does not wait for user input)
+  - **Arguments**: `{ "message": "…", "title": "…", "level": "info|warning|error|success", "durationSeconds": 5 }` (`title/level/durationSeconds` optional)
+  - **Returns**: `{ "ok": true }`
+
+- `ui_show_markdown`
+  - **Purpose**: Show markdown content in a tab (screen_id=`markdown2`). Default does **not** steal focus.
+  - **Arguments**: `{ "markdown": "…", "title": "…", "autoFocus": false, "bringToFront": false }` (`title/autoFocus/bringToFront` optional)
+  - **Returns**: `{ "shown": true }`
+
+This lets an agent first collect inputs via `ui_user_inputs`, then call a handler tool using those values as arguments.
+
 ## Features
 
 - **Context-Aware Clipboard Management**: Monitors and captures clipboard content with customizable handlers

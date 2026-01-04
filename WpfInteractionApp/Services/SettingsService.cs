@@ -63,6 +63,7 @@ namespace WpfInteractionApp.Services
                     _settings.LoggingSettings ??= new LoggingSettings();
                     _settings.ConfigSystem ??= new ConfigSystemSettings();
                     _settings.KeyboardShortcut ??= new KeyboardShortcut();
+                    _settings.McpSettings ??= new McpSettings();
                 }
                 else
                 {
@@ -77,6 +78,7 @@ namespace WpfInteractionApp.Services
                 _settings.UISettings ??= new UISettings();
                 _settings.UISettings.InitialDeploymentSettings ??= new InitialDeploymentSettings();
                 _settings.UISettings.NetworkUpdateSettings ??= new NetworkUpdateSettings();
+                _settings.McpSettings ??= new McpSettings();
             }
         }
 

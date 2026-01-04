@@ -64,6 +64,10 @@
     <PackageReference Include="MdXaml" Version="1.27.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Contextualizer.Core\Contextualizer.Core.csproj" />

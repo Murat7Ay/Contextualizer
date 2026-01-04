@@ -38,6 +38,18 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("config_system")]
         public ConfigSystemSettings ConfigSystem { get; set; } = new ConfigSystemSettings();
+
+        [JsonPropertyName("mcp_settings")]
+        public McpSettings McpSettings { get; set; } = new McpSettings();
+    }
+
+    public class McpSettings
+    {
+        [JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = false;
+
+        [JsonPropertyName("port")]
+        public int Port { get; set; } = 5000;
     }
 
     public class ConfigSystemSettings

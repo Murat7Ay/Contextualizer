@@ -393,6 +393,38 @@
                                    Style="{StaticResource InfoText}"/>
                     </StackPanel>
                 </Border>
+
+                <!-- MCP Server Card -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="MCP Server" Style="{StaticResource CardHeader}"/>
+
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <CheckBox x:Name="McpEnabledCheckBox"
+                                      Content="Enable MCP HTTP server (localhost)"
+                                      IsChecked="{Binding McpSettings.Enabled}"
+                                      Style="{DynamicResource Carbon.CheckBox}"
+                                      Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldContainer}">
+                            <TextBlock Text="Port" Style="{StaticResource FieldLabel}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox x:Name="McpPortTextBox"
+                                         Text="{Binding McpSettings.Port}"
+                                         Width="100"
+                                         HorizontalAlignment="Left"/>
+                                <TextBlock Text="(http://127.0.0.1:&lt;port&gt;/mcp/sse)"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0,0,0"
+                                           Foreground="{DynamicResource Carbon.Brush.Text.Secondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Text="Enable the built-in MCP server so MCP clients can call your mcp_enabled handlers as tools. Changes require application restart."
+                                   Style="{StaticResource InfoText}"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 

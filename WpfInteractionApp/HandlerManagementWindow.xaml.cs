@@ -96,6 +96,46 @@ namespace WpfInteractionApp
             }
         }
 
+        private void ToggleMcp_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string handlerName)
+            {
+                var handler = _handlers.FirstOrDefault(h => h.Name == handlerName);
+                if (handler == null)
+                {
+                    MessageBox.Show("Handler not found", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Toggle the MCP enabled state
+                bool newState = !handler.McpEnabled;
+
+                // Update via HandlerManager (this will save to JSON)
+                bool success = _handlerManager.UpdateHandlerMcpEnabledState(handlerName, newState);
+
+                if (success)
+                {
+                    // Update local list
+                    handler.McpEnabled = newState;
+
+                    // Refresh the UI
+                    HandlersListBox.ItemsSource = null;
+                    HandlersListBox.ItemsSource = _handlers;
+
+                    // Show feedback
+                    string status = newState ? "enabled" : "disabled";
+                    MessageBox.Show($"Handler '{handlerName}' MCP has been {status}", "Success",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to update handler MCP state", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             this.Close();

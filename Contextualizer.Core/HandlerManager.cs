@@ -326,6 +326,40 @@ namespace Contextualizer.Core
         }
 
         /// <summary>
+        /// Updates the MCP enabled state of a handler and persists to handlers.json.
+        /// Note: MCP visibility is controlled by HandlerConfig.McpEnabled, independent of HandlerConfig.Enabled.
+        /// </summary>
+        public bool UpdateHandlerMcpEnabledState(string handlerName, bool mcpEnabled)
+        {
+            // Find handler in both lists
+            var handler = _handlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase))
+                         ?? _manualHandlers.FirstOrDefault(h => h.HandlerConfig.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase));
+
+            if (handler == null)
+            {
+                return false;
+            }
+
+            // Update the MCP enabled state
+            handler.HandlerConfig.McpEnabled = mcpEnabled;
+
+            // Save to handlers.json
+            try
+            {
+                SaveHandlersToFile();
+                var logger = ServiceLocator.SafeGet<ILoggingService>();
+                logger?.LogInfo($"Handler '{handlerName}' MCP {(mcpEnabled ? "enabled" : "disabled")}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                var logger = ServiceLocator.SafeGet<ILoggingService>();
+                logger?.LogError($"Failed to save handler MCP state: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Saves all current handlers to handlers.json file
         /// </summary>
         private void SaveHandlersToFile()

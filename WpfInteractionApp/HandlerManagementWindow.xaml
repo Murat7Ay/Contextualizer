@@ -136,29 +136,77 @@
                                                     </TextBlock.Style>
                                                 </TextBlock>
                                             </Border>
+                                            <!-- MCP badge -->
+                                            <Border CornerRadius="3" Padding="6,2" Margin="4,0,0,0">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding McpEnabled}" Value="True">
+                                                                <Setter Property="Background" Value="{StaticResource Carbon.Brush.Info.Background}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock FontSize="10" FontWeight="SemiBold">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="MCP Off"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Secondary}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding McpEnabled}" Value="True">
+                                                                    <Setter Property="Text" Value="MCP On"/>
+                                                                    <Setter Property="Foreground" Value="{StaticResource Carbon.Brush.Info.Primary}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
                                         </StackPanel>
                                     </StackPanel>
 
                                     <!-- Toggle Button -->
-                                    <Button Grid.Column="2" Margin="12,0,0,0" 
-                                            Style="{StaticResource ToggleButtonStyle}"
-                                            Tag="{Binding Name}"
-                                            Click="ToggleHandler_Click">
-                                        <Button.Content>
-                                            <TextBlock>
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="Disable"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Enabled}" Value="False">
-                                                                <Setter Property="Text" Value="Enable"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Button.Content>
-                                    </Button>
+                                    <StackPanel Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <Button Style="{StaticResource ToggleButtonStyle}"
+                                                Tag="{Binding Name}"
+                                                Click="ToggleHandler_Click"
+                                                Margin="0,0,0,6">
+                                            <Button.Content>
+                                                <TextBlock>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="Disable"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Enabled}" Value="False">
+                                                                    <Setter Property="Text" Value="Enable"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Button.Content>
+                                        </Button>
+                                        
+                                        <Button Style="{StaticResource ToggleButtonStyle}"
+                                                Tag="{Binding Name}"
+                                                Click="ToggleMcp_Click">
+                                            <Button.Content>
+                                                <TextBlock>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="MCP Enable"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding McpEnabled}" Value="True">
+                                                                    <Setter Property="Text" Value="MCP Disable"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Button.Content>
+                                        </Button>
+                                    </StackPanel>
                                 </Grid>
                             </Border>
                         </DataTemplate>

@@ -112,6 +112,8 @@
         "User-Agent": "Contextualizer"
       },
       "output_format": "GitHub User: $(name)\nBio: ${bio}\nFollowers: $(followers)\nFollowing: $(following)",
+      "mcp_enabled": true,
+      "mcp_tool_name": "github_user_info",
       "actions": [
         {
           "name": "copytoclipboard",
@@ -402,7 +404,9 @@
       "type": "database",
       "connectionString": "Server=localhost\\SQLEXPRESS;Database=NorthPole;Trusted_Connection=True;TrustServerCertificate=True;",
       "connector": "mssql",
-      "query": "SELECT [ParameterId],[Name],[Description],[DefaultValue],[IsArray],[Seperator],[FormatedName] FROM [Strategy].[Parameter] WHERE Name = @_input",
+      "query": "SELECT [ParameterId],[Name],[Description],[DefaultValue],[IsArray],[Seperator],[FormatedName] FROM [Strategy].[Parameter] WHERE Name LIKE '%' + @_input + '%'",
+      "mcp_enabled": true,
+      "mcp_tool_name": "strategy_query",
       "actions": [
         {
           "name": "simple_print_key",

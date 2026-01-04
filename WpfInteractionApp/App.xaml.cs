@@ -18,6 +18,7 @@ namespace WpfInteractionApp
         private SettingsService? _settingsService;
         private CronScheduler? _cronScheduler;
         private ILoggingService? _loggingService;
+        private McpServerHost? _mcpServerHost;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -110,6 +111,9 @@ namespace WpfInteractionApp
                 // Start the HandlerManager
                 await _handlerManager.StartAsync();
 
+                // Start MCP server if enabled (localhost only)
+                await StartMcpServerIfEnabledAsync(_settingsService, userInteractionService);
+
                 _loggingService.LogInfo("Application startup completed successfully");
             }
             catch (Exception ex)
@@ -157,6 +161,28 @@ namespace WpfInteractionApp
                     {
                         _loggingService?.LogError("Error saving settings on exit", ex);
                         System.Diagnostics.Debug.WriteLine($"Error saving settings on exit: {ex.Message}");
+                    }
+
+                    // Stop MCP server early to avoid serving requests during shutdown
+                    try
+                    {
+                        if (_mcpServerHost != null)
+                        {
+                            var stopTask = _mcpServerHost.StopAsync();
+                            if (!stopTask.Wait(TimeSpan.FromSeconds(3)))
+                            {
+                                _loggingService?.LogWarning("MCP server stop timed out");
+                                System.Diagnostics.Debug.WriteLine("MCP server stop timed out");
+                            }
+
+                            _mcpServerHost = null;
+                            _loggingService?.LogInfo("MCP server stopped");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _loggingService?.LogError("Error stopping MCP server", ex);
+                        System.Diagnostics.Debug.WriteLine($"Error stopping MCP server: {ex.Message}");
                     }
 
                     // Dispose services in reverse order with timeout protection
@@ -253,6 +279,33 @@ namespace WpfInteractionApp
                 }
 
                 base.OnExit(e);
+            }
+        }
+
+        private async Task StartMcpServerIfEnabledAsync(SettingsService settingsService, IUserInteractionService userInteractionService)
+        {
+            try
+            {
+                if (settingsService.Settings.McpSettings == null || !settingsService.Settings.McpSettings.Enabled)
+                    return;
+
+                var port = settingsService.Settings.McpSettings.Port;
+                if (port < 1 || port > 65535)
+                {
+                    userInteractionService.ShowActivityFeedback(LogType.Warning, $"MCP server not started: invalid port {port}");
+                    return;
+                }
+
+                _mcpServerHost = new McpServerHost();
+                await _mcpServerHost.StartAsync(port);
+
+                userInteractionService.ShowActivityFeedback(LogType.Info, $"MCP server started: http://127.0.0.1:{port}/mcp/sse");
+            }
+            catch (Exception ex)
+            {
+                userInteractionService.ShowActivityFeedback(LogType.Error, $"Failed to start MCP server: {ex.Message}");
+                _loggingService?.LogError("Failed to start MCP server", ex);
+                _mcpServerHost = null;
             }
         }
 

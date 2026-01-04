@@ -127,6 +127,36 @@ namespace Contextualizer.PluginContracts
         // Handler state properties
         [JsonPropertyName("enabled")]
         public bool Enabled { get; set; } = true;
+
+        // MCP (Model Context Protocol) properties
+        [JsonPropertyName("mcp_enabled")]
+        public bool McpEnabled { get; set; } = false;
+
+        [JsonPropertyName("mcp_tool_name")]
+        public string? McpToolName { get; set; }
+
+        [JsonPropertyName("mcp_description")]
+        public string? McpDescription { get; set; }
+
+        /// <summary>
+        /// MCP tool input schema (JSON Schema object). If null, MCP server will use a default schema (e.g. { text: string }).
+        /// </summary>
+        [JsonPropertyName("mcp_input_schema")]
+        public JsonElement? McpInputSchema { get; set; }
+
+        /// <summary>
+        /// If provided, MCP server will build ClipboardContent.Text using this template and the tool arguments as context.
+        /// Supports $(key) placeholders and $config: / $file: / $func: processing via HandlerContextProcessor.
+        /// </summary>
+        [JsonPropertyName("mcp_input_template")]
+        public string? McpInputTemplate { get; set; }
+
+        /// <summary>
+        /// If provided, MCP server will return only these keys from the handler execution context.
+        /// If null/empty, MCP server returns { _formatted_output: ... } by default.
+        /// </summary>
+        [JsonPropertyName("mcp_return_keys")]
+        public List<string>? McpReturnKeys { get; set; }
     }
 
 }
