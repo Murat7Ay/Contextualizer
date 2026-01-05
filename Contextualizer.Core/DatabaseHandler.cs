@@ -198,6 +198,18 @@ namespace Contextualizer.Core
         {
             resultSet = new Dictionary<string, string>();
 
+            // Ensure parameters are prepared even when CanHandle is bypassed (e.g., explicit MCP calls).
+            PrepareParametersForExecution(clipboardContent);
+
+            // Validate critical configuration here as well (CreateContext can be reached even when CanHandle=false in MCP mode).
+            if (string.IsNullOrEmpty(HandlerConfig.Query) ||
+                string.IsNullOrEmpty(HandlerConfig.ConnectionString) ||
+                string.IsNullOrEmpty(HandlerConfig.Connector))
+            {
+                var msg = $"Database handler '{HandlerConfig.Name}': Missing required configuration (query/connectionString/connector).";
+                return new Dictionary<string, string> { [ContextKey._error] = msg, [ContextKey._formatted_output] = msg };
+            }
+
             using IDbConnection connection = CreateConnection();
             DynamicParameters dynamicParameters = CreateDynamicParameters();
             
@@ -206,10 +218,27 @@ namespace Contextualizer.Core
                 HandlerConfig.Query, 
                 new Dictionary<string, string>() // Empty context for file/config resolution
             );
+
+            // Safety check (defense-in-depth)
+            if (!IsSafeSqlQuery(resolvedQuery))
+            {
+                var msg = $"Database handler '{HandlerConfig.Name}': Unsafe SQL query blocked.";
+                return new Dictionary<string, string> { [ContextKey._error] = msg, [ContextKey._formatted_output] = msg };
+            }
             
             // Use configurable command timeout, default to 30 seconds instead of 3
             int commandTimeout = HandlerConfig.CommandTimeoutSeconds ?? 30;
-            var queryResults = await connection.QueryAsync(resolvedQuery, dynamicParameters, commandTimeout: commandTimeout);
+            IEnumerable<dynamic> queryResults;
+            try
+            {
+                queryResults = await connection.QueryAsync(resolvedQuery, dynamicParameters, commandTimeout: commandTimeout);
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Database handler '{HandlerConfig.Name}': Query execution failed - {ex.Message}";
+                UserFeedback.ShowError(msg);
+                return new Dictionary<string, string> { [ContextKey._error] = msg, [ContextKey._formatted_output] = msg };
+            }
             int rowCount = queryResults.Count();
 
             if (rowCount == 0)
@@ -240,6 +269,148 @@ namespace Contextualizer.Core
             }
 
             return resultSet;
+        }
+
+        private void PrepareParametersForExecution(ClipboardContent clipboardContent)
+        {
+            // Always reset per execution to avoid leaking values across triggers.
+            parameters.Clear();
+
+            var seed = clipboardContent.SeedContext;
+            var isMcpCall =
+                seed != null &&
+                seed.TryGetValue(ContextKey._trigger, out var t) &&
+                string.Equals(t, "mcp", StringComparison.OrdinalIgnoreCase);
+
+            // 1) Start from clipboard text if available (keeps existing behavior for app triggers).
+            if (clipboardContent.IsText && !string.IsNullOrEmpty(clipboardContent.Text))
+            {
+                string input = clipboardContent.Text;
+                string safeInput = input.Length > MAX_PARAMETER_LENGTH
+                    ? input.Substring(0, MAX_PARAMETER_LENGTH)
+                    : input;
+
+                if (input.Length > MAX_PARAMETER_LENGTH)
+                {
+                    UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Input truncated to {MAX_PARAMETER_LENGTH} characters");
+                }
+
+                parameters["p_input"] = safeInput;
+
+                // Process regex groups if configured and input matches (keeps old behavior).
+                if (_optionalRegex != null)
+                {
+                    try
+                    {
+                        if (_optionalRegex.IsMatch(clipboardContent.Text))
+                        {
+                            var match = _optionalRegex.Match(clipboardContent.Text);
+                            if (match.Success)
+                            {
+                                string matchValue = match.Value;
+                                if (matchValue.Length > MAX_PARAMETER_LENGTH)
+                                {
+                                    matchValue = matchValue.Substring(0, MAX_PARAMETER_LENGTH);
+                                    UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Match value truncated to {MAX_PARAMETER_LENGTH} characters");
+                                }
+                                parameters["p_match"] = matchValue;
+
+                                if (base.HandlerConfig.Groups != null && base.HandlerConfig.Groups.Count > 0)
+                                {
+                                    for (int i = 0; i < base.HandlerConfig.Groups.Count; i++)
+                                    {
+                                        var groupName = base.HandlerConfig.Groups[i];
+                                        string groupValue;
+
+                                        var namedGroup = match.Groups[groupName];
+                                        if (namedGroup.Success)
+                                        {
+                                            groupValue = namedGroup.Value;
+                                        }
+                                        else
+                                        {
+                                            var groupIndex = i + 1;
+                                            groupValue = match.Groups.Count > groupIndex ? match.Groups[groupIndex].Value : string.Empty;
+                                        }
+
+                                        if (groupValue.Length > MAX_PARAMETER_LENGTH)
+                                        {
+                                            groupValue = groupValue.Substring(0, MAX_PARAMETER_LENGTH);
+                                            UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Group '{groupName}' value truncated to {MAX_PARAMETER_LENGTH} characters");
+                                        }
+                                        parameters[groupName] = groupValue;
+                                    }
+                                }
+                                else
+                                {
+                                    int maxGroups = Math.Min(match.Groups.Count - 1, MAX_AUTO_GROUPS);
+                                    for (int i = 1; i <= maxGroups; i++)
+                                    {
+                                        var groupValue = match.Groups[i].Value;
+                                        if (groupValue.Length > MAX_PARAMETER_LENGTH)
+                                        {
+                                            groupValue = groupValue.Substring(0, MAX_PARAMETER_LENGTH);
+                                            UserFeedback.ShowWarning($"DatabaseHandler '{HandlerConfig.Name}': Group {i} value truncated to {MAX_PARAMETER_LENGTH} characters");
+                                        }
+                                        parameters[$"p_group_{i}"] = groupValue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore regex issues here; CanHandle already handles timeouts/invalid patterns.
+                    }
+                }
+            }
+
+            // 2) Overlay programmatic args (MCP): allow direct SQL parameters like oid/tarih/trxid without regex/clipboard.
+            if (seed != null && seed.Count > 0)
+            {
+                foreach (var kvp in seed)
+                {
+                    if (string.IsNullOrWhiteSpace(kvp.Key))
+                        continue;
+
+                    if (kvp.Key.Equals(ContextKey._trigger, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    // Reserve underscore keys for engine/meta; don't treat as SQL params.
+                    if (kvp.Key.StartsWith("_", StringComparison.Ordinal))
+                        continue;
+
+                    var v = kvp.Value ?? string.Empty;
+                    if (v.Length > MAX_PARAMETER_LENGTH)
+                        v = v.Substring(0, MAX_PARAMETER_LENGTH);
+
+                    if (isMcpCall && HandlerConfig.McpSeedOverwrite)
+                    {
+                        parameters[kvp.Key] = v;
+                    }
+                    else if (!parameters.ContainsKey(kvp.Key))
+                    {
+                        parameters[kvp.Key] = v;
+                    }
+                }
+
+                // Ensure p_input exists to keep default markdown output stable.
+                if (!parameters.ContainsKey("p_input"))
+                {
+                    if (seed.TryGetValue("text", out var seedText) && !string.IsNullOrEmpty(seedText))
+                    {
+                        parameters["p_input"] = seedText.Length > MAX_PARAMETER_LENGTH ? seedText.Substring(0, MAX_PARAMETER_LENGTH) : seedText;
+                    }
+                    else
+                    {
+                        parameters["p_input"] = string.Empty;
+                    }
+                }
+            }
+
+            // 3) Final guarantee
+            if (!parameters.ContainsKey("p_input"))
+                parameters["p_input"] = string.Empty;
         }
 
         private DynamicParameters CreateDynamicParameters()

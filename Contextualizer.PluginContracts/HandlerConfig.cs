@@ -157,6 +157,21 @@ namespace Contextualizer.PluginContracts
         /// </summary>
         [JsonPropertyName("mcp_return_keys")]
         public List<string>? McpReturnKeys { get; set; }
+
+        /// <summary>
+        /// If true, MCP tool calls will run in "headless" mode (no interactive dialogs).
+        /// - requires_confirmation: will not show a dialog (execution will be cancelled)
+        /// - user_inputs: will not prompt; values must be provided via MCP arguments (or defaults)
+        /// </summary>
+        [JsonPropertyName("mcp_headless")]
+        public bool McpHeadless { get; set; } = false;
+
+        /// <summary>
+        /// If true, MCP seed context values are allowed to overwrite existing context keys produced by the handler.
+        /// This can be useful when calling regex/group-based handlers but supplying group values directly via MCP.
+        /// </summary>
+        [JsonPropertyName("mcp_seed_overwrite")]
+        public bool McpSeedOverwrite { get; set; } = false;
     }
 
 }

@@ -42,8 +42,24 @@ namespace Contextualizer.Core
             var logger = ServiceLocator.SafeGet<ILoggingService>();
             var stopwatch = Stopwatch.StartNew();
 
+            // Detect MCP calls (programmatic) early from seedContext.
+            // NOTE: contextWrapper isn't created yet, so we infer from the reserved trigger key.
+            var isMcpCall =
+                seedContext != null &&
+                seedContext.TryGetValue(ContextKey._trigger, out var seedTrigger) &&
+                string.Equals(seedTrigger, "mcp", StringComparison.OrdinalIgnoreCase);
+
+            var isHeadlessMcp = isMcpCall && HandlerConfig.McpHeadless;
+
+            // Expose programmatic seed context to handlers/plugins before CanHandle/CreateContext.
+            // (Important for MCP calls where handlers may want to start from args instead of clipboard/regex.)
+            if (seedContext != null && seedContext.Count > 0)
+            {
+                clipboardContent.SeedContext = new Dictionary<string, string>(seedContext, StringComparer.OrdinalIgnoreCase);
+            }
+
             bool canHandle = await CanHandleAsync(clipboardContent);
-            if (!canHandle)
+            if (!canHandle && !isMcpCall)
             {
                 stopwatch.Stop();
                 return new DispatchExecutionResult
@@ -58,6 +74,21 @@ namespace Contextualizer.Core
 
             if (HandlerConfig.RequiresConfirmation)
             {
+                if (isHeadlessMcp)
+                {
+                    stopwatch.Stop();
+                    var msg = $"Handler '{HandlerConfig.Name}' requires confirmation and cannot run in MCP headless mode.";
+                    UserFeedback.ShowWarning(msg);
+                    return new DispatchExecutionResult
+                    {
+                        CanHandle = true,
+                        Processed = false,
+                        Cancelled = true,
+                        Context = null,
+                        FormattedOutput = msg
+                    };
+                }
+
                 bool confirmed = await ServiceLocator.Get<IUserInteractionService>().ShowConfirmationAsync(
                     "Handler Confirmation",
                     $"Do you want to proceed with handler: {HandlerConfig.Name}? {Environment.NewLine}{HandlerConfig.Description}");
@@ -99,6 +130,11 @@ namespace Contextualizer.Core
                     {
                         contextWrapper[ContextKey._trigger] = kvp.Value ?? string.Empty;
                     }
+                    else if (isMcpCall && HandlerConfig.McpSeedOverwrite)
+                    {
+                        // Allow MCP calls to overwrite handler-generated keys when explicitly enabled.
+                        contextWrapper[kvp.Key] = kvp.Value ?? string.Empty;
+                    }
                     else if (!contextWrapper.ContainsKey(kvp.Key))
                     {
                         contextWrapper[kvp.Key] = kvp.Value ?? string.Empty;
@@ -109,20 +145,75 @@ namespace Contextualizer.Core
             FindSelectorKey(clipboardContent, contextWrapper);
 
             HandlerContextProcessor handlerContextProcessor = new HandlerContextProcessor();
-            bool isUserCompleted = handlerContextProcessor.PromptUserInputsWithNavigation(HandlerConfig.UserInputs, contextWrapper);
-
-            if (!isUserCompleted)
+            if (isHeadlessMcp)
             {
-                stopwatch.Stop();
-                UserFeedback.ShowWarning($"Handler {HandlerConfig.Name} cancelled by user input");
-                return new DispatchExecutionResult
+                // Headless MCP mode: do not prompt. Use provided seed values and/or defaults, and fail fast if required inputs are missing.
+                var missingRequiredKeys = new List<string>();
+                if (HandlerConfig.UserInputs != null && HandlerConfig.UserInputs.Count > 0)
                 {
-                    CanHandle = true,
-                    Processed = false,
-                    Cancelled = true,
-                    Context = contextWrapper,
-                    FormattedOutput = contextWrapper.TryGetValue(ContextKey._formatted_output, out var fo) ? fo : null
-                };
+                    foreach (var input in HandlerConfig.UserInputs)
+                    {
+                        if (input == null || string.IsNullOrWhiteSpace(input.Key))
+                            continue;
+
+                        var key = input.Key;
+                        if (contextWrapper.TryGetValue(key, out var existing) && !string.IsNullOrWhiteSpace(existing))
+                            continue;
+
+                        // Apply default if available (supports $(key)/$config:/$file:/$func:).
+                        if (!string.IsNullOrWhiteSpace(input.DefaultValue))
+                        {
+                            var defaultValue = HandlerContextProcessor.ReplaceDynamicValues(input.DefaultValue, contextWrapper);
+                            if (!string.IsNullOrWhiteSpace(defaultValue))
+                            {
+                                contextWrapper[key] = defaultValue;
+                            }
+                        }
+
+                        if (input.IsRequired)
+                        {
+                            if (!contextWrapper.TryGetValue(key, out var v) || string.IsNullOrWhiteSpace(v))
+                            {
+                                missingRequiredKeys.Add(key);
+                            }
+                        }
+                    }
+                }
+
+                if (missingRequiredKeys.Count > 0)
+                {
+                    stopwatch.Stop();
+                    var msg = $"Handler '{HandlerConfig.Name}' is missing required inputs for MCP headless execution: {string.Join(", ", missingRequiredKeys)}";
+                    UserFeedback.ShowWarning(msg);
+                    contextWrapper[ContextKey._error] = msg;
+                    contextWrapper[ContextKey._formatted_output] = msg;
+                    return new DispatchExecutionResult
+                    {
+                        CanHandle = true,
+                        Processed = false,
+                        Cancelled = true,
+                        Context = contextWrapper,
+                        FormattedOutput = msg
+                    };
+                }
+            }
+            else
+            {
+                bool isUserCompleted = handlerContextProcessor.PromptUserInputsWithNavigation(HandlerConfig.UserInputs, contextWrapper);
+
+                if (!isUserCompleted)
+                {
+                    stopwatch.Stop();
+                    UserFeedback.ShowWarning($"Handler {HandlerConfig.Name} cancelled by user input");
+                    return new DispatchExecutionResult
+                    {
+                        CanHandle = true,
+                        Processed = false,
+                        Cancelled = true,
+                        Context = contextWrapper,
+                        FormattedOutput = contextWrapper.TryGetValue(ContextKey._formatted_output, out var fo) ? fo : null
+                    };
+                }
             }
 
             handlerContextProcessor.ContextResolve(HandlerConfig.ConstantSeeder, HandlerConfig.Seeder, contextWrapper);

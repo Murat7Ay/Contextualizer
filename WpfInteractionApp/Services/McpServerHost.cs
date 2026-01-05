@@ -324,7 +324,7 @@ namespace WpfInteractionApp.Services
                     !string.IsNullOrWhiteSpace(cfg.Title) ? cfg.Title :
                     $"{cfg.Type} handler";
 
-                var schema = cfg.McpInputSchema ?? DefaultTextSchema();
+                var schema = cfg.McpInputSchema ?? DefaultSchemaForHandler(cfg);
 
                 tools.Add(new McpTool
                 {
@@ -406,10 +406,35 @@ namespace WpfInteractionApp.Services
 
             // Convert arguments into string dictionary for template expansion + optional seed context
             var argsDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            string[]? filesArg = null;
             if (callParams.Arguments.HasValue && callParams.Arguments.Value.ValueKind == JsonValueKind.Object)
             {
                 foreach (var prop in callParams.Arguments.Value.EnumerateObject())
                 {
+                    if (prop.NameEquals("files") && prop.Value.ValueKind == JsonValueKind.Array)
+                    {
+                        var list = new List<string>();
+                        foreach (var item in prop.Value.EnumerateArray())
+                        {
+                            if (item.ValueKind == JsonValueKind.String)
+                            {
+                                var s = item.GetString();
+                                if (!string.IsNullOrWhiteSpace(s))
+                                    list.Add(s);
+                            }
+                            else
+                            {
+                                var s = item.ToString();
+                                if (!string.IsNullOrWhiteSpace(s))
+                                    list.Add(s);
+                            }
+                        }
+                        filesArg = list.Count > 0 ? list.ToArray() : null;
+                        // Also keep a stringified form in argsDict for completeness/debugging
+                        argsDict[prop.Name] = prop.Value.ToString();
+                        continue;
+                    }
+
                     argsDict[prop.Name] = prop.Value.ValueKind == JsonValueKind.String ? prop.Value.GetString() ?? string.Empty : prop.Value.ToString();
                 }
             }
@@ -417,12 +442,27 @@ namespace WpfInteractionApp.Services
             // Build input text
             var inputText = BuildInputText(matchedConfig, argsDict);
 
-            var clipboard = new ClipboardContent
+            ClipboardContent clipboard;
+            if (filesArg != null && filesArg.Length > 0)
             {
-                Success = true,
-                IsText = true,
-                Text = inputText
-            };
+                clipboard = new ClipboardContent
+                {
+                    Success = true,
+                    IsFile = true,
+                    Files = filesArg,
+                    IsText = false,
+                    Text = string.Empty
+                };
+            }
+            else
+            {
+                clipboard = new ClipboardContent
+                {
+                    Success = true,
+                    IsText = true,
+                    Text = inputText
+                };
+            }
 
             // Create a fresh handler instance per call to avoid cross-trigger concurrency issues
             var handler = Contextualizer.Core.HandlerFactory.Create(matchedConfig);
@@ -460,6 +500,33 @@ namespace WpfInteractionApp.Services
                 };
 
                 var execResult = await dispatch.ExecuteWithResultAsync(clipboard, seedContext: seedContext);
+
+                if (!execResult.Processed)
+                {
+                    var message =
+                        (execResult.Context != null && execResult.Context.TryGetValue(ContextKey._error, out var err) && !string.IsNullOrWhiteSpace(err))
+                            ? err
+                            : execResult.FormattedOutput ?? "Handler did not process input.";
+
+                    var errorPayload = new Dictionary<string, object?>
+                    {
+                        ["error"] = message,
+                        ["can_handle"] = execResult.CanHandle,
+                        ["cancelled"] = execResult.Cancelled,
+                        ["formatted_output"] = execResult.FormattedOutput ?? string.Empty
+                    };
+
+                    var errorText = JsonSerializer.Serialize(errorPayload, _jsonOptions);
+                    return new JsonRpcResponse
+                    {
+                        Id = request.Id,
+                        Result = new McpToolsCallResult
+                        {
+                            Content = new List<McpContentItem> { new McpContentItem { Type = "text", Text = errorText } },
+                            IsError = true
+                        }
+                    };
+                }
 
                 var payload = BuildReturnPayload(matchedConfig, execResult);
                 var text = JsonSerializer.Serialize(payload, _jsonOptions);
@@ -766,8 +833,90 @@ namespace WpfInteractionApp.Services
             if (argsDict.TryGetValue("text", out var text))
                 return text;
 
-            // If no template and no text arg, fall back to JSON string of args
+            // Headless MCP mode: avoid injecting arguments into clipboard text unless explicitly provided.
+            if (config.McpHeadless)
+                return string.Empty;
+
+            // If no template and no text arg, fall back to JSON string of args (interactive mode / debugging convenience)
             return JsonSerializer.Serialize(argsDict);
+        }
+
+        private static JsonElement DefaultSchemaForHandler(HandlerConfig cfg)
+        {
+            if (string.Equals(cfg.Type, FileHandler.TypeName, StringComparison.OrdinalIgnoreCase))
+            {
+                return FilesSchema();
+            }
+
+            if (cfg.UserInputs != null && cfg.UserInputs.Count > 0)
+            {
+                return UserInputsSchema(cfg.UserInputs);
+            }
+
+            return DefaultTextSchema();
+        }
+
+        private static JsonElement FilesSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {
+                "files": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "required": ["files"]
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement UserInputsSchema(List<UserInputRequest> userInputs)
+        {
+            var properties = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            var required = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var input in userInputs)
+            {
+                if (input == null || string.IsNullOrWhiteSpace(input.Key))
+                    continue;
+
+                var prop = new Dictionary<string, object?>
+                {
+                    ["type"] = "string"
+                };
+
+                if (!string.IsNullOrWhiteSpace(input.Title))
+                    prop["title"] = input.Title;
+
+                if (!string.IsNullOrWhiteSpace(input.Message))
+                    prop["description"] = input.Message;
+
+                if (!string.IsNullOrWhiteSpace(input.DefaultValue))
+                    prop["default"] = input.DefaultValue;
+
+                properties[input.Key] = prop;
+
+                if (input.IsRequired)
+                    required.Add(input.Key);
+            }
+
+            var schemaObj = new Dictionary<string, object?>
+            {
+                ["type"] = "object",
+                ["properties"] = properties,
+                ["additionalProperties"] = new Dictionary<string, object?> { ["type"] = "string" }
+            };
+
+            if (required.Count > 0)
+                schemaObj["required"] = required.ToArray();
+
+            var json = JsonSerializer.Serialize(schemaObj);
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.Clone();
         }
 
         private static JsonElement DefaultTextSchema()

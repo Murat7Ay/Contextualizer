@@ -145,6 +145,34 @@ namespace Contextualizer.Core
             var context = new Dictionary<string, string>();
             context[ContextKey._input] = clipboardContent.Text;
 
+            // If called programmatically (e.g., MCP), merge seed arguments into context BEFORE any template replacement.
+            // This allows URL/body placeholders like $(oid) to work without relying on clipboard/regex/groups.
+            var seed = clipboardContent.SeedContext;
+            if (seed != null && seed.Count > 0)
+            {
+                var isMcpCall =
+                    seed.TryGetValue(ContextKey._trigger, out var t) &&
+                    string.Equals(t, "mcp", StringComparison.OrdinalIgnoreCase);
+
+                foreach (var kvp in seed)
+                {
+                    if (string.IsNullOrWhiteSpace(kvp.Key))
+                        continue;
+
+                    if (kvp.Key.Equals(ContextKey._trigger, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (isMcpCall && HandlerConfig.McpSeedOverwrite)
+                    {
+                        context[kvp.Key] = kvp.Value ?? string.Empty;
+                    }
+                    else if (!context.ContainsKey(kvp.Key))
+                    {
+                        context[kvp.Key] = kvp.Value ?? string.Empty;
+                    }
+                }
+            }
+
             // Process regex groups if configured
             if (_optionalRegex != null)
             {

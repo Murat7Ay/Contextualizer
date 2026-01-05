@@ -14,6 +14,13 @@ namespace Contextualizer.PluginContracts
         public string Text { get; set; }
         public string[] Files { get; set; }
 
+        /// <summary>
+        /// Optional programmatic seed context (e.g., MCP tool arguments).
+        /// This is NOT the final handler execution context; it is an input/argument bag intended to be available
+        /// to handlers/validators/providers before they build their own context.
+        /// </summary>
+        public Dictionary<string, string>? SeedContext { get; set; }
+
         public ClipboardContent()
         {
             Files = new string[0];

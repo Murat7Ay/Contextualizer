@@ -36,6 +36,13 @@ Handlers can define their tool input using:
 - `mcp_input_schema`: JSON Schema object shown to the MCP client
 - `mcp_input_template`: builds the internal input string from tool arguments using `$(key)` placeholders (same engine as handler templates, supports `$config:` / `$file:` / `$func:`)
 
+Notes:
+- Tool call **arguments are always seeded into the execution context** (as strings), so actions/seeders/output formats can use them via `$(key)` even if you don’t use `mcp_input_template`.
+- `mcp_input_template` only affects the internal `ClipboardContent.Text` passed into handlers (useful for existing regex/database logic).
+- If `mcp_input_schema` is omitted and the handler has `user_inputs`, Contextualizer will expose a default MCP schema derived from those `user_inputs` keys.
+- MCP calls are treated as **explicit handler invocations** (`_trigger = "mcp"`): the handler pipeline will run even if `CanHandle` would normally return false for the current clipboard content.
+- MCP tool arguments are also attached to the input as `ClipboardContent.SeedContext`, so built-in handlers can start from args (e.g. DB params / API placeholders) without forcing a regex/groups clipboard format.
+
 Example (LLM sends structured JSON; Contextualizer builds the tab-delimited input for existing regex/database logic):
 
 ```json
@@ -70,7 +77,11 @@ Tool calls run through the existing handler pipeline. That means:
 - `user_inputs` dialogs may appear
 - actions like `show_window` / `copytoclipboard` can run
 
-If you want “headless” MCP execution later, we can add a per-handler MCP mode flag.
+If you want “headless” MCP execution (no interactive dialogs), set:
+- `mcp_headless: true`
+  - `requires_confirmation`: will not show a dialog (execution is cancelled)
+  - `user_inputs`: will not prompt; required keys must be provided via tool arguments (or defaults)
+- (optional) `mcp_seed_overwrite: true` to allow MCP arguments to overwrite handler-generated context keys.
 
 ### Built-in MCP UI tools (for background agents)
 These tools are always available (they do not depend on `handlers.json`):
