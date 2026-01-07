@@ -2,6 +2,7 @@
 <Window x:Class="WpfInteractionApp.HandlerManagementWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="Handler Management" Height="600" Width="900"
         Style="{DynamicResource Carbon.Window}"
         WindowStartupLocation="CenterOwner">
@@ -26,9 +27,12 @@
         <!-- Header -->
         <Border Grid.Row="0" Style="{DynamicResource Carbon.Card}" Margin="0,0,0,16" Padding="16">
             <StackPanel>
-                <TextBlock Text="⚙️ Handler Management" 
-                          FontSize="24" FontWeight="Bold" 
-                          Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="Settings24" FontSize="22" Margin="0,0,10,0"/>
+                    <TextBlock Text="Handler Management" 
+                               FontSize="24" FontWeight="Bold" 
+                               Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                </StackPanel>
                 <TextBlock Text="Enable or disable handlers to control which ones process clipboard content" 
                           FontSize="13" Opacity="0.7" Margin="0,4,0,0"/>
             </StackPanel>

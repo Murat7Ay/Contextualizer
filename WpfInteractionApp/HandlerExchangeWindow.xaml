@@ -266,18 +266,18 @@
                                 
                                 <!-- Action Buttons -->
                                 <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" MinWidth="120">
-                                    <Button Content="📋 Details" Style="{DynamicResource Carbon.Button.Secondary}" 
+                                    <Button Content="Details" Style="{DynamicResource Carbon.Button.Secondary}" 
                                            Margin="0,0,0,8" HorizontalAlignment="Stretch" Click="Details_Click"/>
                                     
-                                    <Button Content="⬇️ Install" Style="{DynamicResource Carbon.Button.Primary}"
+                                    <Button Content="Install" Style="{DynamicResource Carbon.Button.Primary}"
                                            Visibility="{Binding IsInstalled, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                                            Margin="0,0,0,8" HorizontalAlignment="Stretch" Click="Install_Click"/>
                                     
-                                    <Button Content="🔄 Update" Style="{DynamicResource Carbon.Button.Warning}"
+                                    <Button Content="Update" Style="{DynamicResource Carbon.Button.Warning}"
                                            Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}"
                                            Margin="0,0,0,8" HorizontalAlignment="Stretch" Click="Update_Click"/>
                                     
-                                    <Button Content="🗑️ Remove" Style="{DynamicResource Carbon.Button.Danger}"
+                                    <Button Content="Remove" Style="{DynamicResource Carbon.Button.Danger}"
                                            Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibilityConverter}}"
                                            HorizontalAlignment="Stretch" Click="Remove_Click"/>
                                 </StackPanel>

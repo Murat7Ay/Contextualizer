@@ -48,6 +48,10 @@ namespace WpfInteractionApp
                 _loggingService.SetConfiguration(loggingConfig);
                 ServiceLocator.Register<ILoggingService>(_loggingService);
 
+                // UI activity log (consumed by LogViewerPage + snackbar)
+                var activityLogService = new ActivityLogService();
+                ServiceLocator.Register<ActivityLogService>(activityLogService);
+
                 // Log application startup
                 using (_loggingService.BeginScope("ApplicationStartup", new Dictionary<string, object>
                 {
@@ -61,13 +65,6 @@ namespace WpfInteractionApp
 
                 // Initialize and apply the saved theme from AppSettings
                 ThemeManager.Instance.ApplyTheme(_settingsService.Settings.UISettings.Theme);
-
-                // Load the base styles
-                Resources.MergedDictionaries.Add(new ResourceDictionary 
-                { 
-                    Source = new Uri("/WpfInteractionApp;component/Themes/CarbonStyles.xaml", UriKind.Relative) 
-                });
-
 
                 // Initialize main window
                 _mainWindow = new MainWindow();

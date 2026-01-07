@@ -63,6 +63,7 @@
     <PackageReference Include="Markdig" Version="0.37.0" />
     <PackageReference Include="MdXaml" Version="1.27.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
+    <PackageReference Include="WPF-UI" Version="4.1.0" />
   </ItemGroup>
   
   <ItemGroup>

@@ -7,6 +7,11 @@ using System.Windows.Markup;
 using System.Linq;
 using System.Diagnostics;
 using Contextualizer.Core;
+using Wpf.Ui.Appearance;
+using Wpf.Ui.Controls;
+using MessageBox = System.Windows.MessageBox;
+using MessageBoxButton = System.Windows.MessageBoxButton;
+using MessageBoxImage = System.Windows.MessageBoxImage;
 
 namespace WpfInteractionApp.Services
 {
@@ -71,6 +76,25 @@ namespace WpfInteractionApp.Services
                 if (!_themeResources.ContainsKey(themeName))
                 {
                     throw new ArgumentException($"Theme '{themeName}' not found.");
+                }
+
+                // Keep WPF UI (Fluent) theme in sync with our theme setting.
+                // Note: WPF UI supports Light/Dark; we map Dim -> Dark.
+                try
+                {
+                    var uiTheme = themeName.Equals("Light", StringComparison.OrdinalIgnoreCase)
+                        ? ApplicationTheme.Light
+                        : ApplicationTheme.Dark;
+
+                    ApplicationThemeManager.Apply(
+                        uiTheme,
+                        WindowBackdropType.Mica,
+                        updateAccent: true
+                    );
+                }
+                catch (Exception wpfUiEx)
+                {
+                    Debug.WriteLine($"WPF UI theme apply failed: {wpfUiEx}");
                 }
 
                 var app = Application.Current;

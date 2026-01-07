@@ -1,0 +1,111 @@
+<Page x:Class="WpfInteractionApp.Pages.LogViewerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:converters="clr-namespace:WpfInteractionApp.Converters"
+      mc:Ignorable="d"
+      Title="Activity Log">
+
+    <Page.Resources>
+        <converters:LogTypeToColorConverter x:Key="LogTypeToColorConverter" />
+    </Page.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="170" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="SearchBox"
+                     Grid.Column="0"
+                     Height="34"
+                     Margin="0,0,12,0"
+                     Padding="10,6"
+                     VerticalContentAlignment="Center"
+                     Background="{DynamicResource ControlFillColorDefaultBrush}"
+                     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                     BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                     TextChanged="SearchBox_TextChanged"
+                     ToolTip="Search logs..." />
+
+            <ComboBox x:Name="LevelFilter"
+                      Grid.Column="1"
+                      Height="34"
+                      Margin="0,0,12,0"
+                      VerticalContentAlignment="Center"
+                      SelectionChanged="LevelFilter_SelectionChanged">
+                <ComboBoxItem Content="All" IsSelected="True" />
+                <ComboBoxItem Content="Success" />
+                <ComboBoxItem Content="Error" />
+                <ComboBoxItem Content="Warning" />
+                <ComboBoxItem Content="Info" />
+                <ComboBoxItem Content="Debug" />
+                <ComboBoxItem Content="Critical" />
+            </ComboBox>
+
+            <ui:Button Grid.Column="2" Click="Clear_Click">
+                <ui:Button.Icon>
+                    <ui:SymbolIcon Symbol="Delete24" />
+                </ui:Button.Icon>
+                Clear
+            </ui:Button>
+        </Grid>
+
+        <ListBox x:Name="LogList"
+                 Grid.Row="1"
+                 Background="{DynamicResource ControlFillColorDefaultBrush}"
+                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                 BorderThickness="1"
+                 Padding="10"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding Timestamp, StringFormat=HH:mm:ss}"
+                                   FontFamily="Consolas"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Margin="0,0,10,0"
+                                   VerticalAlignment="Center" />
+
+                        <Border Grid.Column="1"
+                                Background="{Binding Type, Converter={StaticResource LogTypeToColorConverter}}"
+                                CornerRadius="10"
+                                Padding="8,2"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Type}"
+                                       Foreground="White"
+                                       FontSize="12"
+                                       FontWeight="SemiBold" />
+                        </Border>
+
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding Message}"
+                                   TextWrapping="NoWrap"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Page>
+
+
