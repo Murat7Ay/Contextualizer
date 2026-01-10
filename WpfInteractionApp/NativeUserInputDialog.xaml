@@ -1,0 +1,239 @@
+<Window x:Class="WpfInteractionApp.NativeUserInputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}" 
+        Height="Auto" 
+        Width="480"
+        MinWidth="400"
+        MaxWidth="600"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize"
+        Topmost="True"
+        ShowInTaskbar="True">
+    
+    <Window.Resources>
+        <Style x:Key="DialogTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DialogPasswordBox" TargetType="PasswordBox">
+            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style x:Key="DialogComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style x:Key="DialogButton.Primary" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DialogButton.Secondary" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{DynamicResource Carbon.Brush.Background.Primary}"
+            BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
+            BorderThickness="1"
+            CornerRadius="12">
+        <Border.Effect>
+            <DropShadowEffect ShadowDepth="8" Direction="270" Color="#40000000" BlurRadius="24" Opacity="0.3"/>
+        </Border.Effect>
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource Carbon.Brush.Background.Secondary}" 
+                    CornerRadius="12,12,0,0" Padding="24,20" MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock x:Name="TitleText" FontWeight="Bold" FontSize="18"
+                                  Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        <TextBlock x:Name="MessageText" TextWrapping="Wrap" Margin="0,8,0,0"
+                                  FontSize="14" Opacity="0.8"
+                                  Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                    </StackPanel>
+                    
+                    <!-- Progress Indicator -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                               x:Name="ProgressPanel" Visibility="Collapsed">
+                        <TextBlock x:Name="CurrentStepText" FontWeight="Bold" FontSize="14"
+                                  Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        <TextBlock Text=" / " Opacity="0.6" FontSize="14"
+                                  Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        <TextBlock x:Name="TotalStepsText" Opacity="0.6" FontSize="14"
+                                  Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        <Border Background="{DynamicResource Carbon.Brush.Background.Tertiary}" 
+                               Width="60" Height="6" CornerRadius="3" Margin="12,0,0,0">
+                            <Border x:Name="ProgressBar" 
+                                   Background="{DynamicResource Carbon.Brush.Interactive.Primary}" 
+                                   Height="6" CornerRadius="3" HorizontalAlignment="Left"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Content -->
+            <Grid Grid.Row="1" Margin="24,20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Required Indicator -->
+                <TextBlock Grid.Row="0" x:Name="RequiredIndicator" Text="* Required field"
+                          Foreground="#EF4444" FontSize="12" Margin="0,0,0,8" Visibility="Collapsed"/>
+
+                <!-- Validation Feedback -->
+                <Border Grid.Row="1" x:Name="ValidationBorder" Background="#FEF2F2" 
+                        BorderBrush="#EF4444" BorderThickness="1" 
+                        CornerRadius="6" Padding="12" Margin="0,0,0,12" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚠️" Foreground="#EF4444" Margin="0,0,8,0" FontSize="16"/>
+                        <StackPanel>
+                            <TextBlock x:Name="ValidationErrorText" Foreground="#EF4444" 
+                                      TextWrapping="Wrap" FontWeight="SemiBold" FontSize="14"/>
+                            <TextBlock x:Name="ValidationPatternText" TextWrapping="Wrap" 
+                                      Foreground="#EF4444" FontSize="12" Margin="0,4,0,0" Opacity="0.8"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Input Controls -->
+                <Grid Grid.Row="2">
+                    <TextBox x:Name="InputTextBox" Style="{StaticResource DialogTextBox}"
+                            VerticalScrollBarVisibility="Auto" AcceptsReturn="False"/>
+                    
+                    <PasswordBox x:Name="PasswordBox" Style="{StaticResource DialogPasswordBox}"
+                                Visibility="Collapsed"/>
+                    
+                    <ComboBox x:Name="SelectionComboBox" Style="{StaticResource DialogComboBox}"
+                             Visibility="Collapsed"/>
+
+                    <ListBox x:Name="MultiSelectListBox" SelectionMode="Multiple"
+                            Background="{DynamicResource Carbon.Brush.Background.Secondary}"
+                            BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
+                            Visibility="Collapsed" MaxHeight="200"/>
+
+                    <Grid x:Name="FilePickerGrid" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="FilePathTextBox" Grid.Column="0" 
+                                Style="{StaticResource DialogTextBox}" IsReadOnly="True"/>
+                        <Button x:Name="BrowseButton" Grid.Column="1" Content="Browse"
+                               Style="{StaticResource DialogButton.Secondary}"
+                               Click="BrowseButton_Click" Margin="8,0,0,0"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <!-- Footer -->
+            <Border Grid.Row="2" Background="{DynamicResource Carbon.Brush.Background.Secondary}"
+                    CornerRadius="0,0,12,12" Padding="24,16">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="BackButton" Content="Back"
+                           Style="{StaticResource DialogButton.Secondary}"
+                           Click="BackButton_Click" Margin="0,0,8,0" Visibility="Collapsed"/>
+                    <Button Content="Cancel" Style="{StaticResource DialogButton.Secondary}"
+                           Click="CancelButton_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="OkButton" Content="OK" Style="{StaticResource DialogButton.Primary}"
+                           Click="OkButton_Click" IsDefault="True"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
+

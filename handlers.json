@@ -5,12 +5,56 @@
       "type": "lookup",
       "screen_id": "markdown2",
       "title": "Kurum Bilgileri",
+      "actions": [
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_formatted_output"
+        },
+        {
+          "name": "copytoclipboard",
+          "requires_confirmation": false,
+          "key": "oid",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "operator": "equals",
+                "field": "_selector_key",
+                "value": "drivercode"
+              }
+            ]
+          }
+        },
+        {
+          "name": "copytoclipboard",
+          "requires_confirmation": false,
+          "key": "drivercode",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "operator": "equals",
+                "field": "_selector_key",
+                "value": "oid"
+              }
+            ]
+          }
+        }
+      ],
       "path": "C:\\Finder\\corp_data.txt",
       "delimiter": "||",
       "key_names": [
         "drivercode",
         "oid"
       ],
+      "value_names": [
+        "drivercode",
+        "oid",
+        "name",
+        "engine"
+      ],
+      "output_format": "$file:C:\\Finder\\output_template\\markdown_capabilities.txt",
       "user_inputs": [
         {
           "key": "platform",
@@ -18,6 +62,7 @@
           "message": "Please select your target platform:",
           "is_required": true,
           "is_selection_list": true,
+          "is_password": false,
           "selection_items": [
             {
               "value": "windows",
@@ -32,99 +77,549 @@
               "display": "macOS"
             }
           ],
+          "is_multi_select": false,
+          "is_file_picker": false,
+          "is_multi_line": false,
           "default_value": "windows"
         },
         {
           "key": "api_key",
           "title": "API Key",
           "message": "Enter your API key:",
+          "validation_regex": "^[A-Za-z0-9-_]{3}$",
           "is_required": true,
+          "is_selection_list": false,
           "is_password": true,
-          "validation_regex": "^[A-Za-z0-9-_]{32}$"
+          "is_multi_select": false,
+          "is_file_picker": false,
+          "is_multi_line": false,
+          "default_value": ""
         },
         {
           "key": "email",
           "title": "Email Address",
           "message": "Enter your email address:",
-          "is_required": true,
           "validation_regex": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+          "is_required": true,
+          "is_selection_list": false,
+          "is_password": false,
+          "is_multi_select": false,
+          "is_file_picker": false,
+          "is_multi_line": false,
           "default_value": "user@example.com"
         }
       ],
-      "value_names": [
-        "drivercode",
-        "oid",
-        "name",
-        "engine",
-        "platform"
-      ],
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": false,
+      "mcp_enabled": true
+    },
+    {
+      "name": "Json formatter wpf",
+      "type": "custom",
+      "screen_id": "jsonformatter",
+      "validator": "jsonvalidator",
+      "context_provider": "jsonvalidator",
+      "title": "JSON Formatter",
       "actions": [
         {
-          "name": "simple_print_key",
-          "key": "_formatted_output"
-        },
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_input"
+        }
+      ],
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Xml formatter wpf",
+      "type": "custom",
+      "screen_id": "xmlformatter",
+      "validator": "xmlvalidator",
+      "context_provider": "xmlvalidator",
+      "title": "XML Formatter",
+      "actions": [
         {
-          "name": "copytoclipboard",
-          "key": "oid",
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_input"
+        }
+      ],
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Customer Lookup",
+      "type": "lookup",
+      "screen_id": "markdown2",
+      "title": "Müşteri Bilgileri",
+      "actions": [
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_formatted_output"
+        }
+      ],
+      "path": "C:\\Finder\\customer_data.txt",
+      "delimiter": "||",
+      "key_names": [
+        "customer_id",
+        "email"
+      ],
+      "value_names": [
+        "customer_id",
+        "name",
+        "email",
+        "phone"
+      ],
+      "seeder": {
+        "path": "C:\\$(customer_id).txt",
+        "user_input": "hello world",
+        "api_url": "https://api.example.com",
+        "delegate_cust_id": "T67526",
+        "customer_id_cloned": "$(customer_id)",
+        "env_t": "$(env)",
+        "url_param": "$func:base64encode($(name))",
+        "url_param_encode": "$func:url.encode($(url_param))",
+        "real_url": "www.google.com/p=$(url_param_encode)&env=$(env_t)",
+        "encoded_pipeline": "$func:{{ $(pipeline) | string.trim | string.upper }}"
+      },
+      "constant_seeder": {
+        "pipeline": "        hello|world     ",
+        "env": "1",
+        "input_text": "  Hello World  ",
+        "dirty_text": "  Some Dirty Text With Spaces  ",
+        "full_name": "  Murat AY  ",
+        "sentence": "The quick brown fox jumps over the lazy dog",
+        "camel_case": "thisIsCamelCase",
+        "lower_text": "this is lower text",
+        "text_input": "word1 word2 word3",
+        "base_url": "https://api.example.com",
+        "search_base": "https://search.example.com",
+        "user_id": "12345",
+        "search_term": "hello world",
+        "full_url": "https://www.example.com/path/to/resource",
+        "file_url": "https://cdn.example.com/files/document.pdf",
+        "url_input": "  HTTPS://WWW.EXAMPLE.COM/PATH  ",
+        "user_json": "{\"user\":{\"profile\":{\"name\":\"john doe\",\"email\":\"john@example.com\"}}}",
+        "data_json": "{\"message\":\"profile ..%%\"}",
+        "items_json": "{\"items\":[{\"name\":\"item1\"},{\"name\":\"item2\"}]}",
+        "collection_json": "{\"data\":[1,2,3,4,5]}",
+        "api_response": "{\"result\":{\"user\":{\"email\":\"  USER@EXAMPLE.COM  \"}}}",
+        "nested_json": "{\"users\":[{\"profile\":{\"settings\":{\"theme\":\"DARK MODE\"}}}]",
+        "number1": "15",
+        "decimal_number": "3.14159",
+        "base_number": "10",
+        "zero_value": "0",
+        "array_json": "[\"first\",\"second\",\"third\"]",
+        "items_array": "[\"item1\",\"item2\",\"item3\"]",
+        "tags_array": "[\"tag_web\",\"tag_api\",\"tag_json\"]",
+        "small_array": "[\"a\",\"b\"]",
+        "api_endpoint": "https://httpbin.org/json",
+        "base_api": "https://api.github.com",
+        "password": "  MySecretPassword  ",
+        "sensitive_data": "confidential information",
+        "input_data": "user input data",
+        "user_input": "  User Input With Spaces  ",
+        "raw_token": "abc-def-ghi-jkl",
+        "file_path": "C:\\\\Users\\\\Documents\\\\MyFile.txt",
+        "file_name": "document.PDF",
+        "raw_filename": "My File Name İçerik.txt",
+        "raw_username": "  Murat AY  ",
+        "email_input": "  USER@EXAMPLE.COM  ",
+        "phone_number": "(555) 123-4567",
+        "unix_timestamp": "1640995200",
+        "invalid_json": "{\"invalid\": json}",
+        "maybe_null": ""
+      },
+      "user_inputs": [],
+      "file_extensions": [
+        ".jpg",
+        ".png",
+        ".gif"
+      ],
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": true,
+      "bring_window_to_front": true,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Strategy Query",
+      "description": "[NorthPole].[Strategy].[Parameter] tablosundan [Name] kolonundan bilgileri getirir.",
+      "type": "database",
+      "screen_id": "markdown2",
+      "title": "Strategy Bilgileri",
+      "regex": "^\\S+$",
+      "connectionString": "Server=localhost\\SQLEXPRESS;Database=$config:database.sql_db;Trusted_Connection=$config:database.trusted_con;TrustServerCertificate=$config:database.trusted_cert;",
+      "query": "SELECT [ParameterId],[Name],[Description],[DefaultValue],[IsArray],[Seperator],[FormatedName] FROM [Strategy].[Parameter] WHERE Name = @p_input",
+      "connector": "mssql",
+      "actions": [
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_formatted_output",
           "conditions": {
             "operator": "and",
             "conditions": [
               {
-                "field": "_selector_key",
-                "operator": "equals",
-                "value": "drivercode"
-              }
+                "operator": "greater_than",
+                "field": "_count",
+                "value": "0"
+              },
+	      { "operator": "not_equals", "field": "_trigger", "value": "mcp" }
             ]
           }
+        }
+      ],
+      "output_format": "$file:C:\\Finder\\output_template\\single_row.txt",
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": true,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": true,
+      "mcp_tool_name": "strategy_query",
+      "mcp_description": "Strategy Parameter bilgisini Name ile getirir.",
+      "mcp_input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
         },
+        "required": [
+          "name"
+        ]
+      },
+      "mcp_input_template": "$(name)",
+      "mcp_return_keys": [
+        "_formatted_output"
+      ]
+    },
+    {
+      "name": "Strategy Query1",
+      "description": "[NorthPole].[Strategy].[Parameter] tablosundan [Name] kolonundan bilgileri getirir.",
+      "type": "database",
+      "screen_id": "markdown2",
+      "title": "Strategy Bilgileri1",
+      "regex": "^\\S+$",
+      "connectionString": "Server=localhost\\SQLEXPRESS;Database=$config:database.sql_db;Trusted_Connection=$config:database.trusted_con;TrustServerCertificate=$config:database.trusted_cert;",
+      "query": "SELECT [ParameterId],[Name],[Description],[DefaultValue],[IsArray],[Seperator],[FormatedName] FROM [Strategy].[Parameter] WHERE Name = @p_input",
+      "connector": "mssql",
+      "actions": [
         {
-          "name": "copytoclipboard",
-          "key": "drivercode",
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_formatted_output",
           "conditions": {
             "operator": "and",
             "conditions": [
               {
-                "field": "_selector_key",
-                "operator": "equals",
-                "value": "oid"
+                "operator": "greater_than",
+                "field": "_count",
+                "value": "0"
               }
             ]
           }
         }
       ],
-      "output_format": "$file:C:\\Finder\\output_template\\markdown_capabilities.txt"
+      "output_format": "$file:C:\\Finder\\output_template\\single_row.txt",
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": false,
+      "mcp_enabled": false
     },
     {
-      "name": "GitHub User Info",
-      "title": "Github User Info",
-      "type": "Api",
-      "screen_id": "jsonformatter",
-      "description": "GitHub kullanıcı bilgilerini getirir",
+      "name": "Strategy Query2",
+      "description": "[NorthPole].[Strategy].[Parameter] tablosundan [Name] kolonundan bilgileri getirir.",
+      "type": "database",
+      "screen_id": "markdown2",
+      "title": "Strategy Bilgileri2",
+      "regex": "^\\S+$",
+      "connectionString": "Server=localhost\\SQLEXPRESS;Database=$config:database.sql_db;Trusted_Connection=$config:database.trusted_con;TrustServerCertificate=$config:database.trusted_cert;",
+      "query": "SELECT [ParameterId],[Name],[Description],[DefaultValue],[IsArray],[Seperator],[FormatedName] FROM [Strategy].[Parameter] WHERE Name = @p_input",
+      "connector": "mssql",
+      "actions": [
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_formatted_output",
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {
+                "operator": "greater_than",
+                "field": "_count",
+                "value": "0"
+              }
+            ]
+          }
+        }
+      ],
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": true,
+      "bring_window_to_front": true,
+      "enabled": false,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Open File",
+      "type": "file",
+      "actions": [
+        {
+          "name": "open_file",
+          "requires_confirmation": false
+        },
+        {
+          "name": "print_details",
+          "requires_confirmation": false
+        }
+      ],
+      "file_extensions": [
+        ".html",
+        ".css"
+      ],
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "LGX Detail Query",
+      "type": "regex",
+      "regex": "(\\d+)\\t(\\d+)\\t(\\d{8})",
+      "groups": [
+        "oid",
+        "trxid",
+        "processdate"
+      ],
+      "actions": [
+        {
+          "name": "print_details",
+          "requires_confirmation": false
+        }
+      ],
+      "output_format": "Select * from lgx.log_dtl where OID = $(oid) and trxid=$(trxid) and processdate = $(processdate)",
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Hello",
+      "type": "regex",
+      "screen_id": "markdown2",
+      "title": "First handler",
+      "regex": "\\b\\w{3,}\\b",
+      "actions": [
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_formatted_output"
+        }
+      ],
+      "output_format": "\uD83D\uDC4B Hello $(_match)<br>Welcome!!",
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": true,
+      "bring_window_to_front": true,
+      "enabled": false,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Özel DB Handler",
+      "type": "custom",
+      "connectionString": "Server=localhost\\SQLEXPRESS;Database=123;Connection Timeout=30;Trusted_Connection=True;",
+      "query": "SELECT * FROM 123.dbo.Users",
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Stack Trace Analysis",
+      "type": "regex",
+      "regex": "at (\\S+)\\((\\S+\\.java):(\\d+)\\)",
+      "groups": [
+        "class_name",
+        "file_name",
+        "line_number"
+      ],
+      "actions": [
+        {
+          "name": "print_details",
+          "requires_confirmation": false
+        }
+      ],
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Transaction Viewer - IBTools",
+      "type": "regex",
+      "screen_id": "url_viewer",
+      "title": "Transaction Viewer - IBTools",
+      "regex": "^\\d{16}$",
+      "groups": [
+        "trxid"
+      ],
+      "actions": [
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "url"
+        }
+      ],
+      "seeder": {
+        "environmentId": "1",
+        "shared_webview_profile": "D:\\Contextualizer\\sharedviewprofile",
+        "url": "https://ibtools-opensol-dev-smggeneric.apps.ocptstinf01.finansbank.com.tr/transactionview?trxid=$(trxid)&environmentId=$(environmentId)"
+      },
       "requires_confirmation": true,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Merhaba",
+      "type": "regex",
+      "screen_id": "markdown2",
+      "title": "İlk Handler",
+      "regex": "\\b\\w{3,}\\b",
+      "actions": [
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_formatted_output"
+        }
+      ],
+      "output_format": "\uD83D\uDC4B Merhaba $func:{{$(_match) | string.upper}}<br>Hoş geldiniz!!",
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": true,
+      "bring_window_to_front": true,
+      "enabled": false,
+      "mcp_enabled": false
+    },
+    {
+      "name": "GitHub User Info Sentetik",
+      "description": "GitHub kullanıcı bilgilerini getirir",
+      "type": "Synthetic",
+      "screen_id": "jsonformatter",
+      "title": "Github User Info",
       "regex": "^[a-zA-Z0-9-]+$",
       "groups": [
         "username"
       ],
+      "actions": [
+        {
+          "name": "copytoclipboard",
+          "requires_confirmation": false,
+          "key": "_self"
+        },
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "RawResponse"
+        }
+      ],
+      "output_format": "GitHub User: $(name)\nBio: ${bio}\nFollowers: $(followers)\nFollowing: $(following)",
+      "requires_confirmation": true,
       "url": "https://api.github.com/users/$(username)",
       "method": "GET",
       "headers": {
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "Contextualizer"
       },
-      "output_format": "GitHub User: $(name)\nBio: ${bio}\nFollowers: $(followers)\nFollowing: $(following)",
-      "mcp_enabled": true,
-      "mcp_tool_name": "github_user_info",
+      "actual_type": "api",
+      "synthetic_input": {
+        "key": "drivercode",
+        "title": "Kullanıcı adi gir",
+        "message": "Kullanıcı Adı:",
+        "is_required": true,
+        "is_selection_list": false,
+        "is_password": false,
+        "is_multi_select": false,
+        "is_file_picker": false,
+        "is_multi_line": false,
+        "default_value": ""
+      },
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "API Health Monitor",
+      "description": "Fetches API data every minute",
+      "type": "cron",
+      "screen_id": "jsonformatter",
+      "title": "1 Minute API Monitor",
       "actions": [
         {
-          "name": "copytoclipboard",
-          "key": "_self"
-        },
-        {
-          "name": "simple_print_key",
-          "key": "RawResponse",
-          "message": "GitHub user $(name) bilgileri kopyalandı"
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "RawResponse"
         }
-      ]
+      ],
+      "output_format": "API Response at $(execution_time): $(slideshow.title)",
+      "requires_confirmation": false,
+      "url": "$config:endpoints.cron_example_url",
+      "method": "GET",
+      "headers": {
+        "Accept": "application/json",
+        "User-Agent": "Contextualizer-Monitor"
+      },
+      "actual_type": "api",
+      "cron_job_id": "api_health_1min",
+      "cron_expression": "0 0/1 * * * ? *",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": false,
+      "mcp_enabled": false
     },
     {
       "name": "PL SQL Deneme",
@@ -133,13 +628,44 @@
       "title": "PL SQL Editor",
       "actions": [
         {
-          "name": "simple_print_key",
+          "name": "show_window",
+          "requires_confirmation": false,
           "key": "query"
         }
       ],
       "seeder": {
         "query": "SELECT * FROM DUAL;"
-      }
+      },
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
+    },
+    {
+      "name": "Documentation",
+      "type": "manual",
+      "screen_id": "url_viewer",
+      "title": "Documentation",
+      "actions": [
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "url"
+        }
+      ],
+      "constant_seeder": {
+        "url": "file:///C:/Users/murat/source/repos/Contextualizer/docs/index.html"
+      },
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
     },
     {
       "name": "Branch Viewer",
@@ -148,10 +674,15 @@
       "title": "Branch Viewer Enpara",
       "actions": [
         {
-          "name": "simple_print_key",
+          "name": "show_window",
+          "requires_confirmation": false,
           "key": "url"
         }
       ],
+      "seeder": {
+        "shared_webview_profile": "C:\\Finder\\sharedviewprofile",
+        "url": "http://github.com/murat7Ay/"
+      },
       "user_inputs": [
         {
           "key": "organizationName",
@@ -159,6 +690,7 @@
           "message": "Please select Organization:",
           "is_required": true,
           "is_selection_list": true,
+          "is_password": false,
           "selection_items": [
             {
               "value": "CoreFinans",
@@ -169,6 +701,9 @@
               "display": "Enpara"
             }
           ],
+          "is_multi_select": false,
+          "is_file_picker": false,
+          "is_multi_line": false,
           "default_value": "CoreFinans"
         },
         {
@@ -177,6 +712,11 @@
           "message": "Please select project name:",
           "is_required": true,
           "is_selection_list": true,
+          "is_password": false,
+          "is_multi_select": false,
+          "is_file_picker": false,
+          "is_multi_line": false,
+          "default_value": "",
           "dependent_key": "organizationName",
           "dependent_selection_item_map": {
             "Enpara": {
@@ -208,10 +748,13 @@
           }
         }
       ],
-      "seeder": {
-        "shared_webview_profile": "C:\\Finder\\sharedviewprofile",
-        "url": "http://github.com/murat7Ay/"
-      }
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
     },
     {
       "name": "StandartType2 DBS Projesi oluştur",
@@ -220,7 +763,8 @@
       "title": "DBS Projesi",
       "actions": [
         {
-          "name": "simple_print_key",
+          "name": "show_window",
+          "requires_confirmation": false,
           "key": "_self"
         }
       ],
@@ -229,13 +773,25 @@
           "key": "drivercode",
           "title": "Kurum kodunu gir",
           "message": "Kurum kodu:",
-          "is_required": true
+          "is_required": true,
+          "is_selection_list": false,
+          "is_password": false,
+          "is_multi_select": false,
+          "is_file_picker": false,
+          "is_multi_line": true,
+          "default_value": ""
         },
         {
           "key": "packagename",
           "title": "Paket ismini gir",
           "message": "Paket ismi:",
-          "is_required": true
+          "is_required": true,
+          "is_selection_list": false,
+          "is_password": false,
+          "is_multi_select": false,
+          "is_file_picker": false,
+          "is_multi_line": false,
+          "default_value": ""
         },
         {
           "key": "platform_multi_select",
@@ -243,7 +799,7 @@
           "message": "Please select your target platform:",
           "is_required": true,
           "is_selection_list": true,
-          "is_multi_select": true,
+          "is_password": false,
           "selection_items": [
             {
               "value": "windows",
@@ -258,25 +814,48 @@
               "display": "macOS"
             }
           ],
+          "is_multi_select": true,
+          "is_file_picker": false,
+          "is_multi_line": false,
           "default_value": "windows,linux"
         },
         {
           "key": "filepath",
           "title": "Paket ismini gir",
           "message": "Paket ismi:",
+          "is_required": true,
+          "is_selection_list": false,
+          "is_password": false,
+          "is_multi_select": false,
           "is_file_picker": true,
-          "is_required": true
+          "is_multi_line": false,
+          "default_value": ""
         }
-      ]
+      ],
+      "requires_confirmation": false,
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
     },
     {
       "name": "Core tarihini değiştir",
       "type": "manual",
       "screen_id": "markdown2",
       "title": "Core Tarihi Değiştir",
+      "connectionString": "Server=localhost\\SQLEXPRESS;Database=NorthPole;Trusted_Connection=True;TrustServerCertificate=True;",
+      "query": "SELECT [ParameterId],[Name],[Description],[DefaultValue],[IsArray],[Seperator],[FormatedName] FROM [Strategy].[Parameter] WHERE Name = 'TIER'",
+      "connector": "mssql",
       "actions": [
         {
-          "name": "simple_print_key",
+          "name": "db_context_enricher",
+          "requires_confirmation": false
+        },
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
           "key": "_self"
         }
       ],
@@ -285,221 +864,47 @@
           "key": "date",
           "title": "Sistem Tarihini Gir",
           "message": "Tarih:",
-          "is_required": true
-        }
-      ]
-    },
-    {
-      "name": "Json formatter wpf",
-      "type": "custom",
-      "context_provider": "jsonvalidator",
-      "validator": "jsonvalidator",
-      "screen_id": "jsonformatter",
-      "title": "JSON Formatter",
-      "actions": [
-        {
-          "name": "simple_print_key",
-          "key": "_input"
-        }
-      ]
-    },
-    {
-      "name": "Xml formatter wpf",
-      "type": "custom",
-      "context_provider": "xmlvalidator",
-      "screen_id": "xmlformatter",
-      "validator": "xmlvalidator",
-      "title": "XML Formatter",
-      "actions": [
-        {
-          "name": "simple_print_key",
-          "key": "_input"
-        }
-      ]
-    },
-    {
-      "name": "Customer Lookup",
-      "type": "lookup",
-      "screen_id": "markdown2",
-      "title": "Müşteri Bilgileri",
-      "path": "C:\\Finder\\customer_data.txt",
-      "delimiter": "||",
-      "key_names": [
-        "customer_id",
-        "email"
-      ],
-      "value_names": [
-        "customer_id",
-        "name",
-        "email",
-        "phone"
-      ],
-      "actions": [
-        {
-          "name": "simple_print_key",
-          "key": "_self",
-          "conditions": {
-            "operator": "and",
-            "conditions": [
-              {
-                "field": "email",
-                "operator": "contains",
-                "value": "@gmail.com"
-              }
-            ]
-          }
-        },
-        {
-          "name": "print_context_json",
-          "requires_confirmation": true
-        },
-        {
-          "name": "simple_print_key",
-          "key": "email"
+          "is_required": true,
+          "is_selection_list": false,
+          "is_password": false,
+          "is_multi_select": false,
+          "is_file_picker": false,
+          "is_multi_line": false,
+          "default_value": ""
         }
       ],
-      "seeder": {
-        "path": "C:\\$(customer_id).txt",
-        "delegate_cust_id": "T67526",
-        "customer_id_cloned": "$(customer_id)"
-      },
-      "user_inputs": [
-        {
-          "key": "year_of_entry",
-          "title": "Müşteri Numarası Girişi",
-          "message": "Lütfen müşteri numarasını girin:",
-          "is_required": false,
-          "validation_regex": "^\\d{4}$"
-        }
-      ],
-      "output_format": "Müşteri Bilgileri \n No: $(customer_id) \n Adı: $(name) \n E-posta: $(email) \n Telefon: $(phone) \n Yönetim: $(delegate_cust_id) \n Yıl: $(year_of_entry)",
-      "file_extensions": [
-        ".jpg",
-        ".png",
-        ".gif"
-      ]
-    },
-    {
-      "name": "Stack Trace Analysis",
-      "type": "regex",
-      "regex": "at (\\S+)\\((\\S+\\.java):(\\d+)\\)",
-      "groups": [
-        "class_name",
-        "file_name",
-        "line_number"
-      ],
-      "actions": [
-        {
-          "name": "print_details"
-        }
-      ]
-    },
-    {
-      "name": "Strategy Query",
       "requires_confirmation": false,
-      "screen_id": "markdown2",
-      "regex": "^\\S+$",
-      "title": "Strategy Bilgileri",
-      "description": "[NorthPole].[Strategy].[Parameter] tablosundan [Name] kolonundan bilgileri getirir.",
-      "type": "database",
-      "connectionString": "Server=localhost\\SQLEXPRESS;Database=NorthPole;Trusted_Connection=True;TrustServerCertificate=True;",
-      "connector": "mssql",
-      "query": "SELECT [ParameterId],[Name],[Description],[DefaultValue],[IsArray],[Seperator],[FormatedName] FROM [Strategy].[Parameter] WHERE Name LIKE '%' + @_input + '%'",
-      "mcp_enabled": true,
-      "mcp_tool_name": "strategy_query",
-      "actions": [
-        {
-          "name": "simple_print_key",
-          "key": "_formatted_output"
-        }
-      ]
+      "url": "",
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": true,
+      "mcp_enabled": false
     },
     {
-      "name": "Open File",
-      "type": "file",
-      "actions": [
-        {
-          "name": "open_file"
-        },
-        {
-          "name": "print_details"
-        }
-      ],
-      "file_extensions": [
-        ".html",
-        ".css"
-      ]
-    },
-    {
-      "name": "LGX Detail Query",
-      "type": "regex",
-      "regex": "(\\d+)\\t(\\d+)\\t(\\d{8})",
-      "groups": [
-        "oid",
-        "trxid",
-        "processdate"
-      ],
-      "actions": [
-        {
-          "name": "print_details"
-        }
-      ],
-      "output_format": "Select * from lgx.log_dtl where OID = $(oid) and trxid=$(trxid) and processdate = $(processdate)"
-    },
-    {
-      "name": "Project Documentation",
-      "type": "manual",
-      "screen_id": "markdown2",
-      "title": "📚 Contextualizer Kılavuzu",
-      "description": "Contextualizer projesi için kapsamlı kullanım kılavuzu",
-      "actions": [
-        {
-          "name": "simple_print_key",
-          "key": "_self"
-        }
-      ],
-      "seeder": {
-        "_self": "project_guide_content"
-      },
-      "output_format": "$file:contextualizer_project_guide.md"
-    },
-    {
-      "name": "Plugin Development Guide", 
-      "type": "manual",
-      "screen_id": "markdown2",
-      "title": "🔧 Plugin Geliştirme Kılavuzu",
-      "description": "Contextualizer için plugin ve handler geliştirme rehberi",
-      "actions": [
-        {
-          "name": "simple_print_key", 
-          "key": "_self"
-        }
-      ],
-      "seeder": {
-        "_self": "plugin_development_content"
-      },
-      "output_format": "$file:plugin_development_guide.md"
-    },
-    {
-      "name": "Test Synthetic Handler",
+      "name": "Synthetic Strategy Query",
       "type": "synthetic",
-      "screen_id": "test_synthetic",
-      "title": "🧪 Test Synthetic",
-      "description": "Test synthetic handler with user input",
-      "reference_handler": "Project Documentation",
+      "title": "Interactive Strategy Query",
+      "requires_confirmation": false,
+      "url": "",
+      "reference_handler": "Strategy Query",
       "synthetic_input": {
-        "title": "Test Input",
-        "description": "Enter test value",
-        "type": "text",
-        "default_value": "Hello from Synthetic!"
+        "key": "drivercode",
+        "title": "Kurum kodunu gir",
+        "message": "Kurum kodu:",
+        "is_required": true,
+        "is_selection_list": false,
+        "is_password": false,
+        "is_multi_select": false,
+        "is_file_picker": false,
+        "is_multi_line": true,
+        "default_value": ""
       },
-      "actions": [
-        {
-          "name": "simple_print_key",
-          "key": "_self"
-        }
-      ],
-      "output_format": "Synthetic test: $(_self)"
+      "cron_enabled": true,
+      "auto_focus_tab": false,
+      "bring_window_to_front": false,
+      "enabled": false,
+      "mcp_enabled": false
     }
   ]
 }

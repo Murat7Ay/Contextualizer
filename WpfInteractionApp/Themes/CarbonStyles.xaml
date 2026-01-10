@@ -372,32 +372,6 @@
         </Style.Triggers>
     </Style>
 
-    <!-- Dim Theme Button Styles -->
-    <Style x:Key="Carbon.Button.Dim" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Base}">
-        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
-        <Setter Property="Foreground" Value="#FFFFFF" />
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Active}" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-    <Style x:Key="Carbon.Button.Dim.Secondary" TargetType="Button" BasedOn="{StaticResource Carbon.Button.Dim}">
-        <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Secondary}" />
-        <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Interactive.Primary}" />
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Active}" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
     <!-- ListBox Styles -->
     <Style x:Key="Carbon.ListBox" TargetType="ListBox">
         <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}" />

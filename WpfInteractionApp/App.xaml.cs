@@ -14,7 +14,7 @@ namespace WpfInteractionApp
     public partial class App : Application
     {
         private HandlerManager? _handlerManager;
-        private MainWindow? _mainWindow;
+        private ReactShellWindow? _mainWindow;
         private SettingsService? _settingsService;
         private CronScheduler? _cronScheduler;
         private ILoggingService? _loggingService;
@@ -60,7 +60,10 @@ namespace WpfInteractionApp
                 }
 
                 // Initialize and apply the saved theme from AppSettings
-                ThemeManager.Instance.ApplyTheme(_settingsService.Settings.UISettings.Theme);
+                var savedTheme = _settingsService.Settings.UISettings.Theme;
+                Debug.WriteLine($"App.OnStartup: Loading theme from settings: {savedTheme}");
+                ThemeManager.Instance.ApplyTheme(savedTheme);
+                Debug.WriteLine($"App.OnStartup: ThemeManager.CurrentTheme after ApplyTheme: {ThemeManager.Instance.CurrentTheme}");
 
                 // Load the base styles
                 Resources.MergedDictionaries.Add(new ResourceDictionary 
@@ -70,15 +73,27 @@ namespace WpfInteractionApp
 
 
                 // Initialize main window
-                _mainWindow = new MainWindow();
+                _mainWindow = new ReactShellWindow();
                 MainWindow = _mainWindow;
 
-                // Create WpfUserInteractionService
-                var userInteractionService = new WpfUserInteractionService(_mainWindow);
-                ServiceLocator.Register<IUserInteractionService>(userInteractionService);
+                // Create user interaction services (WebView and Native)
+                var webViewService = new WebViewUserInteractionService(_mainWindow);
+                var nativeService = new NativeUserInteractionService(_mainWindow);
+                
+                // Register both services - WebView as primary, Native as fallback/direct access
+                ServiceLocator.Register<WebViewUserInteractionService>(webViewService);
+                ServiceLocator.Register<NativeUserInteractionService>(nativeService);
+                ServiceLocator.Register<IUserInteractionService>(webViewService); // Default to WebView
+                
+                // Create unified service that can switch between modes
+                var userInteractionService = new UserInteractionServiceRouter(webViewService, nativeService);
+                ServiceLocator.Register<UserInteractionServiceRouter>(userInteractionService);
 
                 // Initialize network update service
-                var networkUpdateService = new Services.NetworkUpdateService(_settingsService, _settingsService.Settings.UISettings.NetworkUpdateSettings.NetworkUpdatePath);
+                var networkUpdateService = new Services.NetworkUpdateService(
+                    _settingsService,
+                    _settingsService.Settings.UISettings.NetworkUpdateSettings.NetworkUpdatePath,
+                    userInteractionService);
                 ServiceLocator.Register<Services.NetworkUpdateService>(networkUpdateService);
                 
                 // Check for network updates after UI is loaded (async, non-blocking)
@@ -102,9 +117,6 @@ namespace WpfInteractionApp
                     _settingsService
                 );
 
-                // Initialize HandlerManager in MainWindow
-                _mainWindow.InitializeHandlerManager(_handlerManager);
-                
                 // Show the window after everything is initialized
                 _mainWindow.Show();
 
@@ -129,10 +141,18 @@ namespace WpfInteractionApp
                 }
                 catch
                 {
-                    // If logging fails, continue with showing the message box
+                    // ignore
                 }
 
-                MessageBox.Show($"Error during startup: {ex.Message}\n\nDetails: {ex}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                try
+                {
+                    var ui = ServiceLocator.SafeGet<IUserInteractionService>();
+                    ui?.ShowNotification($"Startup error: {ex.Message}", LogType.Error, "Startup", durationInSeconds: 15, onActionClicked: null);
+                    ui?.ShowActivityFeedback(LogType.Error, $"Startup error: {ex}");
+                }
+                catch { /* ignore */ }
+
+                Debug.WriteLine($"Startup error: {ex}");
                 Shutdown();
             }
         }
@@ -343,29 +363,90 @@ namespace WpfInteractionApp
         private async Task ShowNetworkUpdateNotificationAsync(Services.NetworkUpdateInfo updateInfo, 
             Services.NetworkUpdateService updateService, SettingsService settingsService)
         {
-            await Dispatcher.InvokeAsync(() =>
+            // NOTE: No WPF screens. All prompts/notifications are shown by the React UI via WebView2.
+            var ui = ServiceLocator.SafeGet<IUserInteractionService>();
+            if (ui == null)
+                return;
+
+            // Check if user has skipped this version before (only for non-mandatory)
+            if (!updateInfo.IsMandatory)
             {
-                // Check if user has skipped this version before (only for non-mandatory)
+                var skippedVersion = GetSkippedVersion();
+                if (skippedVersion == updateInfo.LatestVersion)
+                    return; // User chose to skip this version
+            }
+
+            ui.ShowNotification(
+                $"Update available: {updateInfo.LatestVersion} (current: {updateInfo.CurrentVersion})",
+                LogType.Info,
+                "Update",
+                durationInSeconds: 8,
+                onActionClicked: null);
+
+            string message =
+                $"A new version of Contextualizer is available.\n\n" +
+                $"Current: {updateInfo.CurrentVersion}\n" +
+                $"Latest: {updateInfo.LatestVersion}\n" +
+                $"Release date: {updateInfo.ReleaseDate:yyyy-MM-dd}\n" +
+                $"Size: {Math.Round(updateInfo.FileSize / 1024d / 1024d, 2)} MB\n\n" +
+                (updateInfo.IsMandatory ? "This update is mandatory.\n\n" : string.Empty) +
+                "Install now?";
+
+            bool confirmed;
+            do
+            {
+                confirmed = await ui.ShowConfirmationAsync("Update Available", message);
+                if (!confirmed && updateInfo.IsMandatory)
+                {
+                    ui.ShowNotification(
+                        "This update is mandatory. Installation is required to continue.",
+                        LogType.Warning,
+                        "Mandatory Update",
+                        durationInSeconds: 10,
+                        onActionClicked: null);
+                }
+            } while (!confirmed && updateInfo.IsMandatory);
+
+            if (!confirmed)
+            {
+                // Schedule reminder for next startup
                 if (!updateInfo.IsMandatory)
                 {
-                    var skippedVersion = GetSkippedVersion();
-                    if (skippedVersion == updateInfo.LatestVersion)
-                        return; // User chose to skip this version
-                }
-
-                var updateWindow = new NetworkUpdateWindow(updateInfo, updateService)
-                {
-                    Owner = _mainWindow
-                };
-
-                var result = updateWindow.ShowDialog();
-                
-                if (updateWindow.Result == NetworkUpdateResult.RemindLater && !updateInfo.IsMandatory)
-                {
-                    // Schedule reminder for next startup
                     SaveLastUpdateCheck(DateTime.Now);
                 }
+                return;
+            }
+
+            // Install with progress reporting to the React activity log (throttled).
+            int lastReported = -1;
+            var progress = new Progress<Services.CopyProgress>(p =>
+            {
+                try
+                {
+                    var percent = p.ProgressPercentage;
+                    if (percent < 0) percent = 0;
+                    if (percent > 100) percent = 100;
+
+                    // Log every 5% and always at 100%.
+                    if (percent == 100 || lastReported == -1 || percent - lastReported >= 5)
+                    {
+                        lastReported = percent;
+                        ui.ShowActivityFeedback(LogType.Info, $"Copying update from network... {percent}%");
+                    }
+                }
+                catch { /* ignore */ }
             });
+
+            var success = await updateService.InstallNetworkUpdateAsync(updateInfo, progress);
+            if (!success)
+            {
+                ui.ShowNotification(
+                    "Failed to install the network update. Please check network connectivity and file permissions.",
+                    LogType.Error,
+                    "Update Failed",
+                    durationInSeconds: 10,
+                    onActionClicked: null);
+            }
         }
 
 

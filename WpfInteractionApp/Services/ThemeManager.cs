@@ -7,6 +7,7 @@ using System.Windows.Markup;
 using System.Linq;
 using System.Diagnostics;
 using Contextualizer.Core;
+using Contextualizer.PluginContracts;
 
 namespace WpfInteractionApp.Services
 {
@@ -15,7 +16,7 @@ namespace WpfInteractionApp.Services
         private static ThemeManager _instance;
         private readonly Dictionary<string, ResourceDictionary> _themeResources;
         private string _currentTheme;
-        private const string DefaultTheme = "Light";
+        private const string DefaultTheme = "Dark";
 
         public static ThemeManager Instance => _instance ??= new ThemeManager();
 
@@ -46,27 +47,43 @@ namespace WpfInteractionApp.Services
                 };
                 _themeResources["Dark"] = darkColors;
 
-                // Load Dim theme resources
-                var dimColors = new ResourceDictionary
-                {
-                    Source = new Uri("/WpfInteractionApp;component/Themes/DimCarbonColors.xaml", UriKind.Relative)
-                };
-                _themeResources["Dim"] = dimColors;
-
                 Debug.WriteLine("Theme resources loaded successfully");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error loading theme resources: {ex}");
-                MessageBox.Show($"Error loading theme resources: {ex.Message}", "Theme Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                try
+                {
+                    ServiceLocator.SafeGet<IUserInteractionService>()?.ShowNotification(
+                        $"Theme resources failed to load: {ex.Message}",
+                        LogType.Error,
+                        "Theme",
+                        durationInSeconds: 10,
+                        onActionClicked: null);
+                }
+                catch { /* ignore */ }
             }
         }
 
         public void ApplyTheme(string themeName)
         {
+            ApplyThemeInternal(themeName, saveToSettings: true);
+        }
+
+        /// <summary>
+        /// Apply theme visually without saving to settings.
+        /// Used for previewing theme changes in the UI before the user commits with Save.
+        /// </summary>
+        public void PreviewTheme(string themeName)
+        {
+            ApplyThemeInternal(themeName, saveToSettings: false);
+        }
+
+        private void ApplyThemeInternal(string themeName, bool saveToSettings)
+        {
             try
             {
-                Debug.WriteLine($"Applying theme: {themeName}");
+                Debug.WriteLine($"Applying theme: {themeName} (saveToSettings={saveToSettings})");
                 
                 if (!_themeResources.ContainsKey(themeName))
                 {
@@ -82,8 +99,7 @@ namespace WpfInteractionApp.Services
                         if (d.Source == null) return false;
                         var sourceString = d.Source.ToString();
                         return sourceString.Contains("CarbonColors.xaml", StringComparison.OrdinalIgnoreCase) ||
-                               sourceString.Contains("LightCarbonColors.xaml", StringComparison.OrdinalIgnoreCase) ||
-                               sourceString.Contains("DimCarbonColors.xaml", StringComparison.OrdinalIgnoreCase);
+                               sourceString.Contains("LightCarbonColors.xaml", StringComparison.OrdinalIgnoreCase);
                     });
 
                 if (oldThemeDict != null)
@@ -114,16 +130,19 @@ namespace WpfInteractionApp.Services
                 
                 _currentTheme = themeName;
                 
-                // Save theme preference to AppSettings
-                try
+                // Save theme preference to AppSettings only if requested
+                if (saveToSettings)
                 {
-                    var settingsService = ServiceLocator.Get<SettingsService>();
-                    settingsService.Settings.UISettings.Theme = themeName;
-                    settingsService.SaveSettings();
-                }
-                catch (Exception settingsEx)
-                {
-                    Debug.WriteLine($"Error saving theme preference: {settingsEx}");
+                    try
+                    {
+                        var settingsService = ServiceLocator.Get<SettingsService>();
+                        settingsService.Settings.UISettings.Theme = themeName;
+                        settingsService.SaveSettings();
+                    }
+                    catch (Exception settingsEx)
+                    {
+                        Debug.WriteLine($"Error saving theme preference: {settingsEx}");
+                    }
                 }
 
                 Debug.WriteLine($"Theme changed to: {themeName}");
@@ -132,13 +151,22 @@ namespace WpfInteractionApp.Services
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error applying theme: {ex}");
-                MessageBox.Show($"Error applying theme: {ex.Message}", "Theme Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                try
+                {
+                    ServiceLocator.SafeGet<IUserInteractionService>()?.ShowNotification(
+                        $"Failed to apply theme: {ex.Message}",
+                        LogType.Error,
+                        "Theme",
+                        durationInSeconds: 8,
+                        onActionClicked: null);
+                }
+                catch { /* ignore */ }
             }
         }
 
         public void CycleTheme()
         {
-            var themes = new[] { "Light", "Dark", "Dim" };
+            var themes = new[] { "Light", "Dark" };
             var currentIndex = Array.IndexOf(themes, _currentTheme);
             var nextIndex = (currentIndex + 1) % themes.Length;
             ApplyTheme(themes[nextIndex]);
@@ -146,6 +174,6 @@ namespace WpfInteractionApp.Services
 
         public string CurrentTheme => _currentTheme;
 
-        public bool IsDarkTheme => _currentTheme == "Dark" || _currentTheme == "Dim";
+        public bool IsDarkTheme => _currentTheme == "Dark";
     }
 }

@@ -73,4 +73,28 @@
     <ProjectReference Include="..\Contextualizer.Core\Contextualizer.Core.csproj" />
   </ItemGroup>
 
+  <!-- Copy packaged React UI (Contextualizer.UI/dist) into output Assets\Ui\dist when present.
+       This keeps the app "packaged-only" even for local F5 runs, without requiring manual copying. -->
+  <Target Name="CopyReactUiDistToOutput" AfterTargets="Build" Condition="Exists('..\Contextualizer.UI\dist\index.html')">
+    <ItemGroup>
+      <ReactUiDistFiles Include="..\Contextualizer.UI\dist\**\*.*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(ReactUiDistFiles)"
+      DestinationFiles="@(ReactUiDistFiles->'$(OutDir)Assets\Ui\dist\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyReactUiDistToPublish" AfterTargets="Publish" Condition="Exists('..\Contextualizer.UI\dist\index.html') And Exists('$(PublishDir)')">
+    <ItemGroup>
+      <ReactUiDistFiles Include="..\Contextualizer.UI\dist\**\*.*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(ReactUiDistFiles)"
+      DestinationFiles="@(ReactUiDistFiles->'$(PublishDir)Assets\Ui\dist\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>

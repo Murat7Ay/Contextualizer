@@ -1,0 +1,139 @@
+<Window x:Class="WpfInteractionApp.NativeConfirmationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}" 
+        Height="Auto" 
+        Width="420"
+        MinWidth="350"
+        MaxWidth="550"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize"
+        Topmost="True"
+        ShowInTaskbar="True">
+    
+    <Window.Resources>
+        <Style x:Key="DialogButton.Primary" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Primary}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DialogButton.Secondary" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Interactive.Hover}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{DynamicResource Carbon.Brush.Background.Primary}"
+            BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
+            BorderThickness="1"
+            CornerRadius="12">
+        <Border.Effect>
+            <DropShadowEffect ShadowDepth="8" Direction="270" Color="#40000000" BlurRadius="24" Opacity="0.4"/>
+        </Border.Effect>
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource Carbon.Brush.Background.Secondary}" 
+                    CornerRadius="12,12,0,0" Padding="24,20" MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Icon -->
+                    <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24"
+                            Background="#3B82F620" Margin="0,0,16,0">
+                        <TextBlock Text="❓" FontSize="24" 
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="TitleBlock" FontWeight="Bold" FontSize="18"
+                                  Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                                  TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Content -->
+            <Grid Grid.Row="1" Margin="24,20">
+                <TextBlock x:Name="MessageBlock" 
+                          TextWrapping="Wrap" 
+                          FontSize="14"
+                          LineHeight="22"
+                          Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+            </Grid>
+
+            <!-- Footer -->
+            <Border Grid.Row="2" Background="{DynamicResource Carbon.Brush.Background.Secondary}"
+                    CornerRadius="0,0,12,12" Padding="24,16">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="CancelButton" Content="Cancel" 
+                           Style="{StaticResource DialogButton.Secondary}"
+                           Click="CancelButton_Click" Margin="0,0,12,0"
+                           IsCancel="True"/>
+                    <Button x:Name="OkButton" Content="Yes" 
+                           Style="{StaticResource DialogButton.Primary}"
+                           Click="OkButton_Click"
+                           IsDefault="True"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
+

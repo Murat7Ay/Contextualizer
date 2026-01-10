@@ -29,9 +29,10 @@ namespace Contextualizer.Core
                 try
                 {
                     var logger = ServiceLocator.Get<ILoggingService>();
+                    var types = GetLoadableTypes(assembly);
                     
                     // IAction implementasyonlarını bul
-                    var actionTypes = assembly.GetTypes()
+                    var actionTypes = types
                         .Where(t => typeof(IAction).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
                     foreach (var type in actionTypes)
@@ -54,7 +55,7 @@ namespace Contextualizer.Core
                         }
                     }
 
-                    var validatorTypes = assembly.GetTypes()
+                    var validatorTypes = types
                        .Where(t => typeof(IContextValidator).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
                     foreach (var type in validatorTypes)
@@ -63,7 +64,7 @@ namespace Contextualizer.Core
                         _validators[instance.Name] = instance;
                     }
 
-                    var contextProviderTypes = assembly.GetTypes()
+                    var contextProviderTypes = types
                        .Where(t => typeof(IContextProvider).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
                     foreach (var type in contextProviderTypes)
@@ -77,6 +78,22 @@ namespace Contextualizer.Core
                 {
                     Console.WriteLine($"Assembly yükleme hatası: {assembly.FullName} - {ex.Message}");
                 }
+            }
+        }
+
+        private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+        {
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                return ex.Types.Where(t => t != null)!;
+            }
+            catch
+            {
+                return Array.Empty<Type>();
             }
         }
 

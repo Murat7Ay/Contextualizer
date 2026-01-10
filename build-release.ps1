@@ -12,6 +12,29 @@ Remove-Item -Path ".\publish" -Recurse -Force -ErrorAction SilentlyContinue
 Write-Host "Restoring packages..." -ForegroundColor Yellow
 dotnet restore
 
+# Build React UI (Contextualizer.UI) for packaging into Assets\Ui\dist
+Write-Host "Building React UI..." -ForegroundColor Yellow
+$uiProject = ".\Contextualizer.UI"
+if (Test-Path "$uiProject\package.json") {
+    Push-Location $uiProject
+    try {
+        if (Test-Path ".\package-lock.json") {
+            npm ci
+        } else {
+            npm install
+        }
+        npm run build
+        Write-Host "React UI built successfully" -ForegroundColor Green
+    } catch {
+        Write-Host "Warning: React UI build failed. The app will show a 'UI build not found' screen at startup." -ForegroundColor Yellow
+        Write-Host $_ -ForegroundColor Yellow
+    } finally {
+        Pop-Location
+    }
+} else {
+    Write-Host "Warning: Contextualizer.UI not found at $uiProject" -ForegroundColor Yellow
+}
+
 # Build solution
 Write-Host "Building solution..." -ForegroundColor Yellow
 dotnet build --configuration Release --no-restore
@@ -46,6 +69,27 @@ if (Test-Path $assetsSource) {
     Write-Host "Assets folder copied successfully" -ForegroundColor Green
 } else {
     Write-Host "Warning: Assets folder not found at $assetsSource" -ForegroundColor Yellow
+}
+
+# Copy React UI build output into Assets\Ui\dist (preferred for ReactShellWindow)
+Write-Host "Copying React UI build (dist)..." -ForegroundColor Yellow
+$uiDistSource = ".\Contextualizer.UI\dist"
+$uiDistTarget = "$assetsTarget\Ui\dist"
+if (Test-Path $uiDistSource) {
+    New-Item -ItemType Directory -Path "$assetsTarget\Ui" -Force | Out-Null
+    Remove-Item -Path $uiDistTarget -Recurse -Force -ErrorAction SilentlyContinue
+    Copy-Item -Path $uiDistSource -Destination $uiDistTarget -Recurse -Force
+    Write-Host "React UI copied to $uiDistTarget" -ForegroundColor Green
+
+    # Also copy into the raw publish output folder so running publish\win-x64\WpfInteractionApp.exe works too.
+    $publishAssetsTarget = ".\publish\win-x64\Assets\Ui\dist"
+    New-Item -ItemType Directory -Path ".\publish\win-x64\Assets\Ui" -Force | Out-Null
+    Remove-Item -Path $publishAssetsTarget -Recurse -Force -ErrorAction SilentlyContinue
+    Copy-Item -Path $uiDistSource -Destination $publishAssetsTarget -Recurse -Force
+    Write-Host "React UI also copied to $publishAssetsTarget" -ForegroundColor Green
+} else {
+    Write-Host "Warning: React UI dist folder not found at $uiDistSource" -ForegroundColor Yellow
+    Write-Host "Tip: run 'npm run build' inside Contextualizer.UI to generate dist." -ForegroundColor Yellow
 }
 
 # Note: Application will auto-create Config, Data, and Plugins directories on first run

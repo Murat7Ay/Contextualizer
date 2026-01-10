@@ -50,6 +50,13 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("port")]
         public int Port { get; set; } = 5000;
+
+        /// <summary>
+        /// When true, MCP UI tools (ui_confirm, ui_user_inputs, ui_notify) show native WPF dialogs
+        /// instead of WebView-based prompts. Useful for system-level notifications.
+        /// </summary>
+        [JsonPropertyName("use_native_ui")]
+        public bool UseNativeUi { get; set; } = true;
     }
 
     public class ConfigSystemSettings

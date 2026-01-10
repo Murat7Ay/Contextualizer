@@ -1,10 +1,11 @@
+using Contextualizer.Core;
+using Contextualizer.PluginContracts;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Security.AccessControl;
 using System.Security.Principal;
 
@@ -17,12 +18,14 @@ namespace WpfInteractionApp.Services
         private readonly string _versionInfoFile = "version.json";
         private readonly string _changeLogFile = "changelog.txt";
         private readonly SettingsService _settingsService;
+        private readonly IUserInteractionService? _userInteractionService;
 
-        public NetworkUpdateService(SettingsService settingsService, string networkUpdatePath = @"\\server\share\Contextualizer\Updates")
+        public NetworkUpdateService(SettingsService settingsService, string networkUpdatePath = @"\\server\share\Contextualizer\Updates", IUserInteractionService? userInteractionService = null)
         {
             _settingsService = settingsService;
             _currentVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "1.0.0.0";
             _networkUpdatePath = networkUpdatePath;
+            _userInteractionService = userInteractionService ?? ServiceLocator.SafeGet<IUserInteractionService>();
         }
 
         public async Task<NetworkUpdateInfo?> CheckForUpdatesAsync()
@@ -209,25 +212,22 @@ namespace WpfInteractionApp.Services
                 // Check if network script exists
                 if (!File.Exists(networkScriptPath))
                 {
-                    MessageBox.Show(
-                        $"Network update script not found:\n{networkScriptPath}\n\n" +
-                        "Please contact IT support.",
+                    _userInteractionService?.ShowNotification(
+                        $"Network update script not found: {networkScriptPath}",
+                        LogType.Error,
                         "Update Script Missing",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                        durationInSeconds: 12,
+                        onActionClicked: null);
                     return false;
                 }
 
-                // Show update confirmation
-                var result = MessageBox.Show(
-                    "Network update is ready to install!\n\n" +
-                    "The application will close and restart automatically.\n" +
-                    "Do you want to install the update now?",
-                    "Install Network Update",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+                // Ask confirmation via UI (React) if available; otherwise, default to "no" to avoid surprise installs.
+                var confirmed = _userInteractionService != null &&
+                                await _userInteractionService.ShowConfirmationAsync(
+                                    "Install Network Update",
+                                    "Network update is ready to install.\n\nThe application will close and restart automatically.\n\nInstall the update now?");
 
-                if (result == MessageBoxResult.Yes)
+                if (confirmed)
                 {
                     // Run network update script with parameters
                     Process.Start(new ProcessStartInfo
@@ -238,7 +238,7 @@ namespace WpfInteractionApp.Services
                         Verb = "runas" // Run as administrator if needed
                     });
 
-                    Application.Current.Shutdown();
+                    try { System.Windows.Application.Current.Shutdown(); } catch { /* ignore */ }
                     return true;
                 }
 

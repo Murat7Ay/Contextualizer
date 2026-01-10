@@ -28,6 +28,86 @@ namespace WpfInteractionApp.Services
         };
 
         private WebApplication? _app;
+        
+        /// <summary>
+        /// Gets the appropriate user interaction service based on MCP settings.
+        /// Returns NativeUserInteractionService when use_native_ui is true, otherwise WebViewUserInteractionService.
+        /// </summary>
+        private static IUserInteractionService GetUserInteractionService()
+        {
+            var settings = ServiceLocator.SafeGet<SettingsService>();
+            var useNative = settings?.Settings.McpSettings?.UseNativeUi ?? true;
+
+            if (useNative)
+            {
+                return ServiceLocator.SafeGet<NativeUserInteractionService>() 
+                    ?? ServiceLocator.SafeGet<IUserInteractionService>()
+                    ?? throw new InvalidOperationException("No user interaction service available");
+            }
+
+            return ServiceLocator.SafeGet<WebViewUserInteractionService>() 
+                ?? ServiceLocator.SafeGet<IUserInteractionService>()
+                ?? throw new InvalidOperationException("No user interaction service available");
+        }
+
+        /// <summary>
+        /// Prompts user inputs with navigation using the specified UI service.
+        /// This bypasses HandlerContextProcessor which always uses ServiceLocator.
+        /// </summary>
+        private static bool PromptUserInputsWithNavigation(IUserInteractionService ui, List<UserInputRequest> userInputs, Dictionary<string, string> context)
+        {
+            if (userInputs == null || userInputs.Count == 0)
+                return true;
+
+            int currentIndex = 0;
+
+            while (currentIndex < userInputs.Count)
+            {
+                var input = userInputs[currentIndex];
+
+                if (string.IsNullOrWhiteSpace(input?.Key))
+                {
+                    currentIndex++;
+                    continue;
+                }
+
+                // Handle dependent selection items
+                if (!string.IsNullOrEmpty(input.DependentKey) &&
+                    context.TryGetValue(input.DependentKey, out var dependentValue) &&
+                    input.DependentSelectionItemMap?.TryGetValue(dependentValue, out var dependentSelection) == true)
+                {
+                    input.SelectionItems = dependentSelection.SelectionItems;
+                    input.DefaultValue = dependentSelection.DefaultValue;
+                }
+
+                var result = ui.GetUserInputWithNavigation(input, context, currentIndex > 0, currentIndex, userInputs.Count);
+
+                switch (result.Action)
+                {
+                    case NavigationAction.Next:
+                        if (!string.IsNullOrWhiteSpace(result.Value))
+                        {
+                            context[input.Key] = result.Value;
+                        }
+                        currentIndex++;
+                        break;
+
+                    case NavigationAction.Back:
+                        if (currentIndex > 0)
+                        {
+                            currentIndex--;
+                            context.Remove(input.Key);
+                        }
+                        break;
+
+                    case NavigationAction.Cancel:
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
         private Task? _runTask;
         private CancellationTokenSource? _cts;
 
@@ -281,7 +361,18 @@ namespace WpfInteractionApp.Services
             tools.Add(new McpTool
             {
                 Name = UiUserInputsToolName,
-                Description = "Prompt the user for one or more inputs (wizard). Returns { cancelled: boolean, values: object }.",
+                Description = """
+Prompt user for inputs. Each input in user_inputs array MUST include the appropriate type flag:
+- Text input: just key, title, message
+- Password: add "is_password": true  
+- File picker: add "is_file_picker": true
+- Multi-line: add "is_multi_line": true
+- Dropdown: add "is_selection_list": true and "selection_items": [{"value":"v1","display":"Option 1"}]
+- Multi-select: add "is_multi_select": true with is_selection_list
+
+Example for file picker: {"key":"file","title":"Select","message":"Pick file","is_file_picker":true}
+Returns { cancelled: boolean, values: object }.
+""",
                 InputSchema = UiUserInputsSchema()
             });
 
@@ -579,8 +670,12 @@ namespace WpfInteractionApp.Services
 
         private async Task<JsonRpcResponse> HandleUiConfirmAsync(JsonRpcRequest request, McpToolsCallParams callParams)
         {
-            var ui = ServiceLocator.SafeGet<IUserInteractionService>();
-            if (ui == null)
+            IUserInteractionService ui;
+            try
+            {
+                ui = GetUserInteractionService();
+            }
+            catch
             {
                 return new JsonRpcResponse
                 {
@@ -629,8 +724,12 @@ namespace WpfInteractionApp.Services
 
         private async Task<JsonRpcResponse> HandleUiUserInputsAsync(JsonRpcRequest request, McpToolsCallParams callParams)
         {
-            var ui = ServiceLocator.SafeGet<IUserInteractionService>();
-            if (ui == null)
+            IUserInteractionService ui;
+            try
+            {
+                ui = GetUserInteractionService();
+            }
+            catch
             {
                 return new JsonRpcResponse
                 {
@@ -661,9 +760,8 @@ namespace WpfInteractionApp.Services
 
             var context = args.Context ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            // Use the same navigation prompt logic as handlers
-            var processor = new HandlerContextProcessor();
-            bool completed = processor.PromptUserInputsWithNavigation(args.UserInputs, context);
+            // Use the UI service directly (native or webview based on settings)
+            bool completed = PromptUserInputsWithNavigation(ui, args.UserInputs, context);
 
             var payload = new Dictionary<string, object>
             {
@@ -686,8 +784,12 @@ namespace WpfInteractionApp.Services
 
         private async Task<JsonRpcResponse> HandleUiNotifyAsync(JsonRpcRequest request, McpToolsCallParams callParams)
         {
-            var ui = ServiceLocator.SafeGet<IUserInteractionService>();
-            if (ui == null)
+            IUserInteractionService ui;
+            try
+            {
+                ui = GetUserInteractionService();
+            }
+            catch
             {
                 return new JsonRpcResponse
                 {
@@ -763,7 +865,10 @@ namespace WpfInteractionApp.Services
 
         private async Task<JsonRpcResponse> HandleUiShowMarkdownAsync(JsonRpcRequest request, McpToolsCallParams callParams)
         {
-            var ui = ServiceLocator.SafeGet<IUserInteractionService>();
+            // ui_show_markdown always uses WebView service because it displays content in a React tab
+            var ui = ServiceLocator.SafeGet<WebViewUserInteractionService>() 
+                ?? ServiceLocator.SafeGet<IUserInteractionService>();
+            
             if (ui == null)
             {
                 return new JsonRpcResponse
@@ -956,30 +1061,36 @@ namespace WpfInteractionApp.Services
             {
               "type": "object",
               "properties": {
-                "context": { "type": "object", "additionalProperties": { "type": "string" } },
+                "context": { 
+                  "type": "object", 
+                  "additionalProperties": { "type": "string" },
+                  "description": "Optional initial context values (key-value pairs)"
+                },
                 "user_inputs": {
                   "type": "array",
+                  "description": "Array of input prompts to show to the user sequentially",
                   "items": {
                     "type": "object",
                     "properties": {
-                      "key": { "type": "string" },
-                      "title": { "type": "string" },
-                      "message": { "type": "string" },
-                      "validation_regex": { "type": "string" },
-                      "is_required": { "type": "boolean" },
-                      "is_selection_list": { "type": "boolean" },
-                      "is_password": { "type": "boolean" },
-                      "is_multi_select": { "type": "boolean" },
-                      "is_file_picker": { "type": "boolean" },
-                      "is_multi_line": { "type": "boolean" },
-                      "default_value": { "type": "string" },
+                      "key": { "type": "string", "description": "Unique key to store the user's input" },
+                      "title": { "type": "string", "description": "Dialog title" },
+                      "message": { "type": "string", "description": "Prompt message shown to user" },
+                      "validation_regex": { "type": "string", "description": "Optional regex pattern for input validation" },
+                      "is_required": { "type": "boolean", "description": "If true, user must provide a value (default: true)" },
+                      "is_selection_list": { "type": "boolean", "description": "If true, shows a dropdown. Requires selection_items" },
+                      "is_password": { "type": "boolean", "description": "If true, shows a password input (masked)" },
+                      "is_multi_select": { "type": "boolean", "description": "If true, allows multiple selection. Requires is_selection_list" },
+                      "is_file_picker": { "type": "boolean", "description": "If true, shows a file browser dialog" },
+                      "is_multi_line": { "type": "boolean", "description": "If true, shows a multi-line text area" },
+                      "default_value": { "type": "string", "description": "Default value pre-filled in the input" },
                       "selection_items": {
                         "type": "array",
+                        "description": "Options for dropdown/list. Required when is_selection_list is true",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "value": { "type": "string" },
-                            "display": { "type": "string" }
+                            "value": { "type": "string", "description": "The value stored when selected" },
+                            "display": { "type": "string", "description": "The text shown to the user" }
                           },
                           "required": ["value", "display"]
                         }

@@ -22,13 +22,18 @@ namespace Contextualizer.Core.Actions
         {
             context[ContextKey._body] = context[action.Key];
 
+            var autoFocus = context._handlerConfig.AutoFocusTab;
+            var bringToFront = context._handlerConfig.BringWindowToFront;
+            
+            System.Diagnostics.Debug.WriteLine($"ShowWindow: autoFocus={autoFocus}, bringToFront={bringToFront}, screenId={context._handlerConfig.ScreenId}");
+
             pluginServiceProvider.GetService<IUserInteractionService>().ShowWindow(
                 context._handlerConfig.ScreenId, 
                 context._handlerConfig.Title, 
                 context, 
                 new(), 
-                context._handlerConfig.AutoFocusTab,
-                context._handlerConfig.BringWindowToFront);
+                autoFocus,
+                bringToFront);
             return Task.CompletedTask;
         }
 
