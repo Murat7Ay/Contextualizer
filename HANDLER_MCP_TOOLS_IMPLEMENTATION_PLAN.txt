@@ -1,0 +1,636 @@
+================================================================================
+HANDLER YÖNETİMİ İÇİN MCP TOOL'LARI - IMPLEMENTATION PLAN
+================================================================================
+
+GENEL AMAÇ:
+-----------
+Contextualizer uygulamasına handler ekleme ve güncelleme için MCP tool'ları 
+eklemek. Bu tool'lar sayesinde LLM'ler handlers.json dosyasını doğrudan 
+düzenleyebilir, handler'ları ekleyip güncelleyebilir ve değişiklikleri 
+uygulamaya yansıtabilir.
+
+NOT: DatabaseHandler zaten SELECT dışında sorgu desteklemiyor (IsSafeSqlQuery 
+metodu ile kontrol ediliyor). Bu güvenlik kontrolü mevcut ve korunmalı.
+
+================================================================================
+TOOL 1: handler_add - YENİ HANDLER EKLEME
+================================================================================
+
+AMAÇ:
+-----
+Yeni bir handler eklemek için kullanılır. HandlerConfig JSON'ını alır, 
+validate eder, handlers.json'a ekler ve gerekirse handler'ları reload eder.
+
+MCP TOOL AÇIKLAMASI (ÇOK ÖNEMLİ - LLM'ler için):
+-------------------------------------------------
+"Adds a new handler to the Contextualizer application. The handler 
+configuration must be provided as a complete HandlerConfig JSON object.
+
+Handler types supported:
+- 'database': Requires connectionString, query, connector (mssql/plsql). 
+  Query must start with SELECT (enforced by IsSafeSqlQuery validation).
+  Forbidden keywords: INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, EXEC, 
+  TRUNCATE, MERGE, GRANT, REVOKE, comments (--, /* */), stored procedures 
+  (xp_, sp_), semicolons.
+- 'api': Requires url, method (optional, defaults to GET), headers (optional)
+- 'custom': Requires validator or context_provider (at least one)
+- 'lookup': Requires path (file path), delimiter, key_names (array), 
+  value_names (array)
+- 'regex': Requires regex pattern, groups (optional array)
+- 'file': Requires file_extensions (array of strings like ['.txt', '.json'])
+- 'manual': No required fields, used for manual triggers
+- 'synthetic': Requires reference_handler (name of existing handler) OR 
+  actual_type (handler type name)
+- 'cron': Requires cron_expression, cron_job_id, actual_type
+
+Validation rules:
+- Handler name must be unique (case-insensitive comparison)
+- Handler name cannot be empty or whitespace
+- Handler type must be valid and registered in HandlerFactory
+- Type-specific required fields must be present and non-empty
+- Regex patterns are validated for syntax (5 second timeout protection)
+- SQL queries are validated for safety (SELECT only, no DML, no comments)
+- Connection strings are validated for format (must be non-empty)
+- URLs are validated for format (must be valid URI format)
+- Actions conditions are validated using ConditionEvaluator
+- UserInputs are validated for required fields (key, title, message)
+- UserInputs validation_regex patterns are validated for syntax
+
+The handler is added to handlers.json file and optionally reloaded into 
+HandlerManager. If reload_after_add is true (default), HandlerManager.ReloadHandlers() 
+is called to make the handler immediately available.
+
+Returns success status, handler name, handler type, reload status, and total 
+handler count."
+
+INPUT SCHEMA:
+-------------
+{
+  "type": "object",
+  "properties": {
+    "handler_config": {
+      "type": "object",
+      "description": "Complete HandlerConfig JSON object with all required fields for the handler type"
+    },
+    "reload_after_add": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to reload handlers after adding. If false, handler will be added to handlers.json but not loaded into HandlerManager until manual reload."
+    }
+  },
+  "required": ["handler_config"]
+}
+
+IMPLEMENTATION ADIMLARI:
+-------------------------
+1. HandlerConfig JSON'ını parse et
+2. Handler name kontrolü (boş/whitespace kontrolü)
+3. Duplicate name kontrolü (HandlerManager.GetAllHandlerConfigs() ile mevcut handler'ları kontrol et)
+4. Handler type validation (HandlerFactory'de kayıtlı mı kontrol et)
+5. Type-specific required fields validation:
+   - Database: connectionString, query, connector
+   - Api: url
+   - Custom: validator VEYA context_provider (en az biri)
+   - Lookup: path, delimiter, key_names, value_names
+   - Regex: regex
+   - File: file_extensions
+   - Synthetic: reference_handler VEYA actual_type (en az biri)
+   - Cron: cron_expression, cron_job_id, actual_type
+6. SQL query validation (DatabaseHandler için - IsSafeSqlQuery kullan)
+7. Regex pattern validation (Regex constructor ile syntax kontrolü, timeout koruması)
+8. URL validation (Uri.TryCreate ile format kontrolü)
+9. Actions conditions validation (ConditionEvaluator ile)
+10. UserInputs validation (key, title, message kontrolü, validation_regex syntax kontrolü)
+11. handlers.json dosyasını oku
+12. Yeni handler'ı handlers array'ine ekle
+13. handlers.json dosyasına yaz (JSON formatting ile)
+14. HandlerManager.ReloadHandlers() çağrısı (reload_after_add true ise)
+15. Sonuç döndür (success, handler_name, handler_type, reloaded, total_handlers)
+
+ERROR HANDLING:
+---------------
+- VALIDATION_ERROR: Validation başarısız (detaylı mesaj ile)
+- DUPLICATE_NAME: Handler name zaten kullanılıyor
+- INVALID_TYPE: Handler type geçersiz veya kayıtlı değil
+- MISSING_REQUIRED_FIELD: Type'a göre zorunlu alan eksik
+- INVALID_SQL: SQL query güvensiz (SELECT dışında veya yasaklı keyword içeriyor)
+- INVALID_REGEX: Regex pattern syntax hatası
+- INVALID_URL: URL formatı geçersiz
+- FILE_WRITE_ERROR: handlers.json yazma hatası
+- JSON_PARSE_ERROR: HandlerConfig JSON parse hatası
+
+================================================================================
+TOOL 2: handler_update - MEVCUT HANDLER GÜNCELLEME
+================================================================================
+
+AMAÇ:
+-----
+Mevcut bir handler'ı güncellemek için kullanılır. Handler adı ile bulur, 
+partial update yapar, validate eder ve kaydeder.
+
+MCP TOOL AÇIKLAMASI (ÇOK ÖNEMLİ - LLM'ler için):
+-------------------------------------------------
+"Updates an existing handler in the Contextualizer application. The handler 
+is identified by its name (case-insensitive), and only the provided fields 
+in the updates object are modified (partial update).
+
+Update rules:
+- Handler name cannot be changed (it's the identifier). If 'name' field is 
+  provided in updates, it will be ignored.
+- Handler type cannot be changed (would require recreating the handler). 
+  If 'type' field is provided in updates, it will be ignored.
+- Only provided fields in the updates object are modified. Other fields 
+  remain unchanged.
+- Updated fields are validated according to handler type rules:
+  * If query is updated, SQL safety is validated (SELECT only, no DML)
+  * If regex is updated, pattern syntax is validated
+  * If connectionString is updated, format is validated (non-empty)
+  * If url is updated, URL format is validated
+  * If actions are updated, their conditions are validated using ConditionEvaluator
+  * If user_inputs are updated, required fields are validated
+- If a field is set to null or empty string, it will update the field to 
+  that value (unless it's a required field for the handler type)
+
+The handler configuration is merged with existing configuration, then saved 
+to handlers.json. If reload_after_update is true (default), HandlerManager.ReloadHandlers() 
+is called to apply changes immediately.
+
+Returns success status, handler name, list of updated fields, reload status."
+
+INPUT SCHEMA:
+-------------
+{
+  "type": "object",
+  "properties": {
+    "handler_name": {
+      "type": "string",
+      "description": "Name of the handler to update (case-insensitive)"
+    },
+    "updates": {
+      "type": "object",
+      "description": "Partial HandlerConfig with fields to update. Only provided fields will be modified.",
+      "additionalProperties": true
+    },
+    "reload_after_update": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to reload handlers after updating. If false, changes will be saved to handlers.json but not loaded into HandlerManager until manual reload."
+    }
+  },
+  "required": ["handler_name", "updates"]
+}
+
+IMPLEMENTATION ADIMLARI:
+-------------------------
+1. HandlerManager.GetAllHandlerConfigs() ile handler'ı bul (name ile, case-insensitive)
+2. Handler bulunamazsa NOT_FOUND hatası döndür
+3. Updates object'inden 'name' ve 'type' alanlarını çıkar (değiştirilemez)
+4. Mevcut HandlerConfig ile updates'i merge et (updates öncelikli)
+5. Güncellenen alanları tespit et (updated_fields listesi oluştur)
+6. Güncellenen alanlar için validation:
+   - query güncellendiyse: SQL safety validation
+   - regex güncellendiyse: Regex syntax validation
+   - connectionString güncellendiyse: Format validation
+   - url güncellendiyse: URL format validation
+   - actions güncellendiyse: ConditionEvaluator ile validation
+   - user_inputs güncellendiyse: Required fields validation
+7. handlers.json dosyasını oku
+8. İlgili handler'ı bul ve güncelle
+9. handlers.json dosyasına yaz
+10. HandlerManager.ReloadHandlers() çağrısı (reload_after_update true ise)
+11. Sonuç döndür (success, handler_name, updated_fields, reloaded)
+
+ERROR HANDLING:
+---------------
+- NOT_FOUND: Handler bulunamadı
+- VALIDATION_ERROR: Güncellenen alanlar için validation başarısız
+- INVALID_SQL: Güncellenen query güvensiz
+- INVALID_REGEX: Güncellenen regex pattern syntax hatası
+- INVALID_URL: Güncellenen URL formatı geçersiz
+- FILE_WRITE_ERROR: handlers.json yazma hatası
+- JSON_PARSE_ERROR: Updates JSON parse hatası
+
+================================================================================
+TOOL 3: handler_reload - HANDLER'LARI YENİDEN YÜKLEME
+================================================================================
+
+AMAÇ:
+-----
+Handler'ları handlers.json'dan yeniden yüklemek. Değişikliklerin uygulamaya 
+yansıması için kullanılır.
+
+MCP TOOL AÇIKLAMASI (ÇOK ÖNEMLİ - LLM'ler için):
+-------------------------------------------------
+"Reloads all handlers from handlers.json file into HandlerManager. This is 
+useful after manual edits to handlers.json or when handlers need to be 
+refreshed without restarting the application.
+
+Reload process:
+1. Disposes existing handler instances (if they implement IDisposable)
+2. Clears current handler lists (_handlers and _manualHandlers)
+3. Reloads handlers from handlers.json using HandlerLoader.Load()
+4. Optionally reloads plugins if reload_plugins is true:
+   - Scans plugins directory for new assemblies
+   - Loads new plugins (existing plugins cannot be unloaded due to .NET limitations)
+   - Re-registers ActionService if new plugins are loaded
+5. Separates handlers into regular handlers and manual handlers (ITriggerableHandler)
+
+Note: Existing plugins cannot be unloaded without app restart due to .NET 
+Framework limitations. Only new plugins can be loaded.
+
+Returns the number of handlers reloaded and new plugins loaded."
+
+INPUT SCHEMA:
+-------------
+{
+  "type": "object",
+  "properties": {
+    "reload_plugins": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to reload plugins as well. If true, scans for new plugin assemblies and loads them."
+    }
+  }
+}
+
+IMPLEMENTATION ADIMLARI:
+-------------------------
+1. HandlerManager.ReloadHandlers(reload_plugins) çağrısı
+2. Tuple döndürür: (handlersReloaded, newPluginsLoaded)
+3. Sonuç döndür (success, handlers_reloaded, new_plugins_loaded)
+
+ERROR HANDLING:
+---------------
+- RELOAD_ERROR: Reload işlemi sırasında hata oluştu (detaylı mesaj ile)
+
+================================================================================
+VALIDATION HELPER - HandlerConfigValidator
+================================================================================
+
+AMAÇ:
+-----
+HandlerConfig validation işlemlerini merkezi bir yerde toplamak.
+
+YENİ SINIF: HandlerConfigValidator
+-----------------------------------
+Namespace: Contextualizer.Core
+
+METODLAR:
+---------
+1. ValidateHandlerConfig(HandlerConfig config, List<HandlerConfig> existingConfigs)
+   - Ana validation metodu
+   - Tüm validation kurallarını uygular
+   - ValidationResult döndürür (success, errors listesi)
+
+2. ValidateName(string name, List<HandlerConfig> existingConfigs)
+   - Name validation (boş kontrolü, duplicate kontrolü)
+
+3. ValidateType(string type)
+   - Type validation (HandlerFactory'de kayıtlı mı)
+
+4. ValidateTypeSpecificFields(HandlerConfig config)
+   - Type'a göre zorunlu alan kontrolü
+
+5. ValidateSqlQuery(string query)
+   - SQL query safety validation (DatabaseHandler.IsSafeSqlQuery kullan)
+
+6. ValidateRegexPattern(string pattern)
+   - Regex pattern syntax validation (Regex constructor, timeout koruması)
+
+7. ValidateUrl(string url)
+   - URL format validation (Uri.TryCreate)
+
+8. ValidateActions(List<ConfigAction> actions)
+   - Actions conditions validation (ConditionEvaluator kullan)
+
+9. ValidateUserInputs(List<UserInputRequest> userInputs)
+   - UserInputs validation (key, title, message, validation_regex)
+
+VALIDATION RESULT SINIFI:
+-------------------------
+public class ValidationResult
+{
+    public bool Success { get; set; }
+    public List<string> Errors { get; set; }
+    public List<string> Warnings { get; set; }
+}
+
+================================================================================
+HandlerManager GÜNCELLEMELERİ
+================================================================================
+
+YENİ METODLAR:
+-------------
+1. AddHandler(HandlerConfig config, bool reload = true)
+   - Duplicate name kontrolü
+   - HandlerConfigValidator ile validation
+   - handlers.json'a ekleme (SaveHandlersToFile kullan)
+   - Reload (opsiyonel)
+   - Sonuç döndürür: (success, errorMessage)
+
+2. UpdateHandler(string name, HandlerConfig partialConfig, bool reload = true)
+   - Handler bulma (GetAllHandlerConfigs ile)
+   - Merge işlemi (partialConfig ile mevcut config'i merge et)
+   - HandlerConfigValidator ile validation (sadece güncellenen alanlar için)
+   - handlers.json'a kaydetme (SaveHandlersToFile kullan)
+   - Reload (opsiyonel)
+   - Sonuç döndürür: (success, errorMessage, updatedFields)
+
+NOT: Mevcut SaveHandlersToFile() metodu zaten var, kullanılabilir.
+
+================================================================================
+McpServerHost.cs GÜNCELLEMELERİ
+================================================================================
+
+YENİ TOOL CONSTANT'LARI:
+------------------------
+private const string HandlerAddToolName = "handler_add";
+private const string HandlerUpdateToolName = "handler_update";
+private const string HandlerReloadToolName = "handler_reload";
+
+CreateToolsListResponseAsync GÜNCELLEMESİ:
+------------------------------------------
+Built-in UI tools'dan sonra yeni tool'ları ekle:
+
+tools.Add(new McpTool
+{
+    Name = HandlerAddToolName,
+    Description = "Adds a new handler to the Contextualizer application...",
+    InputSchema = HandlerAddSchema()
+});
+
+tools.Add(new McpTool
+{
+    Name = HandlerUpdateToolName,
+    Description = "Updates an existing handler in the Contextualizer application...",
+    InputSchema = HandlerUpdateSchema()
+});
+
+tools.Add(new McpTool
+{
+    Name = HandlerReloadToolName,
+    Description = "Reloads all handlers from handlers.json file into HandlerManager...",
+    InputSchema = HandlerReloadSchema()
+});
+
+CreateToolsCallResponseAsync GÜNCELLEMESİ:
+------------------------------------------
+Built-in UI tools kontrolünden sonra yeni handler'ları kontrol et:
+
+if (string.Equals(callParams.Name, HandlerAddToolName, StringComparison.OrdinalIgnoreCase))
+{
+    return await HandleHandlerAddAsync(request, callParams);
+}
+
+if (string.Equals(callParams.Name, HandlerUpdateToolName, StringComparison.OrdinalIgnoreCase))
+{
+    return await HandleHandlerUpdateAsync(request, callParams);
+}
+
+if (string.Equals(callParams.Name, HandlerReloadToolName, StringComparison.OrdinalIgnoreCase))
+{
+    return await HandleHandlerReloadAsync(request, callParams);
+}
+
+YENİ HANDLER METODLARI:
+-----------------------
+1. HandleHandlerAddAsync(JsonRpcRequest request, McpToolsCallParams callParams)
+   - HandlerConfig JSON'ını parse et
+   - HandlerManager.AddHandler() çağrısı
+   - Sonuç döndür
+
+2. HandleHandlerUpdateAsync(JsonRpcRequest request, McpToolsCallParams callParams)
+   - handler_name ve updates'i parse et
+   - HandlerManager.UpdateHandler() çağrısı
+   - Sonuç döndür
+
+3. HandleHandlerReloadAsync(JsonRpcRequest request, McpToolsCallParams callParams)
+   - reload_plugins'i parse et
+   - HandlerManager.ReloadHandlers() çağrısı
+   - Sonuç döndür
+
+SCHEMA METODLARI:
+----------------
+1. HandlerAddSchema() -> JsonElement
+2. HandlerUpdateSchema() -> JsonElement
+3. HandlerReloadSchema() -> JsonElement
+
+================================================================================
+ERROR HANDLING VE RETURN FORMAT
+================================================================================
+
+BAŞARILI EKLEME RETURN:
+----------------------
+{
+  "success": true,
+  "handler_name": "New Handler",
+  "handler_type": "database",
+  "reloaded": true,
+  "total_handlers": 15,
+  "message": "Handler added successfully"
+}
+
+BAŞARILI GÜNCELLEME RETURN:
+--------------------------
+{
+  "success": true,
+  "handler_name": "Existing Handler",
+  "updated_fields": ["enabled", "mcp_enabled", "actions"],
+  "reloaded": true,
+  "message": "Handler updated successfully"
+}
+
+BAŞARILI RELOAD RETURN:
+----------------------
+{
+  "success": true,
+  "handlers_reloaded": 15,
+  "new_plugins_loaded": 2,
+  "message": "Handlers reloaded successfully"
+}
+
+HATA RETURN:
+-----------
+{
+  "success": false,
+  "error": "Validation failed: Handler name 'Test' already exists",
+  "error_code": "DUPLICATE_NAME",
+  "error_details": {
+    "field": "name",
+    "value": "Test",
+    "existing_handler": "Test Handler"
+  }
+}
+
+ERROR CODES:
+-----------
+- VALIDATION_ERROR: Validation başarısız
+- NOT_FOUND: Handler bulunamadı (update için)
+- DUPLICATE_NAME: Handler name zaten kullanılıyor (add için)
+- INVALID_TYPE: Handler type geçersiz veya kayıtlı değil
+- MISSING_REQUIRED_FIELD: Type'a göre zorunlu alan eksik
+- INVALID_SQL: SQL query güvensiz (SELECT dışında veya yasaklı keyword içeriyor)
+- INVALID_REGEX: Regex pattern syntax hatası
+- INVALID_URL: URL formatı geçersiz
+- FILE_WRITE_ERROR: handlers.json yazma hatası
+- JSON_PARSE_ERROR: HandlerConfig JSON parse hatası
+- RELOAD_ERROR: Reload işlemi sırasında hata
+
+================================================================================
+GÜVENLİK VE VALIDATION KURALLARI
+================================================================================
+
+SQL GÜVENLİĞİ (DatabaseHandler):
+--------------------------------
+- Sadece SELECT sorgularına izin (IsSafeSqlQuery metodu ile kontrol ediliyor)
+- INSERT, UPDATE, DELETE, DROP, ALTER, CREATE yasak
+- Comment (--, /* */) yasak
+- Stored procedure (xp_, sp_) yasak
+- Semicolon (;) yasak
+- Parameterized queries kullanımı zorunlu (@p_input gibi)
+
+NOT: DatabaseHandler.IsSafeSqlQuery() metodu zaten bu kontrolleri yapıyor.
+Validation helper bu metodu kullanmalı.
+
+REGEX GÜVENLİĞİ:
+---------------
+- Regex timeout koruması (5 saniye)
+- ReDoS koruması
+- Syntax validation (Regex constructor ile)
+
+URL GÜVENLİĞİ:
+--------------
+- URL format validation (Uri.TryCreate)
+- HTTP/HTTPS kontrolü (opsiyonel)
+
+FILE PATH GÜVENLİĞİ:
+--------------------
+- Absolute path kontrolü (Lookup handler için)
+- Directory traversal koruması
+
+================================================================================
+IMPLEMENTATION ÖNCELİKLERİ
+================================================================================
+
+FAZ 1: TEMEL YAPI
+-----------------
+1. HandlerConfigValidator sınıfı oluştur
+2. HandlerManager.AddHandler() metodu
+3. HandlerManager.UpdateHandler() metodu
+4. McpServerHost.cs'e tool'ları ekle
+5. Handler method'larını implement et
+
+FAZ 2: VALIDATION VE ERROR HANDLING
+----------------------------------
+1. Type-specific validation detaylandır
+2. SQL safety validation (IsSafeSqlQuery kullan)
+3. Regex validation
+4. URL validation
+5. Error handling ve detaylı mesajlar
+
+FAZ 3: İYİLEŞTİRMELER
+---------------------
+1. Logging entegrasyonu (ILoggingService)
+2. Thread safety kontrolü
+3. File locking (handlers.json yazma işlemleri için)
+4. Test senaryoları
+5. Dokümantasyon
+
+================================================================================
+ÖNEMLİ NOTLAR
+================================================================================
+
+1. MCP TOOL AÇIKLAMALARI: LLM'lerin tool'ları doğru kullanması için açıklamalar 
+   çok detaylı ve kapsamlı olmalı. Handler type'ları, validation kuralları, 
+   error code'ları açıkça belirtilmeli.
+
+2. VALIDATION: Her adımda validation yapılmalı, hatalar erken yakalanmalı.
+
+3. PARTIAL UPDATE: Update işleminde sadece gönderilen alanlar güncellenmeli, 
+   diğerleri korunmalı.
+
+4. RELOAD: Add/Update sonrası reload opsiyonel olmalı, kullanıcı kontrolünde.
+
+5. ERROR MESSAGES: Hata mesajları açıklayıcı ve actionable olmalı.
+
+6. THREAD SAFETY: HandlerManager işlemleri thread-safe olmalı (lock kullan).
+
+7. FILE LOCKING: handlers.json yazma işlemleri file locking ile korunmalı.
+
+8. SQL GÜVENLİĞİ: DatabaseHandler.IsSafeSqlQuery() metodu zaten SELECT dışında 
+   sorgu desteklemiyor. Bu kontrol korunmalı ve validation helper'da kullanılmalı.
+
+9. JSON SERIALIZATION: handlers.json yazarken mevcut format korunmalı 
+   (indented, UTF-8 encoding).
+
+10. BACKUP: handlers.json güncellemeden önce backup alınması önerilir 
+    (opsiyonel, production için).
+
+================================================================================
+TEST SENARYOLARI
+================================================================================
+
+1. Yeni Database handler ekleme (tüm required fields ile)
+2. Yeni Api handler ekleme
+3. Yeni Custom handler ekleme (validator ile)
+4. Yeni Lookup handler ekleme
+5. Yeni Regex handler ekleme
+6. Yeni File handler ekleme
+7. Yeni Manual handler ekleme
+8. Yeni Synthetic handler ekleme (reference_handler ile)
+9. Yeni Cron handler ekleme
+10. Mevcut handler'ı güncelleme (enabled field)
+11. Mevcut handler'ı güncelleme (mcp_enabled field)
+12. Mevcut handler'ı güncelleme (actions field)
+13. Mevcut handler'ı güncelleme (user_inputs field)
+14. Duplicate name ile ekleme denemesi
+15. Invalid type ile ekleme denemesi
+16. Missing required fields ile ekleme denemesi
+17. Invalid SQL query ile ekleme denemesi (INSERT, UPDATE, DELETE)
+18. Invalid SQL query ile ekleme denemesi (SELECT dışında başlayan)
+19. Invalid regex pattern ile ekleme denemesi
+20. Invalid URL ile ekleme denemesi
+21. Handler reload testi (reload_plugins: false)
+22. Handler reload testi (reload_plugins: true)
+23. Partial update testi (sadece birkaç alan)
+24. Name değiştirme denemesi (update'de ignore edilmeli)
+25. Type değiştirme denemesi (update'de ignore edilmeli)
+
+================================================================================
+DOSYA YAPISI
+================================================================================
+
+YENİ DOSYALAR:
+-------------
+- Contextualizer.Core/HandlerConfigValidator.cs (validation helper)
+
+GÜNCELLENECEK DOSYALAR:
+----------------------
+- Contextualizer.Core/HandlerManager.cs (AddHandler, UpdateHandler metodları)
+- WpfInteractionApp/Services/McpServerHost.cs (yeni tool'lar ve handler metodları)
+
+KULLANILACAK MEVCUT DOSYALAR:
+-----------------------------
+- Contextualizer.Core/DatabaseHandler.cs (IsSafeSqlQuery metodu)
+- Contextualizer.Core/ConditionEvaluator.cs (actions conditions validation)
+- Contextualizer.Core/HandlerFactory.cs (type validation)
+- Contextualizer.Core/HandlerLoader.cs (reload için)
+- Contextualizer.PluginContracts/HandlerConfig.cs (config model)
+
+================================================================================
+SONUÇ
+================================================================================
+
+Bu implementation planı ile handler yönetimi için MCP tool'ları eklenebilir.
+Öncelik sırasına göre implementasyon yapılmalı ve her faz tamamlandıktan sonra 
+test edilmelidir.
+
+MCP tool açıklamaları LLM'lerin tool'ları doğru kullanması için kritik öneme 
+sahiptir. Açıklamalar detaylı, kapsamlı ve örneklerle desteklenmelidir.
+
+DatabaseHandler'ın SQL güvenlik kontrolü (IsSafeSqlQuery) zaten mevcut ve 
+SELECT dışında sorgu desteklemiyor. Bu kontrol korunmalı ve validation helper'da 
+kullanılmalıdır.
+
+================================================================================
+
