@@ -500,6 +500,33 @@ namespace WpfInteractionApp
                     case "toast_closed":
                         HandleToastClosed(root);
                         break;
+
+                    // ─────────────────────────────────────────────────────────────────
+                    // Handler Exchange / Marketplace
+                    // ─────────────────────────────────────────────────────────────────
+                    case "exchange_list_request":
+                        _ = HandleExchangeListRequestAsync(root);
+                        break;
+
+                    case "exchange_tags_request":
+                        _ = HandleExchangeTagsRequestAsync();
+                        break;
+
+                    case "exchange_details_request":
+                        _ = HandleExchangeDetailsRequestAsync(root);
+                        break;
+
+                    case "exchange_install":
+                        _ = HandleExchangeInstallAsync(root);
+                        break;
+
+                    case "exchange_update":
+                        _ = HandleExchangeUpdateAsync(root);
+                        break;
+
+                    case "exchange_remove":
+                        _ = HandleExchangeRemoveAsync(root);
+                        break;
                 }
             }
             catch (Exception ex)
@@ -1852,6 +1879,229 @@ namespace WpfInteractionApp
                 LogType.Critical => "critical",
                 _ => "info"
             };
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // Handler Exchange / Marketplace Methods
+        // ─────────────────────────────────────────────────────────────────────────
+
+        private async Task HandleExchangeListRequestAsync(JsonElement root)
+        {
+            try
+            {
+                var exchange = ServiceLocator.SafeGet<Contextualizer.PluginContracts.Interfaces.IHandlerExchange>();
+                if (exchange == null)
+                {
+                    PostToUi(new { type = "exchange_list", packages = Array.Empty<object>(), error = "Handler exchange service not available" });
+                    return;
+                }
+
+                string? searchTerm = null;
+                string[]? tags = null;
+
+                if (root.TryGetProperty("searchTerm", out var searchProp) && searchProp.ValueKind == JsonValueKind.String)
+                    searchTerm = searchProp.GetString();
+
+                if (root.TryGetProperty("tags", out var tagsProp) && tagsProp.ValueKind == JsonValueKind.Array)
+                    tags = tagsProp.EnumerateArray().Where(t => t.ValueKind == JsonValueKind.String).Select(t => t.GetString()!).ToArray();
+
+                var packages = await exchange.ListAvailableHandlersAsync(searchTerm, tags);
+                var packageDtos = packages.Select(p => new
+                {
+                    id = p.Id,
+                    name = p.Name,
+                    description = p.Description,
+                    version = p.Version,
+                    author = p.Author,
+                    tags = p.Tags ?? Array.Empty<string>(),
+                    dependencies = p.Dependencies ?? Array.Empty<string>(),
+                    isInstalled = p.IsInstalled,
+                    hasUpdate = p.HasUpdate,
+                    metadata = p.Metadata
+                }).ToArray();
+
+                PostToUi(new { type = "exchange_list", packages = packageDtos });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"HandleExchangeListRequestAsync error: {ex}");
+                PostToUi(new { type = "exchange_list", packages = Array.Empty<object>(), error = ex.Message });
+            }
+        }
+
+        private async Task HandleExchangeTagsRequestAsync()
+        {
+            try
+            {
+                var exchange = ServiceLocator.SafeGet<Contextualizer.PluginContracts.Interfaces.IHandlerExchange>();
+                if (exchange == null)
+                {
+                    PostToUi(new { type = "exchange_tags", tags = Array.Empty<string>() });
+                    return;
+                }
+
+                var tags = await exchange.GetAvailableTagsAsync();
+                PostToUi(new { type = "exchange_tags", tags = tags.ToArray() });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"HandleExchangeTagsRequestAsync error: {ex}");
+                PostToUi(new { type = "exchange_tags", tags = Array.Empty<string>() });
+            }
+        }
+
+        private async Task HandleExchangeDetailsRequestAsync(JsonElement root)
+        {
+            try
+            {
+                if (!root.TryGetProperty("handlerId", out var idProp) || idProp.ValueKind != JsonValueKind.String)
+                    return;
+
+                var handlerId = idProp.GetString();
+                if (string.IsNullOrEmpty(handlerId)) return;
+
+                var exchange = ServiceLocator.SafeGet<Contextualizer.PluginContracts.Interfaces.IHandlerExchange>();
+                if (exchange == null)
+                {
+                    PostToUi(new { type = "exchange_details", handlerId, package = (object?)null, error = "Service not available" });
+                    return;
+                }
+
+                var package = await exchange.GetHandlerDetailsAsync(handlerId);
+                if (package == null)
+                {
+                    PostToUi(new { type = "exchange_details", handlerId, package = (object?)null, error = "Package not found" });
+                    return;
+                }
+
+                PostToUi(new
+                {
+                    type = "exchange_details",
+                    handlerId,
+                    package = new
+                    {
+                        id = package.Id,
+                        name = package.Name,
+                        description = package.Description,
+                        version = package.Version,
+                        author = package.Author,
+                        tags = package.Tags ?? Array.Empty<string>(),
+                        dependencies = package.Dependencies ?? Array.Empty<string>(),
+                        isInstalled = package.IsInstalled,
+                        hasUpdate = package.HasUpdate,
+                        metadata = package.Metadata
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"HandleExchangeDetailsRequestAsync error: {ex}");
+            }
+        }
+
+        private async Task HandleExchangeInstallAsync(JsonElement root)
+        {
+            string? handlerId = null;
+            try
+            {
+                if (!root.TryGetProperty("handlerId", out var idProp) || idProp.ValueKind != JsonValueKind.String)
+                    return;
+
+                handlerId = idProp.GetString();
+                if (string.IsNullOrEmpty(handlerId)) return;
+
+                var exchange = ServiceLocator.SafeGet<Contextualizer.PluginContracts.Interfaces.IHandlerExchange>();
+                if (exchange == null)
+                {
+                    PostToUi(new { type = "exchange_install_result", handlerId, success = false, error = "Service not available" });
+                    return;
+                }
+
+                var success = await exchange.InstallHandlerAsync(handlerId);
+                PostToUi(new { type = "exchange_install_result", handlerId, success });
+
+                if (success)
+                {
+                    // Reload handlers after install
+                    var handlerManager = ServiceLocator.SafeGet<HandlerManager>();
+                    handlerManager?.ReloadHandlers(reloadPlugins: false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"HandleExchangeInstallAsync error: {ex}");
+                PostToUi(new { type = "exchange_install_result", handlerId = handlerId ?? "", success = false, error = ex.Message });
+            }
+        }
+
+        private async Task HandleExchangeUpdateAsync(JsonElement root)
+        {
+            string? handlerId = null;
+            try
+            {
+                if (!root.TryGetProperty("handlerId", out var idProp) || idProp.ValueKind != JsonValueKind.String)
+                    return;
+
+                handlerId = idProp.GetString();
+                if (string.IsNullOrEmpty(handlerId)) return;
+
+                var exchange = ServiceLocator.SafeGet<Contextualizer.PluginContracts.Interfaces.IHandlerExchange>();
+                if (exchange == null)
+                {
+                    PostToUi(new { type = "exchange_update_result", handlerId, success = false, error = "Service not available" });
+                    return;
+                }
+
+                var success = await exchange.UpdateHandlerAsync(handlerId);
+                PostToUi(new { type = "exchange_update_result", handlerId, success });
+
+                if (success)
+                {
+                    // Reload handlers after update
+                    var handlerManager = ServiceLocator.SafeGet<HandlerManager>();
+                    handlerManager?.ReloadHandlers(reloadPlugins: false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"HandleExchangeUpdateAsync error: {ex}");
+                PostToUi(new { type = "exchange_update_result", handlerId = handlerId ?? "", success = false, error = ex.Message });
+            }
+        }
+
+        private async Task HandleExchangeRemoveAsync(JsonElement root)
+        {
+            string? handlerId = null;
+            try
+            {
+                if (!root.TryGetProperty("handlerId", out var idProp) || idProp.ValueKind != JsonValueKind.String)
+                    return;
+
+                handlerId = idProp.GetString();
+                if (string.IsNullOrEmpty(handlerId)) return;
+
+                var exchange = ServiceLocator.SafeGet<Contextualizer.PluginContracts.Interfaces.IHandlerExchange>();
+                if (exchange == null)
+                {
+                    PostToUi(new { type = "exchange_remove_result", handlerId, success = false, error = "Service not available" });
+                    return;
+                }
+
+                var success = await exchange.RemoveHandlerAsync(handlerId);
+                PostToUi(new { type = "exchange_remove_result", handlerId, success });
+
+                if (success)
+                {
+                    // Reload handlers after removal
+                    var handlerManager = ServiceLocator.SafeGet<HandlerManager>();
+                    handlerManager?.ReloadHandlers(reloadPlugins: false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"HandleExchangeRemoveAsync error: {ex}");
+                PostToUi(new { type = "exchange_remove_result", handlerId = handlerId ?? "", success = false, error = ex.Message });
+            }
         }
 
         public void Dispose()

@@ -7,6 +7,7 @@ import { useCronStore, type CronJobDto } from '../stores/cronStore';
 import { useActivityLogStore } from '../stores/activityLogStore';
 import { useAppSettingsStore, type AppSettingsDto, type LogClearResult } from '../stores/appSettingsStore';
 import { useAppStore } from '../stores/appStore';
+import { useHandlerExchangeStore, type HandlerPackageDto } from '../stores/handlerExchangeStore';
 import { addWebView2MessageListener, executeToastAction, notifyToastClosed } from './webview2Bridge';
 import { CountdownToastView, type CountdownToastAction } from '../components/ui/countdown-toast';
 
@@ -64,6 +65,24 @@ type LogClearResultMessage = {
   deletedCount: number;
 };
 
+type ExchangeListMessage = {
+  type: 'exchange_list';
+  packages: HandlerPackageDto[];
+  error?: string;
+};
+
+type ExchangeTagsMessage = {
+  type: 'exchange_tags';
+  tags: string[];
+};
+
+type ExchangeOperationResultMessage = {
+  type: 'exchange_install_result' | 'exchange_update_result' | 'exchange_remove_result';
+  handlerId: string;
+  success: boolean;
+  error?: string;
+};
+
 export function HostBridgeListener() {
   const navigate = useNavigate();
 
@@ -77,6 +96,18 @@ export function HostBridgeListener() {
   const markSaved = useAppSettingsStore((s) => s.markSaved);
   const setLogClearResult = useAppSettingsStore((s) => s.setLogClearResult);
   const setTheme = useAppStore((s) => s.setTheme);
+
+  // Handler Exchange store actions
+  const setExchangePackages = useHandlerExchangeStore((s) => s.setPackages);
+  const setExchangeTags = useHandlerExchangeStore((s) => s.setTags);
+  const setExchangeLoading = useHandlerExchangeStore((s) => s.setLoading);
+  const setExchangeError = useHandlerExchangeStore((s) => s.setError);
+  const markExchangeInstalled = useHandlerExchangeStore((s) => s.markInstalled);
+  const markExchangeUpdated = useHandlerExchangeStore((s) => s.markUpdated);
+  const markExchangeRemoved = useHandlerExchangeStore((s) => s.markRemoved);
+  const setExchangeInstalling = useHandlerExchangeStore((s) => s.setInstalling);
+  const setExchangeUpdating = useHandlerExchangeStore((s) => s.setUpdating);
+  const setExchangeRemoving = useHandlerExchangeStore((s) => s.setRemoving);
 
   useEffect(() => {
     // IMPORTANT: do not rely on a single "lastMessage" snapshot for host events.
@@ -134,6 +165,66 @@ export function HostBridgeListener() {
         const m = payload as LogClearResultMessage;
         const r: LogClearResult = { deletedCount: typeof m.deletedCount === 'number' ? m.deletedCount : 0 };
         setLogClearResult(r);
+        return;
+      }
+
+      // ─────────────────────────────────────────────────────────────────────────
+      // Handler Exchange / Marketplace messages
+      // ─────────────────────────────────────────────────────────────────────────
+      if (type === 'exchange_list') {
+        const m = payload as ExchangeListMessage;
+        if (m.error) {
+          addLog('error', 'Failed to load exchange packages', m.error);
+          setExchangeError(m.error);
+          return;
+        }
+        if (Array.isArray(m.packages)) {
+          setExchangePackages(m.packages);
+        }
+        return;
+      }
+
+      if (type === 'exchange_tags') {
+        const m = payload as ExchangeTagsMessage;
+        if (Array.isArray(m.tags)) {
+          setExchangeTags(m.tags);
+        }
+        return;
+      }
+
+      if (type === 'exchange_install_result') {
+        const m = payload as ExchangeOperationResultMessage;
+        setExchangeInstalling(m.handlerId, false);
+        if (m.success) {
+          markExchangeInstalled(m.handlerId);
+          addLog('success', `Package '${m.handlerId}' installed`);
+        } else {
+          addLog('error', `Failed to install '${m.handlerId}'`, m.error);
+        }
+        return;
+      }
+
+      if (type === 'exchange_update_result') {
+        const m = payload as ExchangeOperationResultMessage;
+        setExchangeUpdating(m.handlerId, false);
+        if (m.success) {
+          markExchangeUpdated(m.handlerId);
+          addLog('success', `Package '${m.handlerId}' updated`);
+        } else {
+          addLog('error', `Failed to update '${m.handlerId}'`, m.error);
+        }
+        return;
+      }
+
+      if (type === 'exchange_remove_result') {
+        const m = payload as ExchangeOperationResultMessage;
+        setExchangeRemoving(m.handlerId, false);
+        if (m.success) {
+          markExchangeRemoved(m.handlerId);
+          addLog('warning', `Package '${m.handlerId}' removed`);
+        } else {
+          addLog('error', `Failed to remove '${m.handlerId}'`, m.error);
+        }
         return;
       }
 
@@ -257,7 +348,30 @@ export function HostBridgeListener() {
         // ignore
       }
     };
-  }, [addLog, markSaved, navigate, openTab, setCron, setFromHost, setHandlers, setLogClearResult, setSaveError, setSaving, setTheme]);
+  }, [
+    addLog,
+    markSaved,
+    navigate,
+    openTab,
+    setCron,
+    setFromHost,
+    setHandlers,
+    setLogClearResult,
+    setSaveError,
+    setSaving,
+    setTheme,
+    // Handler Exchange
+    setExchangePackages,
+    setExchangeTags,
+    setExchangeLoading,
+    setExchangeError,
+    markExchangeInstalled,
+    markExchangeUpdated,
+    markExchangeRemoved,
+    setExchangeInstalling,
+    setExchangeUpdating,
+    setExchangeRemoving,
+  ]);
 
   return null;
 }

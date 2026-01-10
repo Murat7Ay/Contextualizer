@@ -200,6 +200,38 @@ export function notifyToastClosed(toastId: string): boolean {
   return postWebView2Message({ type: 'toast_closed', toastId });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Handler Exchange / Marketplace
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function requestExchangePackages(searchTerm?: string, tags?: string[]): boolean {
+  return postWebView2Message({ type: 'exchange_list_request', searchTerm, tags });
+}
+
+export function requestExchangeTags(): boolean {
+  return postWebView2Message({ type: 'exchange_tags_request' });
+}
+
+export function requestExchangePackageDetails(handlerId: string): boolean {
+  if (!handlerId) return false;
+  return postWebView2Message({ type: 'exchange_details_request', handlerId });
+}
+
+export function installExchangePackage(handlerId: string): boolean {
+  if (!handlerId) return false;
+  return postWebView2Message({ type: 'exchange_install', handlerId });
+}
+
+export function updateExchangePackage(handlerId: string): boolean {
+  if (!handlerId) return false;
+  return postWebView2Message({ type: 'exchange_update', handlerId });
+}
+
+export function removeExchangePackage(handlerId: string): boolean {
+  if (!handlerId) return false;
+  return postWebView2Message({ type: 'exchange_remove', handlerId });
+}
+
 export function addWebView2MessageListener(handler: (payload: unknown) => void): () => void {
   if (!isWebView2Available()) return () => {};
 

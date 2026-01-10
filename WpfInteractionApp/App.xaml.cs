@@ -6,6 +6,7 @@ using System.Windows;
 using WpfInteractionApp.Services;
 using System.Linq;
 using Contextualizer.PluginContracts;
+using Contextualizer.PluginContracts.Interfaces;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -110,6 +111,10 @@ namespace WpfInteractionApp
                 await _cronScheduler.Start();
 
                 ServiceLocator.Register<ICronService>(_cronScheduler);
+
+                // Initialize Handler Exchange service
+                var handlerExchange = new FileHandlerExchange();
+                ServiceLocator.Register<IHandlerExchange>(handlerExchange);
 
                 // Create the HandlerManager
                 _handlerManager = new HandlerManager(
