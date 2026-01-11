@@ -287,8 +287,8 @@ node_modules/
 
 # React UI build output (generated)
 Contextualizer.UI/dist/
-WpfInteractionApp/Assets/Ui/dist/
-WpfInteractionApp/Assets/ui/dist/
+#WpfInteractionApp/Assets/Ui/dist/
+#WpfInteractionApp/Assets/ui/dist/
 
 # Visual Studio 6 build log
 *.plg
