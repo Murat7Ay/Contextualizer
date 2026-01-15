@@ -1,4 +1,5 @@
 using Contextualizer.Core;
+using Contextualizer.Core.Services;
 using Contextualizer.PluginContracts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -18,6 +19,20 @@ namespace WpfInteractionApp.Services
         private const string UiUserInputsToolName = "ui_user_inputs";
         private const string UiNotifyToolName = "ui_notify";
         private const string UiShowMarkdownToolName = "ui_show_markdown";
+
+        // Management tools (gated by settings.mcp_settings.management_tools_enabled)
+        private const string HandlersListToolName = "handlers_list";
+        private const string HandlersGetToolName = "handlers_get";
+        private const string HandlerAddToolName = "handler_add";
+        private const string HandlerUpdateToolName = "handler_update";
+        private const string HandlerDeleteToolName = "handler_delete";
+        private const string HandlerReloadToolName = "handler_reload";
+        private const string PluginsListToolName = "plugins_list";
+        private const string ConfigGetKeysToolName = "config_get_keys";
+        private const string ConfigGetSectionToolName = "config_get_section";
+        private const string ConfigSetValueToolName = "config_set_value";
+        private const string ConfigReloadToolName = "config_reload";
+        private const string HandlerDocsToolName = "handler_docs";
 
         private readonly ConcurrentDictionary<string, SseSession> _sessions = new(StringComparer.Ordinal);
         private readonly JsonSerializerOptions _jsonOptions = new()
@@ -48,6 +63,19 @@ namespace WpfInteractionApp.Services
             return ServiceLocator.SafeGet<WebViewUserInteractionService>() 
                 ?? ServiceLocator.SafeGet<IUserInteractionService>()
                 ?? throw new InvalidOperationException("No user interaction service available");
+        }
+
+        private static bool IsManagementToolsEnabled()
+        {
+            var settings = ServiceLocator.SafeGet<SettingsService>();
+            return settings?.Settings?.McpSettings?.ManagementToolsEnabled == true;
+        }
+
+        private static HandlerConfigStore? TryCreateHandlerConfigStore()
+        {
+            var settings = ServiceLocator.SafeGet<SettingsService>();
+            if (settings == null) return null;
+            return new HandlerConfigStore(settings);
         }
 
         /// <summary>
@@ -391,38 +419,48 @@ Returns { cancelled: boolean, values: object }.
             });
 
             var handlerManager = ServiceLocator.SafeGet<HandlerManager>();
-            if (handlerManager == null)
+
+            if (handlerManager != null)
             {
-                // Still return built-in tools even if HandlerManager isn't available
-                return new JsonRpcResponse
+                var configs = handlerManager.GetAllHandlerConfigs()
+                    .Where(c => c.McpEnabled)
+                    .OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                foreach (var cfg in configs)
                 {
-                    Id = request.Id,
-                    Result = new McpToolsListResult { Tools = tools }
-                };
+                    var toolName = !string.IsNullOrWhiteSpace(cfg.McpToolName) ? cfg.McpToolName : Slugify(cfg.Name);
+                    var description =
+                        !string.IsNullOrWhiteSpace(cfg.McpDescription) ? cfg.McpDescription :
+                        !string.IsNullOrWhiteSpace(cfg.Description) ? cfg.Description :
+                        !string.IsNullOrWhiteSpace(cfg.Title) ? cfg.Title :
+                        $"{cfg.Type} handler";
+
+                    var schema = cfg.McpInputSchema ?? DefaultSchemaForHandler(cfg);
+
+                    tools.Add(new McpTool
+                    {
+                        Name = toolName,
+                        Description = description,
+                        InputSchema = schema
+                    });
+                }
             }
 
-            var configs = handlerManager.GetAllHandlerConfigs()
-                .Where(c => c.McpEnabled)
-                .OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            foreach (var cfg in configs)
+            if (IsManagementToolsEnabled())
             {
-                var toolName = !string.IsNullOrWhiteSpace(cfg.McpToolName) ? cfg.McpToolName : Slugify(cfg.Name);
-                var description =
-                    !string.IsNullOrWhiteSpace(cfg.McpDescription) ? cfg.McpDescription :
-                    !string.IsNullOrWhiteSpace(cfg.Description) ? cfg.Description :
-                    !string.IsNullOrWhiteSpace(cfg.Title) ? cfg.Title :
-                    $"{cfg.Type} handler";
-
-                var schema = cfg.McpInputSchema ?? DefaultSchemaForHandler(cfg);
-
-                tools.Add(new McpTool
-                {
-                    Name = toolName,
-                    Description = description,
-                    InputSchema = schema
-                });
+                tools.Add(new McpTool { Name = HandlersListToolName, Description = "List handlers from handlers.json (optionally include full configs).", InputSchema = HandlersListSchema() });
+                tools.Add(new McpTool { Name = HandlersGetToolName, Description = "Get a single handler config by name.", InputSchema = HandlersGetSchema() });
+                tools.Add(new McpTool { Name = HandlerAddToolName, Description = "Add a new handler to handlers.json and optionally reload handlers.", InputSchema = HandlerAddSchema() });
+                tools.Add(new McpTool { Name = HandlerUpdateToolName, Description = "Update an existing handler by name (partial update) and optionally reload handlers.", InputSchema = HandlerUpdateSchema() });
+                tools.Add(new McpTool { Name = HandlerDeleteToolName, Description = "Delete an existing handler by name and optionally reload handlers.", InputSchema = HandlerDeleteSchema() });
+                tools.Add(new McpTool { Name = HandlerReloadToolName, Description = "Reload handlers from handlers.json (optionally reload plugins).", InputSchema = HandlerReloadSchema() });
+                tools.Add(new McpTool { Name = PluginsListToolName, Description = "List loaded plugin names (actions/validators/context_providers) and registered handler types.", InputSchema = EmptyObjectSchema() });
+                tools.Add(new McpTool { Name = ConfigGetKeysToolName, Description = "List config keys (section.key).", InputSchema = EmptyObjectSchema() });
+                tools.Add(new McpTool { Name = ConfigGetSectionToolName, Description = "Get a config section as key-value pairs (values may be masked).", InputSchema = ConfigGetSectionSchema() });
+                tools.Add(new McpTool { Name = ConfigSetValueToolName, Description = "Set a config value in config.ini or secrets.ini.", InputSchema = ConfigSetValueSchema() });
+                tools.Add(new McpTool { Name = ConfigReloadToolName, Description = "Reload config files from disk.", InputSchema = EmptyObjectSchema() });
+                tools.Add(new McpTool { Name = HandlerDocsToolName, Description = "Handler authoring guide and examples (templating, conditions, seeder, MCP).", InputSchema = HandlerDocsSchema() });
             }
 
             return new JsonRpcResponse
@@ -470,6 +508,15 @@ Returns { cancelled: boolean, values: object }.
                 return await HandleUiShowMarkdownAsync(request, callParams);
             }
 
+            // Management tools (gated)
+            if (IsManagementToolsEnabled())
+            {
+                var mgmt = await TryHandleManagementToolAsync(request, callParams, handlerManager);
+                if (mgmt != null)
+                    return mgmt;
+            }
+
+            // Find matching handler by mcp_tool_name or slug(name)
             if (handlerManager == null)
             {
                 return new JsonRpcResponse
@@ -479,7 +526,6 @@ Returns { cancelled: boolean, values: object }.
                 };
             }
 
-            // Find matching handler by mcp_tool_name or slug(name)
             var configs = handlerManager.GetAllHandlerConfigs();
             var matchedConfig = configs.FirstOrDefault(c =>
                 c.McpEnabled &&
@@ -639,6 +685,292 @@ Returns { cancelled: boolean, values: object }.
                     try { disposable.Dispose(); } catch { /* ignore */ }
                 }
             }
+        }
+
+        private async Task<JsonRpcResponse?> TryHandleManagementToolAsync(JsonRpcRequest request, McpToolsCallParams callParams, HandlerManager? handlerManager)
+        {
+            // If name doesn't match our management tool set, skip.
+            var name = callParams.Name ?? string.Empty;
+            if (!string.Equals(name, HandlersListToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlersGetToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlerAddToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlerUpdateToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlerDeleteToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlerReloadToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, PluginsListToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, ConfigGetKeysToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, ConfigGetSectionToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, ConfigSetValueToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, ConfigReloadToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlerDocsToolName, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            var args = callParams.Arguments.HasValue ? callParams.Arguments.Value : default;
+
+            try
+            {
+                if (string.Equals(name, HandlersListToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var store = TryCreateHandlerConfigStore();
+                    if (store == null) return ToolError(request, "HandlerConfigStore not available");
+
+                    bool includeConfigs = false;
+                    if (args.ValueKind == JsonValueKind.Object && args.TryGetProperty("include_configs", out var ic) && ic.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        includeConfigs = ic.ValueKind == JsonValueKind.True;
+
+                    var all = await store.ReadAllAsync();
+                    if (includeConfigs)
+                    {
+                        return ToolOk(request, new { success = true, handlers = all });
+                    }
+
+                    return ToolOk(request, new
+                    {
+                        success = true,
+                        handlers = all.Select(h => new
+                        {
+                            name = h.Name,
+                            type = h.Type,
+                            description = h.Description,
+                            enabled = h.Enabled,
+                            mcp_enabled = h.McpEnabled
+                        }).ToList()
+                    });
+                }
+
+                if (string.Equals(name, HandlersGetToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (args.ValueKind != JsonValueKind.Object || !args.TryGetProperty("name", out var n) || n.ValueKind != JsonValueKind.String)
+                        return ToolError(request, "handlers_get requires arguments.name");
+
+                    var store = TryCreateHandlerConfigStore();
+                    if (store == null) return ToolError(request, "HandlerConfigStore not available");
+
+                    var cfg = await store.GetByNameAsync(n.GetString() ?? string.Empty);
+                    if (cfg == null) return ToolError(request, "Handler not found");
+                    return ToolOk(request, new { success = true, handler = cfg });
+                }
+
+                if (string.Equals(name, HandlerAddToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (args.ValueKind != JsonValueKind.Object || !args.TryGetProperty("handler_config", out var hc) || hc.ValueKind != JsonValueKind.Object)
+                        return ToolError(request, "handler_add requires arguments.handler_config (object)");
+
+                    bool reload = true;
+                    if (args.TryGetProperty("reload_after_add", out var ra) && ra.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        reload = ra.ValueKind == JsonValueKind.True;
+
+                    var store = TryCreateHandlerConfigStore();
+                    if (store == null) return ToolError(request, "HandlerConfigStore not available");
+
+                    var cfg = hc.Deserialize<HandlerConfig>(_jsonOptions);
+                    if (cfg == null) return ToolError(request, "Invalid handler_config JSON");
+
+                    var res = await store.AddAsync(cfg);
+                    if (!res.Success) return ToolError(request, $"{res.Code}: {res.Error}");
+
+                    if (reload && handlerManager != null)
+                        handlerManager.ReloadHandlers(reloadPlugins: false);
+
+                    return ToolOk(request, new { success = true, name = cfg.Name, type = cfg.Type });
+                }
+
+                if (string.Equals(name, HandlerUpdateToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (args.ValueKind != JsonValueKind.Object || !args.TryGetProperty("handler_name", out var hn) || hn.ValueKind != JsonValueKind.String)
+                        return ToolError(request, "handler_update requires arguments.handler_name");
+                    if (!args.TryGetProperty("updates", out var up) || up.ValueKind != JsonValueKind.Object)
+                        return ToolError(request, "handler_update requires arguments.updates (object)");
+
+                    bool reload = true;
+                    if (args.TryGetProperty("reload_after_update", out var ra) && ra.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        reload = ra.ValueKind == JsonValueKind.True;
+
+                    var store = TryCreateHandlerConfigStore();
+                    if (store == null) return ToolError(request, "HandlerConfigStore not available");
+
+                    var res = await store.UpdatePartialAsync(hn.GetString() ?? string.Empty, up);
+                    if (!res.Success) return ToolError(request, $"{res.Code}: {res.Error}");
+
+                    if (reload && handlerManager != null)
+                        handlerManager.ReloadHandlers(reloadPlugins: false);
+
+                    return ToolOk(request, new { success = true, name = hn.GetString(), updated_fields = res.Payload?.UpdatedFields ?? new List<string>() });
+                }
+
+                if (string.Equals(name, HandlerDeleteToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (args.ValueKind != JsonValueKind.Object || !args.TryGetProperty("handler_name", out var hn) || hn.ValueKind != JsonValueKind.String)
+                        return ToolError(request, "handler_delete requires arguments.handler_name");
+
+                    bool reload = true;
+                    if (args.TryGetProperty("reload_after_delete", out var ra) && ra.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        reload = ra.ValueKind == JsonValueKind.True;
+
+                    var store = TryCreateHandlerConfigStore();
+                    if (store == null) return ToolError(request, "HandlerConfigStore not available");
+
+                    var res = await store.DeleteAsync(hn.GetString() ?? string.Empty);
+                    if (!res.Success) return ToolError(request, $"{res.Code}: {res.Error}");
+
+                    if (reload && handlerManager != null)
+                        handlerManager.ReloadHandlers(reloadPlugins: false);
+
+                    return ToolOk(request, new { success = true, name = hn.GetString() });
+                }
+
+                if (string.Equals(name, HandlerReloadToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    bool reloadPlugins = false;
+                    if (args.ValueKind == JsonValueKind.Object && args.TryGetProperty("reload_plugins", out var rp) && rp.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        reloadPlugins = rp.ValueKind == JsonValueKind.True;
+
+                    if (handlerManager == null) return ToolError(request, "HandlerManager is not available");
+
+                    var (handlersReloaded, newPluginsLoaded) = handlerManager.ReloadHandlers(reloadPlugins);
+                    return ToolOk(request, new { success = true, handlers_reloaded = handlersReloaded, new_plugins_loaded = newPluginsLoaded });
+                }
+
+                if (string.Equals(name, HandlerDocsToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    bool showUi = false;
+                    string title = "Handler Authoring Guide";
+                    bool autoFocus = false;
+                    bool bringToFront = false;
+
+                    if (args.ValueKind == JsonValueKind.Object)
+                    {
+                        if (args.TryGetProperty("show_ui", out var s) && s.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                            showUi = s.ValueKind == JsonValueKind.True;
+                        if (args.TryGetProperty("title", out var t) && t.ValueKind == JsonValueKind.String)
+                            title = t.GetString() ?? title;
+                        if (args.TryGetProperty("auto_focus", out var af) && af.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                            autoFocus = af.ValueKind == JsonValueKind.True;
+                        if (args.TryGetProperty("bring_to_front", out var bf) && bf.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                            bringToFront = bf.ValueKind == JsonValueKind.True;
+                    }
+
+                    var markdown = BuildHandlerDocsMarkdown();
+                    if (showUi)
+                    {
+                        ShowMarkdownTab(title, markdown, autoFocus, bringToFront);
+                    }
+
+                    return ToolOk(request, new { success = true, markdown });
+                }
+
+                if (string.Equals(name, PluginsListToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var actionService = ServiceLocator.SafeGet<IActionService>();
+                    var concrete = actionService as ActionService;
+
+                    var payload = new
+                    {
+                        success = true,
+                        handler_types = HandlerFactory.GetRegisteredTypeNames(),
+                        actions = concrete?.GetActionNames() ?? Array.Empty<string>(),
+                        validators = concrete?.GetValidatorNames() ?? Array.Empty<string>(),
+                        context_providers = concrete?.GetContextProviderNames() ?? Array.Empty<string>(),
+                    };
+
+                    return ToolOk(request, payload);
+                }
+
+                if (string.Equals(name, ConfigGetKeysToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var cfg = ServiceLocator.SafeGet<IConfigurationService>();
+                    if (cfg == null) return ToolError(request, "IConfigurationService is not available");
+
+                    var keys = cfg.GetAllKeys();
+                    return ToolOk(request, new { success = true, keys });
+                }
+
+                if (string.Equals(name, ConfigGetSectionToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (args.ValueKind != JsonValueKind.Object || !args.TryGetProperty("section", out var s) || s.ValueKind != JsonValueKind.String)
+                        return ToolError(request, "config_get_section requires arguments.section");
+
+                    var cfg = ServiceLocator.SafeGet<IConfigurationService>();
+                    if (cfg == null) return ToolError(request, "IConfigurationService is not available");
+
+                    var section = s.GetString() ?? string.Empty;
+                    var values = cfg.GetSection(section);
+
+                    // Mask common sensitive sections by default
+                    var masked = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    var shouldMaskAll = section.Equals("api_keys", StringComparison.OrdinalIgnoreCase) ||
+                                        section.Equals("credentials", StringComparison.OrdinalIgnoreCase) ||
+                                        section.Equals("connections", StringComparison.OrdinalIgnoreCase);
+                    foreach (var kvp in values)
+                    {
+                        if (shouldMaskAll || kvp.Key.Contains("token", StringComparison.OrdinalIgnoreCase) || kvp.Key.Contains("key", StringComparison.OrdinalIgnoreCase) || kvp.Key.Contains("password", StringComparison.OrdinalIgnoreCase) || kvp.Key.Contains("secret", StringComparison.OrdinalIgnoreCase))
+                            masked[kvp.Key] = "***";
+                        else
+                            masked[kvp.Key] = kvp.Value;
+                    }
+
+                    return ToolOk(request, new { success = true, section, values = masked });
+                }
+
+                if (string.Equals(name, ConfigSetValueToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (args.ValueKind != JsonValueKind.Object) return ToolError(request, "config_set_value requires arguments");
+                    if (!args.TryGetProperty("file_type", out var ft) || ft.ValueKind != JsonValueKind.String) return ToolError(request, "config_set_value requires file_type");
+                    if (!args.TryGetProperty("section", out var sec) || sec.ValueKind != JsonValueKind.String) return ToolError(request, "config_set_value requires section");
+                    if (!args.TryGetProperty("key", out var key) || key.ValueKind != JsonValueKind.String) return ToolError(request, "config_set_value requires key");
+                    if (!args.TryGetProperty("value", out var val)) return ToolError(request, "config_set_value requires value");
+
+                    var cfg = ServiceLocator.SafeGet<IConfigurationService>();
+                    if (cfg == null) return ToolError(request, "IConfigurationService is not available");
+
+                    cfg.SetValue(ft.GetString() ?? "config", sec.GetString() ?? "", key.GetString() ?? "", val.ToString());
+                    return ToolOk(request, new { success = true });
+                }
+
+                if (string.Equals(name, ConfigReloadToolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var cfg = ServiceLocator.SafeGet<IConfigurationService>();
+                    if (cfg == null) return ToolError(request, "IConfigurationService is not available");
+                    cfg.ReloadConfig();
+                    return ToolOk(request, new { success = true });
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return ToolError(request, ex.Message);
+            }
+        }
+
+        private JsonRpcResponse ToolOk(JsonRpcRequest request, object payload)
+        {
+            var text = JsonSerializer.Serialize(payload, _jsonOptions);
+            return new JsonRpcResponse
+            {
+                Id = request.Id,
+                Result = new McpToolsCallResult
+                {
+                    Content = new List<McpContentItem> { new McpContentItem { Type = "text", Text = text } },
+                    IsError = false
+                }
+            };
+        }
+
+        private JsonRpcResponse ToolError(JsonRpcRequest request, string message)
+        {
+            var text = JsonSerializer.Serialize(new { success = false, error = message }, _jsonOptions);
+            return new JsonRpcResponse
+            {
+                Id = request.Id,
+                Result = new McpToolsCallResult
+                {
+                    Content = new List<McpContentItem> { new McpContentItem { Type = "text", Text = text } },
+                    IsError = true
+                }
+            };
         }
 
         private static Dictionary<string, string> BuildReturnPayload(HandlerConfig config, DispatchExecutionResult execResult)
@@ -1141,6 +1473,549 @@ Returns { cancelled: boolean, values: object }.
             """;
             using var doc = JsonDocument.Parse(schemaJson);
             return doc.RootElement.Clone();
+        }
+
+        private static JsonElement EmptyObjectSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": true
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement HandlersListSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {
+                "include_configs": { "type": "boolean", "default": false }
+              }
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement HandlersGetSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": { "name": { "type": "string" } },
+              "required": ["name"]
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement HandlerAddSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {
+                "handler_config": { "type": "object" },
+                "reload_after_add": { "type": "boolean", "default": true }
+              },
+              "required": ["handler_config"]
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement HandlerUpdateSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {
+                "handler_name": { "type": "string" },
+                "updates": { "type": "object" },
+                "reload_after_update": { "type": "boolean", "default": true }
+              },
+              "required": ["handler_name", "updates"]
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement HandlerDeleteSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {
+                "handler_name": { "type": "string" },
+                "reload_after_delete": { "type": "boolean", "default": true }
+              },
+              "required": ["handler_name"]
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement HandlerReloadSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {
+                "reload_plugins": { "type": "boolean", "default": false }
+              }
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement HandlerDocsSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {
+                "show_ui": { "type": "boolean", "default": false },
+                "title": { "type": "string" },
+                "auto_focus": { "type": "boolean", "default": false },
+                "bring_to_front": { "type": "boolean", "default": false }
+              }
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement ConfigGetSectionSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {
+                "section": { "type": "string" }
+              },
+              "required": ["section"]
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static JsonElement ConfigSetValueSchema()
+        {
+            const string schemaJson = """
+            {
+              "type": "object",
+              "properties": {
+                "file_type": { "type": "string", "description": "config or secrets" },
+                "section": { "type": "string" },
+                "key": { "type": "string" },
+                "value": { "type": "string" }
+              },
+              "required": ["file_type", "section", "key", "value"]
+            }
+            """;
+            using var doc = JsonDocument.Parse(schemaJson);
+            return doc.RootElement.Clone();
+        }
+
+        private static string BuildHandlerDocsMarkdown()
+        {
+            return """
+# Handler Authoring Guide (Contextualizer) — Single Source of Truth
+
+This document fully describes **all supported fields** in `HandlerConfig` and how to compose a handler from scratch.
+If you know nothing about the system, start here.
+
+---
+
+## 0) Minimal handler
+Every handler requires:
+```
+name: string
+type: string
+```
+Everything else is optional but may be required by the specific handler type.
+
+---
+
+## 1) Handler lifecycle (execution order)
+1. **CanHandle** decides if a handler should run for clipboard content.
+2. **CreateContext** builds a context map (regex groups, API JSON, DB rows, file metadata, etc.).
+3. **ConstantSeeder** merges into context (no templating).
+4. **Seeder** merges into context (templating enabled).
+5. **Templating** resolves `$config:`, `$file:`, `$func:` then `$(key)` placeholders.
+6. **Actions** execute in order (with optional conditions and action user_inputs).
+7. **Output** is produced using `output_format` (if missing, handler may produce defaults).
+
+---
+
+## 2) All fields (HandlerConfig schema)
+
+### Common identity + UI
+```
+name: string (required)
+description?: string
+type: string (required)
+screen_id?: string         // tab id for show_window actions
+title?: string             // tab title
+enabled?: boolean          // default true
+requires_confirmation?: boolean
+auto_focus_tab?: boolean
+bring_window_to_front?: boolean
+```
+
+### Output + context seeding
+```
+output_format?: string
+seeder?: { [key:string]: string }           // templated values
+constant_seeder?: { [key:string]: string }  // raw values
+user_inputs?: UserInputRequest[]            // handler-level prompts
+actions?: ConfigAction[]                    // handler-level actions
+```
+
+### Regex / Groups (used by Regex, optional in Api/Database)
+```
+regex?: string
+groups?: string[]
+```
+
+### File handler
+```
+file_extensions?: string[]   // e.g. [".txt", ".json"]
+```
+
+### Lookup handler
+```
+path?: string                 // supports $config:, $file:
+delimiter?: string            // e.g. "\\t" or ","
+key_names?: string[]          // which columns are keys
+value_names?: string[]        // all column names
+```
+
+### Database handler
+```
+connectionString?: string
+query?: string
+connector?: string            // "mssql" | "plsql"
+command_timeout_seconds?: int?
+connection_timeout_seconds?: int?
+max_pool_size?: int?
+min_pool_size?: int?
+disable_pooling?: bool?
+regex?: string                // optional
+groups?: string[]             // optional
+```
+
+### API handler
+```
+url?: string
+method?: string               // GET/POST/PUT/PATCH/DELETE
+headers?: { [key:string]: string }
+request_body?: object|array   // JSON
+content_type?: string         // e.g. application/json
+timeout_seconds?: int?
+regex?: string                // optional
+groups?: string[]             // optional
+```
+
+### Custom handler
+```
+validator?: string            // IContextValidator.Name
+context_provider?: string     // IContextProvider.Name
+```
+
+### Synthetic handler
+```
+reference_handler?: string    // name of existing handler
+actual_type?: string          // embed actual handler type
+synthetic_input?: UserInputRequest
+```
+
+### Cron handler
+```
+cron_job_id?: string
+cron_expression?: string
+cron_timezone?: string
+cron_enabled?: bool
+actual_type?: string          // embedded handler type (required)
+```
+
+### MCP (Model Context Protocol)
+```
+mcp_enabled?: bool
+mcp_tool_name?: string
+mcp_description?: string
+mcp_input_schema?: object     // JSON Schema
+mcp_input_template?: string   // builds ClipboardContent.Text
+mcp_return_keys?: string[]    // filter outputs
+mcp_headless?: bool           // disable UI prompts
+mcp_seed_overwrite?: bool
+```
+
+---
+
+## 3) Placeholders & templating
+Templating order: `$file:` → `$config:` → `$func:` → `$(key)`
+
+### $(key)
+```
+"Order $(orderId) for $(customer)"
+```
+
+### $config:
+```
+$config:secrets.api_key
+$config:database.default
+```
+
+### $file:
+```
+$file:C:\\path\\file.txt
+```
+
+### $func:
+Functions run before `$(key)` substitution.
+Examples:
+```
+$func:today().format("yyyy-MM-dd")
+$func:guid()
+$func:string.upper("hello")
+$func:{{ $(id) | string.upper() }}
+```
+
+---
+
+## 4) FunctionProcessor reference
+Supported base functions (case-insensitive):
+```
+today, now, yesterday, tomorrow, guid, random,
+base64encode, base64decode, env, username, computername
+```
+
+Supported namespaces (base):
+```
+hash.*, url.*, web.*, ip.*, json.*, string.*, math.*, array.*
+```
+
+Common examples:
+```
+$func:hash.sha256("text")
+$func:url.encode("a b")
+$func:web.get("https://example.com")
+$func:ip.local()
+$func:json.get("{\\"a\\":1}", "a")
+$func:string.upper("hi")
+$func:math.add(2, 3)
+$func:array.join("[\\"a\\",\\"b\\"]", ",")
+```
+
+Pipeline format:
+```
+$func:{{ "abc" | string.upper() | string.substring(0,2) }}
+```
+
+---
+
+## 5) Conditions (ConditionEvaluator)
+Operators:
+```
+and, or, equals, not_equals, greater_than, less_than,
+contains, starts_with, ends_with, matches_regex,
+is_empty, is_not_empty
+```
+
+Leaf condition:
+```
+{ "operator": "equals", "field": "StatusCode", "value": "200" }
+```
+
+Group:
+```
+{ "operator": "and", "conditions": [ ... ] }
+```
+
+---
+
+## 6) Seeder vs ConstantSeeder
+- `constant_seeder` merges raw values first.
+- `seeder` merges after and resolves templates.
+
+Example:
+```
+constant_seeder: { "source": "ui" }
+seeder: { "key": "$(group_1)", "ts": "$func:now().format(\\"o\\")" }
+```
+
+---
+
+## 7) UserInputRequest (all options)
+```
+{
+  "key": "username",
+  "title": "User",
+  "message": "Enter user name",
+  "validation_regex": "^[a-z0-9_]+$",
+  "is_required": true,
+  "is_selection_list": false,
+  "is_password": false,
+  "selection_items": [ {"value":"a","display":"A"} ],
+  "is_multi_select": false,
+  "is_file_picker": false,
+  "is_multi_line": false,
+  "default_value": "",
+  "dependent_key": "country",
+  "dependent_selection_item_map": {
+    "TR": { "selection_items": [ {"value":"34","display":"Istanbul"} ], "default_value": "34" }
+  },
+  "config_target": "secrets.section.key"
+}
+```
+
+---
+
+## 8) ConfigAction (all options)
+```
+{
+  "name": "show_window",
+  "key": "optional",
+  "requires_confirmation": false,
+  "conditions": { ...Condition... },
+  "user_inputs": [ ...UserInputRequest... ],
+  "seeder": { "k": "$(value)" },
+  "constant_seeder": { "k": "v" },
+  "inner_actions": [ ...ConfigAction... ]
+}
+```
+
+---
+
+## 9) Type-specific minimal examples
+
+### Regex
+```
+{ "name":"R1", "type":"Regex", "regex":"^ABC(?<id>\\d+)$", "groups":["id"] }
+```
+
+### File
+```
+{ "name":"F1", "type":"File", "file_extensions":[".txt",".json"] }
+```
+
+### Lookup
+```
+{ "name":"L1", "type":"Lookup", "path":"$config:data.lookup_path", "delimiter":"\\t",
+  "key_names":["sku"], "value_names":["sku","desc","price"] }
+```
+
+### Database
+```
+{ "name":"DB1", "type":"Database", "connector":"mssql",
+  "connectionString":"$config:db.main",
+  "query":"select * from Orders where Id=@orderId",
+  "regex":"^ORD-(?<orderId>\\d+)$", "groups":["orderId"] }
+```
+
+### API
+```
+{ "name":"API1", "type":"Api",
+  "url":"https://api/items/$(id)",
+  "method":"GET",
+  "headers": { "Authorization":"Bearer $config:secrets.api" } }
+```
+
+### Custom
+```
+{ "name":"C1", "type":"Custom", "validator":"MyValidator", "context_provider":"MyProvider" }
+```
+
+### Manual
+```
+{ "name":"M1", "type":"Manual" }
+```
+
+### Synthetic (reference)
+```
+{ "name":"S1", "type":"Synthetic", "reference_handler":"API1" }
+```
+
+### Synthetic (embedded)
+```
+{ "name":"S2", "type":"Synthetic", "actual_type":"Database",
+  "connectionString":"$config:db.main", "connector":"mssql", "query":"select 1" }
+```
+
+### Cron (embedded)
+```
+{ "name":"CR1", "type":"Cron", "cron_expression":"0 */5 * * * ?",
+  "cron_timezone":"Europe/Istanbul", "cron_enabled":true,
+  "actual_type":"Api", "url":"https://api/ping", "method":"GET" }
+```
+
+---
+
+## 10) MCP usage
+Set `mcp_enabled` to expose the handler as a tool.
+
+Optional MCP fields:
+```
+mcp_tool_name, mcp_description, mcp_input_schema,
+mcp_input_template, mcp_return_keys, mcp_headless, mcp_seed_overwrite
+```
+
+If no `mcp_input_schema` is provided:
+- File handlers expect `{ files: string[] }`
+- If `user_inputs` exist, a schema is generated from them
+- Otherwise `{ text: string }`
+
+---
+
+## 11) Complete example (API + actions + user_inputs)
+```
+{
+  "name":"OrderLookup",
+  "type":"Api",
+  "url":"https://api/orders/$(orderId)",
+  "method":"GET",
+  "headers": { "Authorization":"Bearer $config:secrets.api_key" },
+  "user_inputs":[
+    { "key":"orderId", "title":"Order", "message":"Enter order id" }
+  ],
+  "seeder": { "requested_at":"$func:now().format(\\"o\\")" },
+  "actions": [
+    {
+      "name":"show_notification",
+      "conditions": { "operator":"equals", "field":"StatusCode", "value":"200" }
+    }
+  ],
+  "output_format":"Order $(id) — $(status)"
+}
+```
+""";
+        }
+
+        private static void ShowMarkdownTab(string title, string markdown, bool autoFocus, bool bringToFront)
+        {
+            var ui = ServiceLocator.SafeGet<WebViewUserInteractionService>()
+                ?? ServiceLocator.SafeGet<IUserInteractionService>();
+
+            if (ui == null) return;
+
+            var context = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                [ContextKey._body] = markdown
+            };
+
+            ui.ShowWindow("markdown2", title, context, null, autoFocus, bringToFront);
         }
 
         private static string Slugify(string name)

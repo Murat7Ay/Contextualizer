@@ -1,4 +1,4 @@
-import { Trash2, Search, Filter } from 'lucide-react';
+import { Trash2, Search, Filter, X } from 'lucide-react';
 import { useActivityLogStore, type LogLevel } from '../../stores/activityLogStore';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -13,6 +13,7 @@ import {
 import { ScrollArea } from '../ui/scroll-area';
 import { cn } from '../ui/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { useAppStore } from '../../stores/appStore';
 
 const levelColors: Record<LogLevel, string> = {
   success: 'bg-green-500/10 text-green-700 dark:text-green-400',
@@ -25,6 +26,7 @@ const levelColors: Record<LogLevel, string> = {
 
 export function ActivityLog() {
   const { logs, filter, searchQuery, clearLogs, setFilter, setSearchQuery } = useActivityLogStore();
+  const toggleActivityLog = useAppStore((s) => s.toggleActivityLog);
 
   const filteredLogs = logs.filter((log) => {
     const matchesFilter = filter === 'all' || log.level === filter;
@@ -39,6 +41,9 @@ export function ActivityLog() {
       {/* Header */}
       <div className="h-12 border-b px-4 flex items-center gap-2">
         <h2 className="text-sm font-semibold flex-1">Activity Log</h2>
+        <Button variant="ghost" size="sm" onClick={toggleActivityLog} title="Close">
+          <X className="h-4 w-4" />
+        </Button>
         <Button variant="ghost" size="sm" onClick={clearLogs} title="Clear logs">
           <Trash2 className="h-4 w-4" />
         </Button>

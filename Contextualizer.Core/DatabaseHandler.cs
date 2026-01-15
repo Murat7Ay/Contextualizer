@@ -433,7 +433,7 @@ namespace Contextualizer.Core
         {
             return await CanHandleAsync(clipboardContent);
         }
-        public bool IsSafeSqlQuery(string query)
+        public static bool IsSafeSqlQuery(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
             {

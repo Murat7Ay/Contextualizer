@@ -35,6 +35,29 @@ export function requestHandlersList(): boolean {
   return postWebView2Message({ type: 'handlers_list_request' });
 }
 
+export function requestPluginsList(): boolean {
+  return postWebView2Message({ type: 'plugins_list_request' });
+}
+
+export function requestHandlerConfig(name: string): boolean {
+  if (!name) return false;
+  return postWebView2Message({ type: 'handler_get_request', name });
+}
+
+export function createHandler(handlerConfig: unknown, reloadAfter = true): boolean {
+  return postWebView2Message({ type: 'handler_create', handlerConfig, reloadAfter });
+}
+
+export function updateHandler(handlerName: string, updates: unknown, reloadAfter = true): boolean {
+  if (!handlerName) return false;
+  return postWebView2Message({ type: 'handler_update', handlerName, updates, reloadAfter });
+}
+
+export function deleteHandler(handlerName: string, reloadAfter = true): boolean {
+  if (!handlerName) return false;
+  return postWebView2Message({ type: 'handler_delete', handlerName, reloadAfter });
+}
+
 export function setHandlerEnabled(name: string, enabled: boolean): boolean {
   return postWebView2Message({ type: 'handler_set_enabled', name, enabled });
 }
@@ -236,6 +259,10 @@ export function updateExchangePackage(handlerId: string): boolean {
 export function removeExchangePackage(handlerId: string): boolean {
   if (!handlerId) return false;
   return postWebView2Message({ type: 'exchange_remove', handlerId });
+}
+
+export function publishExchangePackage(pkg: unknown): boolean {
+  return postWebView2Message({ type: 'exchange_publish', package: pkg });
 }
 
 export function addWebView2MessageListener(handler: (payload: unknown) => void): () => void {

@@ -19,6 +19,7 @@ import {
   updateExchangePackage,
   removeExchangePackage,
 } from '../../host/webview2Bridge';
+import { ExchangePublishDialog } from './ExchangePublishDialog';
 
 type SortMode = 'name_asc' | 'name_desc' | 'newest' | 'most_downloaded';
 
@@ -55,6 +56,7 @@ export function HandlerExchange() {
   const [searchQuery, setSearchQuery] = useState('');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [sortMode, setSortMode] = useState<SortMode>('name_asc');
+  const [publishOpen, setPublishOpen] = useState(false);
 
   // Load packages on mount
   useEffect(() => {
@@ -109,7 +111,11 @@ export function HandlerExchange() {
   };
 
   const addNewHandler = () => {
-    addLog('info', 'Add new handler feature coming soon');
+    if (!canUseHost) {
+      addLog('warning', 'Host not connected');
+      return;
+    }
+    setPublishOpen(true);
   };
 
   const showDetails = (pkg: HandlerPackageDto) => {
@@ -350,6 +356,8 @@ export function HandlerExchange() {
           })}
         </div>
       )}
+
+      <ExchangePublishDialog open={publishOpen} onOpenChange={setPublishOpen} />
 
       <Dialog open={detailsOpen} onOpenChange={(o) => (!o ? closeDetails() : null)}>
         <DialogContent className="sm:max-w-2xl">

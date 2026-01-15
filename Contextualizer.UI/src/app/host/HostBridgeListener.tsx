@@ -8,7 +8,7 @@ import { useActivityLogStore } from '../stores/activityLogStore';
 import { useAppSettingsStore, type AppSettingsDto, type LogClearResult } from '../stores/appSettingsStore';
 import { useAppStore } from '../stores/appStore';
 import { useHandlerExchangeStore, type HandlerPackageDto } from '../stores/handlerExchangeStore';
-import { addWebView2MessageListener, executeToastAction, notifyToastClosed } from './webview2Bridge';
+import { addWebView2MessageListener, executeToastAction, notifyToastClosed, requestExchangePackages } from './webview2Bridge';
 import { CountdownToastView, type CountdownToastAction } from '../components/ui/countdown-toast';
 
 type TabAction = {
@@ -86,6 +86,12 @@ type ExchangeTagsMessage = {
 type ExchangeOperationResultMessage = {
   type: 'exchange_install_result' | 'exchange_update_result' | 'exchange_remove_result';
   handlerId: string;
+  success: boolean;
+  error?: string;
+};
+
+type ExchangePublishResultMessage = {
+  type: 'exchange_publish_result';
   success: boolean;
   error?: string;
 };
@@ -262,6 +268,20 @@ export function HostBridgeListener() {
           return;
         }
         setExchangeDetailsPackage(m.handlerId, (m.package ?? null) as HandlerPackageDto | null);
+        return;
+      }
+
+      if (type === 'exchange_publish_result') {
+        const m = payload as ExchangePublishResultMessage;
+        if (m.success) {
+          addLog('success', 'Package published');
+          // refresh list (best effort)
+          setExchangeLoading(true);
+          requestExchangePackages();
+        } else {
+          addLog('error', 'Failed to publish package', m.error ?? 'Unknown error');
+          setExchangeError(m.error ?? 'Failed to publish package');
+        }
         return;
       }
 

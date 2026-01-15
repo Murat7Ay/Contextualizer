@@ -57,6 +57,12 @@ namespace WpfInteractionApp.Settings
         /// </summary>
         [JsonPropertyName("use_native_ui")]
         public bool UseNativeUi { get; set; } = true;
+
+        /// <summary>
+        /// When true, MCP exposes management tools (handlers/config/plugins). Keep false by default for safety.
+        /// </summary>
+        [JsonPropertyName("management_tools_enabled")]
+        public bool ManagementToolsEnabled { get; set; } = false;
     }
 
     public class ConfigSystemSettings

@@ -74,6 +74,19 @@ namespace Contextualizer.Core
             return null;
         }
 
+        public static bool IsTypeRegistered(string? type)
+        {
+            if (string.IsNullOrWhiteSpace(type))
+                return false;
+            return _handlerMap.ContainsKey(type);
+        }
+
+        public static IReadOnlyList<string> GetRegisteredTypeNames()
+        {
+            // stable ordering for UI / tooling
+            return _handlerMap.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
         private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
         {
             try

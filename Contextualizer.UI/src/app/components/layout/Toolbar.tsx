@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Home, Settings, Package, Calendar, ShoppingBag, Sun, Moon, Zap } from 'lucide-react';
+import { Home, Settings, Package, Calendar, ShoppingBag, Sun, Moon, Zap, PanelRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import {
@@ -20,7 +20,7 @@ export function Toolbar() {
   const navigate = useNavigate();
   const openTab = useTabStore((state) => state.openTab);
   const tabs = useTabStore((state) => state.tabs);
-  const { theme, setTheme } = useAppStore();
+  const { theme, setTheme, activityLogOpen, toggleActivityLog } = useAppStore();
   const webView2Available = useHostStore((s) => s.webView2Available);
   const hostConnected = useHostStore((s) => s.hostConnected);
   const handlers = useHandlersStore((s) => s.handlers);
@@ -138,6 +138,13 @@ export function Toolbar() {
       
       <Separator orientation="vertical" className="h-6" />
       
+      <Button variant={activityLogOpen ? 'secondary' : 'ghost'} size="sm" onClick={toggleActivityLog} title="Activity Log">
+        <PanelRight className="h-4 w-4 mr-2" />
+        Activity Log
+      </Button>
+
+      <Separator orientation="vertical" className="h-6" />
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" title="Theme">

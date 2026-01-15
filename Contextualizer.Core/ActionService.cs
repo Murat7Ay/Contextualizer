@@ -115,6 +115,21 @@ namespace Contextualizer.Core
             return null;
         }
 
+        public IReadOnlyList<string> GetActionNames()
+        {
+            return _actions.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        public IReadOnlyList<string> GetValidatorNames()
+        {
+            return _validators.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        public IReadOnlyList<string> GetContextProviderNames()
+        {
+            return _contextProviders.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
         public async Task Action(ConfigAction configAction, ContextWrapper contextWrapper)
         {
             UserFeedback.ShowActivity(LogType.Info, $"Action '{configAction.Name}' started");

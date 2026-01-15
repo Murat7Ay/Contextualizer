@@ -1705,6 +1705,7 @@ function AdvancedSettings() {
 
   const mcpEnabled = !!draft?.mcpSettings?.enabled;
   const mcpPort = draft?.mcpSettings?.port ?? 5000;
+  const mcpMgmtToolsEnabled = !!draft?.mcpSettings?.managementToolsEnabled;
 
   return (
     <div className="space-y-6">
@@ -1780,6 +1781,28 @@ function AdvancedSettings() {
                       mcpSettings: {
                         ...d.mcpSettings,
                         useNativeUi: checked,
+                      },
+                    }))
+                  }
+                  disabled={disabled || !mcpEnabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-md bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+                <div>
+                  <Label className="font-semibold">Enable MCP Management Tools</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Exposes handler/config/plugin management tools over MCP. Keep disabled unless you trust the MCP client.
+                  </p>
+                </div>
+                <Switch
+                  checked={mcpMgmtToolsEnabled}
+                  onCheckedChange={(checked) =>
+                    updateDraft((d) => ({
+                      ...d,
+                      mcpSettings: {
+                        ...d.mcpSettings,
+                        managementToolsEnabled: checked,
                       },
                     }))
                   }

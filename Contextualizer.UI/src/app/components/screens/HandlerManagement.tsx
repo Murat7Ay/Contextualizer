@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, RefreshCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -9,7 +10,9 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useActivityLogStore } from '../../stores/activityLogStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useHandlersStore } from '../../stores/handlersStore';
+import { useTabStore } from '../../stores/tabStore';
 import { reloadHandlers, requestHandlersList, setHandlerEnabled, setHandlerMcpEnabled } from '../../host/webview2Bridge';
+import { Plus } from 'lucide-react';
 
 const statusBadgeClasses = {
   enabled: 'bg-green-500/10 text-green-700 dark:text-green-400',
@@ -23,6 +26,9 @@ export function HandlerManagement() {
 
   const handlers = useHandlersStore((s) => s.handlers);
   const loaded = useHandlersStore((s) => s.loaded);
+
+  const navigate = useNavigate();
+  const openTab = useTabStore((s) => s.openTab);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'enabled' | 'disabled'>('all');
@@ -77,6 +83,16 @@ export function HandlerManagement() {
     addLog('info', 'Reload requested');
   };
 
+  const openNew = () => {
+    openTab('handler_editor_new', 'New Handler', undefined, true);
+    navigate('/handlers/new');
+  };
+
+  const openEdit = (name: string) => {
+    openTab('handler_editor_edit', name, { handlerName: name }, true);
+    navigate(`/handlers/edit/${encodeURIComponent(name)}`);
+  };
+
   return (
     <ScrollArea className="h-full">
       <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -87,10 +103,16 @@ export function HandlerManagement() {
             Enable/disable handlers and control MCP exposure.
           </p>
         </div>
-        <Button variant="outline" onClick={handleReload}>
-          <RefreshCcw className="h-4 w-4 mr-2" />
-          Reload
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={openNew}>
+            <Plus className="h-4 w-4 mr-2" />
+            New
+          </Button>
+          <Button variant="outline" onClick={handleReload}>
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Reload
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -217,6 +239,13 @@ export function HandlerManagement() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => openEdit(h.name)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => toggleEnabled(h.name, h.enabled)}
                       >
                         {h.enabled ? 'Disable' : 'Enable'}
@@ -240,6 +269,7 @@ export function HandlerManagement() {
           </p>
         </CardContent>
       </Card>
+
       </div>
     </ScrollArea>
   );

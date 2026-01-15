@@ -64,6 +64,7 @@ export interface AppSettingsDto {
     enabled: boolean;
     port: number;
     useNativeUi: boolean;
+    managementToolsEnabled: boolean;
   };
 }
 

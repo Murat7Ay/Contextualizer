@@ -6,6 +6,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { Dashboard } from './components/screens/Dashboard';
 import { SettingsScreen } from './components/screens/Settings';
 import { HandlerManagement } from './components/screens/HandlerManagement';
+import { HandlerEditorPage } from './components/screens/HandlerEditorPage';
 import { HandlerExchange } from './components/screens/HandlerExchange';
 import { CronManager } from './components/screens/CronManager';
 import { DynamicTabScreen } from './components/screens/DynamicTabScreen';
@@ -39,6 +40,8 @@ export default function App() {
               <Route path="index.html" element={<Navigate to="/" replace />} />
               <Route path="settings/*" element={<SettingsScreen />} />
               <Route path="handlers" element={<HandlerManagement />} />
+              <Route path="handlers/new" element={<HandlerEditorPage mode="new" />} />
+              <Route path="handlers/edit/:name" element={<HandlerEditorPage mode="edit" />} />
               <Route path="marketplace" element={<HandlerExchange />} />
               <Route path="cron" element={<CronManager />} />
               <Route path="tab/:screenId/:title" element={<DynamicTabScreen />} />

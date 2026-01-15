@@ -94,6 +94,10 @@ function getRouteForScreen(screenId: string, title: string): string {
     case 'cron_manager':
     case 'cron':
       return '/cron';
+    case 'handler_editor_new':
+      return '/handlers/new';
+    case 'handler_editor_edit':
+      return `/handlers/edit/${encodeURIComponent(title)}`;
     default:
       return `/tab/${screenId}/${encodeURIComponent(title)}`;
   }

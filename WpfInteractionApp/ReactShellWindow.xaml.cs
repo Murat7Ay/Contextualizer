@@ -10,6 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Contextualizer.Core.Services;
+using Contextualizer.PluginContracts;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
@@ -432,6 +434,26 @@ namespace WpfInteractionApp
                     case "handlers_list_request":
                         HandleHandlersListRequest();
                         break;
+                    
+                    case "plugins_list_request":
+                        HandlePluginsListRequest();
+                        break;
+                    
+                    case "handler_get_request":
+                        _ = HandleHandlerGetRequestAsync(root);
+                        break;
+                    
+                    case "handler_create":
+                        _ = HandleHandlerCreateAsync(root);
+                        break;
+                    
+                    case "handler_update":
+                        _ = HandleHandlerUpdateAsync(root);
+                        break;
+                    
+                    case "handler_delete":
+                        _ = HandleHandlerDeleteAsync(root);
+                        break;
 
                     case "handler_set_enabled":
                         HandleHandlerSetEnabled(root);
@@ -530,6 +552,10 @@ namespace WpfInteractionApp
 
                     case "exchange_remove":
                         _ = HandleExchangeRemoveAsync(root);
+                        break;
+
+                    case "exchange_publish":
+                        _ = HandleExchangePublishAsync(root);
                         break;
                 }
             }
@@ -678,7 +704,9 @@ namespace WpfInteractionApp
                         mcpSettings = new
                         {
                             enabled = s.McpSettings?.Enabled ?? false,
-                            port = s.McpSettings?.Port ?? 5000
+                            port = s.McpSettings?.Port ?? 5000,
+                            useNativeUi = s.McpSettings?.UseNativeUi ?? true,
+                            managementToolsEnabled = s.McpSettings?.ManagementToolsEnabled ?? false
                         }
                     }
                 });
@@ -848,6 +876,10 @@ namespace WpfInteractionApp
                         s.McpSettings.Enabled = me.ValueKind == JsonValueKind.True;
                     if (mcp.TryGetProperty("port", out var mp) && mp.TryGetInt32(out var mpVal))
                         s.McpSettings.Port = mpVal;
+                    if (mcp.TryGetProperty("useNativeUi", out var nui) && nui.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        s.McpSettings.UseNativeUi = nui.ValueKind == JsonValueKind.True;
+                    if (mcp.TryGetProperty("managementToolsEnabled", out var mte) && mte.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        s.McpSettings.ManagementToolsEnabled = mte.ValueKind == JsonValueKind.True;
                 }
 
                 settingsService.SaveSettings();
@@ -1128,6 +1160,18 @@ namespace WpfInteractionApp
             }
         }
 
+        private void HandlePluginsListRequest()
+        {
+            try
+            {
+                SendPluginsList();
+            }
+            catch (Exception ex)
+            {
+                PostToastToUi(LogType.Error, "Failed to load plugins list", "Plugins", 8, ex.Message);
+            }
+        }
+
         private void HandleHandlerSetEnabled(JsonElement root)
         {
             if (!TryGetString(root, "name", out var name))
@@ -1217,6 +1261,205 @@ namespace WpfInteractionApp
                 type = "handlers_list",
                 handlers
             });
+        }
+
+        private void SendPluginsList()
+        {
+            var actionService = ServiceLocator.SafeGet<IActionService>();
+            var concrete = actionService as ActionService;
+
+            PostToUi(new
+            {
+                type = "plugins_list",
+                handlerTypes = HandlerFactory.GetRegisteredTypeNames(),
+                actions = concrete?.GetActionNames() ?? Array.Empty<string>(),
+                validators = concrete?.GetValidatorNames() ?? Array.Empty<string>(),
+                contextProviders = concrete?.GetContextProviderNames() ?? Array.Empty<string>(),
+            });
+        }
+
+        private HandlerConfigStore? TryGetHandlerConfigStore()
+        {
+            try
+            {
+                var settings = ServiceLocator.SafeGet<Services.SettingsService>();
+                if (settings == null) return null;
+                return new HandlerConfigStore(settings);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private async Task HandleHandlerGetRequestAsync(JsonElement root)
+        {
+            if (!TryGetString(root, "name", out var name))
+                return;
+
+            var store = TryGetHandlerConfigStore();
+            if (store == null)
+            {
+                PostToUi(new { type = "handler_get", name, ok = false, error = "HandlerConfigStore not available" });
+                return;
+            }
+
+            var cfg = await store.GetByNameAsync(name);
+            if (cfg == null)
+            {
+                PostToUi(new { type = "handler_get", name, ok = false, error = "Handler not found" });
+                return;
+            }
+
+            PostToUi(new { type = "handler_get", name, ok = true, handlerConfig = cfg });
+        }
+
+        private async Task HandleHandlerCreateAsync(JsonElement root)
+        {
+            try
+            {
+                if (!root.TryGetProperty("handlerConfig", out var cfgEl) || cfgEl.ValueKind != JsonValueKind.Object)
+                {
+                    PostToUi(new { type = "handler_create_result", ok = false, error = "Missing handlerConfig" });
+                    return;
+                }
+
+                var store = TryGetHandlerConfigStore();
+                if (store == null)
+                {
+                    PostToUi(new { type = "handler_create_result", ok = false, error = "HandlerConfigStore not available" });
+                    return;
+                }
+
+                var cfg = JsonSerializer.Deserialize<HandlerConfig>(cfgEl.GetRawText());
+                if (cfg == null)
+                {
+                    PostToUi(new { type = "handler_create_result", ok = false, error = "Invalid handlerConfig JSON" });
+                    return;
+                }
+
+                var result = await store.AddAsync(cfg);
+                if (!result.Success)
+                {
+                    PostToUi(new { type = "handler_create_result", ok = false, error = $"{result.Code}: {result.Error}" });
+                    return;
+                }
+
+                bool reloadAfter = true;
+                if (TryGetBool(root, "reloadAfter", out var ra))
+                    reloadAfter = ra;
+
+                if (reloadAfter)
+                {
+                    var manager = ServiceLocator.SafeGet<HandlerManager>();
+                    manager?.ReloadHandlers(reloadPlugins: false);
+                    SendHandlersList();
+                }
+
+                PostToUi(new { type = "handler_create_result", ok = true, name = cfg.Name });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "handler_create_result", ok = false, error = ex.Message });
+            }
+        }
+
+        private async Task HandleHandlerUpdateAsync(JsonElement root)
+        {
+            try
+            {
+                if (!TryGetString(root, "handlerName", out var handlerName))
+                {
+                    PostToUi(new { type = "handler_update_result", ok = false, error = "Missing handlerName" });
+                    return;
+                }
+
+                if (!root.TryGetProperty("updates", out var updatesEl) || updatesEl.ValueKind != JsonValueKind.Object)
+                {
+                    PostToUi(new { type = "handler_update_result", ok = false, error = "Missing updates" });
+                    return;
+                }
+
+                var store = TryGetHandlerConfigStore();
+                if (store == null)
+                {
+                    PostToUi(new { type = "handler_update_result", ok = false, error = "HandlerConfigStore not available" });
+                    return;
+                }
+
+                var result = await store.UpdatePartialAsync(handlerName, updatesEl);
+                if (!result.Success)
+                {
+                    PostToUi(new { type = "handler_update_result", ok = false, error = $"{result.Code}: {result.Error}" });
+                    return;
+                }
+
+                bool reloadAfter = true;
+                if (TryGetBool(root, "reloadAfter", out var ra))
+                    reloadAfter = ra;
+
+                if (reloadAfter)
+                {
+                    var manager = ServiceLocator.SafeGet<HandlerManager>();
+                    manager?.ReloadHandlers(reloadPlugins: false);
+                    SendHandlersList();
+                }
+
+                PostToUi(new
+                {
+                    type = "handler_update_result",
+                    ok = true,
+                    name = handlerName,
+                    updatedFields = result.Payload?.UpdatedFields ?? new List<string>()
+                });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "handler_update_result", ok = false, error = ex.Message });
+            }
+        }
+
+        private async Task HandleHandlerDeleteAsync(JsonElement root)
+        {
+            try
+            {
+                if (!TryGetString(root, "handlerName", out var handlerName))
+                {
+                    PostToUi(new { type = "handler_delete_result", ok = false, error = "Missing handlerName" });
+                    return;
+                }
+
+                var store = TryGetHandlerConfigStore();
+                if (store == null)
+                {
+                    PostToUi(new { type = "handler_delete_result", ok = false, error = "HandlerConfigStore not available" });
+                    return;
+                }
+
+                var result = await store.DeleteAsync(handlerName);
+                if (!result.Success)
+                {
+                    PostToUi(new { type = "handler_delete_result", ok = false, error = $"{result.Code}: {result.Error}" });
+                    return;
+                }
+
+                bool reloadAfter = true;
+                if (TryGetBool(root, "reloadAfter", out var ra))
+                    reloadAfter = ra;
+
+                if (reloadAfter)
+                {
+                    var manager = ServiceLocator.SafeGet<HandlerManager>();
+                    manager?.ReloadHandlers(reloadPlugins: false);
+                    SendHandlersList();
+                }
+
+                PostToUi(new { type = "handler_delete_result", ok = true, name = handlerName });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "handler_delete_result", ok = false, error = ex.Message });
+            }
         }
 
         private void HandleManualHandlerExecute(JsonElement root)
@@ -2169,6 +2412,40 @@ namespace WpfInteractionApp
             {
                 Debug.WriteLine($"HandleExchangeRemoveAsync error: {ex}");
                 PostToUi(new { type = "exchange_remove_result", handlerId = handlerId ?? "", success = false, error = ex.Message });
+            }
+        }
+
+        private async Task HandleExchangePublishAsync(JsonElement root)
+        {
+            try
+            {
+                if (!root.TryGetProperty("package", out var pkgEl) || pkgEl.ValueKind != JsonValueKind.Object)
+                {
+                    PostToUi(new { type = "exchange_publish_result", success = false, error = "Missing package" });
+                    return;
+                }
+
+                var exchange = ServiceLocator.SafeGet<Contextualizer.PluginContracts.Interfaces.IHandlerExchange>();
+                if (exchange == null)
+                {
+                    PostToUi(new { type = "exchange_publish_result", success = false, error = "Service not available" });
+                    return;
+                }
+
+                var package = JsonSerializer.Deserialize<Contextualizer.PluginContracts.Models.HandlerPackage>(pkgEl.GetRawText());
+                if (package == null)
+                {
+                    PostToUi(new { type = "exchange_publish_result", success = false, error = "Invalid package JSON" });
+                    return;
+                }
+
+                var ok = await exchange.PublishHandlerAsync(package);
+                PostToUi(new { type = "exchange_publish_result", success = ok, error = ok ? null : "Publish failed" });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"HandleExchangePublishAsync error: {ex}");
+                PostToUi(new { type = "exchange_publish_result", success = false, error = ex.Message });
             }
         }
 
