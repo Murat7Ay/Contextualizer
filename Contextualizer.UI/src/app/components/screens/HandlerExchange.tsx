@@ -9,8 +9,12 @@ import { useActivityLogStore } from '../../stores/activityLogStore';
 import { useHandlerExchangeStore, type HandlerPackageDto } from '../../stores/handlerExchangeStore';
 import { useHostStore } from '../../stores/hostStore';
 import { Search, RefreshCcw, Plus, FileText, Download, Trash2, Loader2 } from 'lucide-react';
+import { ScrollArea } from '../ui/scroll-area';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Badge } from '../ui/badge';
 import {
   requestExchangePackages,
+  requestExchangePackageDetails,
   installExchangePackage,
   updateExchangePackage,
   removeExchangePackage,
@@ -39,6 +43,13 @@ export function HandlerExchange() {
   const setInstalling = useHandlerExchangeStore((s) => s.setInstalling);
   const setUpdating = useHandlerExchangeStore((s) => s.setUpdating);
   const setRemoving = useHandlerExchangeStore((s) => s.setRemoving);
+  const detailsOpen = useHandlerExchangeStore((s) => s.detailsOpen);
+  const detailsLoading = useHandlerExchangeStore((s) => s.detailsLoading);
+  const detailsError = useHandlerExchangeStore((s) => s.detailsError);
+  const detailsPackage = useHandlerExchangeStore((s) => s.detailsPackage);
+  const detailsHandlerId = useHandlerExchangeStore((s) => s.detailsHandlerId);
+  const openDetails = useHandlerExchangeStore((s) => s.openDetails);
+  const closeDetails = useHandlerExchangeStore((s) => s.closeDetails);
 
   // Local UI state
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,7 +113,9 @@ export function HandlerExchange() {
   };
 
   const showDetails = (pkg: HandlerPackageDto) => {
-    addLog('info', `Viewing details for '${pkg.name}'`);
+    if (!canUseHost) return;
+    openDetails(pkg.id);
+    requestExchangePackageDetails(pkg.id);
   };
 
   const install = (id: string) => {
@@ -127,7 +140,8 @@ export function HandlerExchange() {
     installingIds.has(id) || updatingIds.has(id) || removingIds.has(id);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <ScrollArea className="h-full">
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-semibold mb-2">Handler Exchange</h1>
@@ -336,6 +350,82 @@ export function HandlerExchange() {
           })}
         </div>
       )}
-    </div>
+
+      <Dialog open={detailsOpen} onOpenChange={(o) => (!o ? closeDetails() : null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Package details</DialogTitle>
+            <DialogDescription>
+              {detailsHandlerId ? `ID: ${detailsHandlerId}` : ''}
+            </DialogDescription>
+          </DialogHeader>
+
+          {detailsLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-6">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading…
+            </div>
+          ) : detailsError ? (
+            <div className="text-sm text-red-500 py-2">{detailsError}</div>
+          ) : !detailsPackage ? (
+            <div className="text-sm text-muted-foreground py-2">No details available.</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <div className="text-lg font-semibold">{detailsPackage.name}</div>
+                <div className="text-sm text-muted-foreground">{detailsPackage.description}</div>
+                <div className="flex flex-wrap gap-2 pt-2 text-xs text-muted-foreground">
+                  <span>
+                    v<span className="font-mono">{detailsPackage.version}</span>
+                  </span>
+                  {detailsPackage.author && <span>by {detailsPackage.author}</span>}
+                  {typeof detailsPackage.downloadCount === 'number' && detailsPackage.downloadCount > 0 && (
+                    <span>{detailsPackage.downloadCount.toLocaleString()} downloads</span>
+                  )}
+                  {detailsPackage.isInstalled && <Badge variant="secondary">Installed</Badge>}
+                  {detailsPackage.hasUpdate && (
+                    <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400">
+                      Update available
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {(detailsPackage.tags ?? []).length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Tags</div>
+                  <div className="flex flex-wrap gap-2">
+                    {detailsPackage.tags.map((t) => (
+                      <Badge key={t} variant="secondary" className={cn('text-xs', tagBadgeClass)}>
+                        {t}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(detailsPackage.dependencies ?? []).length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Dependencies</div>
+                  <div className="text-sm text-muted-foreground">
+                    {detailsPackage.dependencies.join(', ')}
+                  </div>
+                </div>
+              )}
+
+              {detailsPackage.metadata && Object.keys(detailsPackage.metadata).length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Metadata</div>
+                  <pre className="text-xs p-3 bg-muted rounded border overflow-x-auto">
+                    {JSON.stringify(detailsPackage.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      </div>
+    </ScrollArea>
   );
 }

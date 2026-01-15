@@ -13,7 +13,7 @@ namespace WpfInteractionApp.Services
     /// Shows Toast notifications and User Input dialogs as native WPF windows (outside WebView2).
     /// Use this when you need UI to appear even when WebView2 is not focused or for system-level notifications.
     /// </summary>
-    public sealed class NativeUserInteractionService : IUserInteractionService
+    public sealed class NativeUserInteractionService : IUserInteractionService, INativeNotificationService
     {
         private readonly Window? _ownerWindow;
         private readonly System.Windows.Threading.Dispatcher _dispatcher;
@@ -81,6 +81,12 @@ namespace WpfInteractionApp.Services
             });
         }
 
+        public void ShowNativeNotification(string message, LogType notificationType = LogType.Info, string title = "", int durationInSeconds = 5, Action? onActionClicked = null)
+        {
+            // Alias for native-only notifications (outside WebView UI)
+            ShowNotification(message, notificationType, title, durationInSeconds, onActionClicked);
+        }
+
         public void ShowNotificationWithActions(string message, LogType notificationType = LogType.Info, 
             string title = "", int durationInSeconds = 5, params ToastAction[] actions)
         {
@@ -107,6 +113,7 @@ namespace WpfInteractionApp.Services
                 try
                 {
                     var dialog = new NativeConfirmationDialog(title, message);
+                    WindowActivationHelper.BringToFrontBestEffort(dialog);
                     var result = dialog.ShowDialogSync();
                     tcs.TrySetResult(result);
                 }
@@ -131,6 +138,7 @@ namespace WpfInteractionApp.Services
                     var dialog = new NativeUserInputDialog(request);
                     // Don't set Owner - it can interfere with Topmost behavior
                     dialog.Topmost = true;
+                    WindowActivationHelper.BringToFrontBestEffort(dialog);
                     dialog.Activate();
 
                     if (dialog.ShowDialog() == true)
@@ -157,6 +165,7 @@ namespace WpfInteractionApp.Services
                     // Don't set Owner - it can interfere with Topmost behavior
                     // Dialog is already set to Topmost and CenterScreen in XAML
                     dialog.Topmost = true;
+                    WindowActivationHelper.BringToFrontBestEffort(dialog);
                     dialog.Activate();
 
                     return dialog.ShowNavigationDialog();

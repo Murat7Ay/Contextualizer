@@ -20,6 +20,13 @@ type HandlerExchangeState = {
   loaded: boolean;
   loading: boolean;
   error: string | null;
+
+  // Details modal state
+  detailsOpen: boolean;
+  detailsLoading: boolean;
+  detailsError: string | null;
+  detailsPackage: HandlerPackageDto | null;
+  detailsHandlerId: string | null;
   // Operation states
   installingIds: Set<string>;
   updatingIds: Set<string>;
@@ -31,6 +38,13 @@ type HandlerExchangeActions = {
   setTags: (tags: string[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+
+  // Details actions
+  openDetails: (handlerId: string) => void;
+  closeDetails: () => void;
+  setDetailsLoading: (loading: boolean) => void;
+  setDetailsError: (error: string | null) => void;
+  setDetailsPackage: (handlerId: string, pkg: HandlerPackageDto | null) => void;
   // Operation tracking
   setInstalling: (id: string, installing: boolean) => void;
   setUpdating: (id: string, updating: boolean) => void;
@@ -48,6 +62,11 @@ const initialState: HandlerExchangeState = {
   loaded: false,
   loading: false,
   error: null,
+  detailsOpen: false,
+  detailsLoading: false,
+  detailsError: null,
+  detailsPackage: null,
+  detailsHandlerId: null,
   installingIds: new Set(),
   updatingIds: new Set(),
   removingIds: new Set(),
@@ -64,6 +83,31 @@ export const useHandlerExchangeStore = create<HandlerExchangeState & HandlerExch
   setLoading: (loading) => set({ loading }),
 
   setError: (error) => set({ error, loading: false }),
+
+  openDetails: (handlerId) =>
+    set({
+      detailsOpen: true,
+      detailsLoading: true,
+      detailsError: null,
+      detailsPackage: null,
+      detailsHandlerId: handlerId,
+    }),
+
+  closeDetails: () =>
+    set({
+      detailsOpen: false,
+      detailsLoading: false,
+      detailsError: null,
+      detailsPackage: null,
+      detailsHandlerId: null,
+    }),
+
+  setDetailsLoading: (detailsLoading) => set({ detailsLoading }),
+
+  setDetailsError: (detailsError) => set({ detailsError, detailsLoading: false }),
+
+  setDetailsPackage: (detailsHandlerId, detailsPackage) =>
+    set({ detailsHandlerId, detailsPackage, detailsLoading: false, detailsError: null }),
 
   setInstalling: (id, installing) =>
     set((state) => {

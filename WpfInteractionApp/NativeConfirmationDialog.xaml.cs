@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using WpfInteractionApp.Services;
 
 namespace WpfInteractionApp
 {
@@ -23,6 +24,7 @@ namespace WpfInteractionApp
             // Activate window when shown
             Loaded += (s, e) =>
             {
+                WindowActivationHelper.BringToFrontBestEffort(this);
                 Activate();
                 Focus();
                 OkButton.Focus();

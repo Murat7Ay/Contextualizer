@@ -47,13 +47,9 @@
             <Setter Property="FontSize" Value="14"/>
         </Style>
 
-        <Style x:Key="DialogComboBox" TargetType="ComboBox">
-            <Setter Property="Background" Value="{DynamicResource Carbon.Brush.Background.Secondary}"/>
-            <Setter Property="Foreground" Value="{DynamicResource Carbon.Brush.Text.Primary}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource Carbon.Brush.Background.Tertiary}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+        <!-- Use Carbon theme styles so dark mode dropdown/items remain readable -->
+        <Style x:Key="DialogComboBox" TargetType="ComboBox" BasedOn="{StaticResource Carbon.ComboBox}">
             <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
         </Style>
 
         <Style x:Key="DialogButton.Primary" TargetType="Button">
@@ -199,12 +195,14 @@
                                 Visibility="Collapsed"/>
                     
                     <ComboBox x:Name="SelectionComboBox" Style="{StaticResource DialogComboBox}"
-                             Visibility="Collapsed"/>
+                             Visibility="Collapsed"
+                             ItemContainerStyle="{StaticResource Carbon.ComboBoxItem}"/>
 
                     <ListBox x:Name="MultiSelectListBox" SelectionMode="Multiple"
-                            Background="{DynamicResource Carbon.Brush.Background.Secondary}"
-                            BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}"
-                            Visibility="Collapsed" MaxHeight="200"/>
+                            Style="{StaticResource Carbon.ListBox}"
+                            ItemContainerStyle="{StaticResource Carbon.ListBoxItem}"
+                            Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                            Visibility="Collapsed" MaxHeight="240"/>
 
                     <Grid x:Name="FilePickerGrid" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>

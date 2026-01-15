@@ -85,6 +85,7 @@ namespace WpfInteractionApp
                 ServiceLocator.Register<WebViewUserInteractionService>(webViewService);
                 ServiceLocator.Register<NativeUserInteractionService>(nativeService);
                 ServiceLocator.Register<IUserInteractionService>(webViewService); // Default to WebView
+                ServiceLocator.Register<INativeNotificationService>(nativeService);
                 
                 // Create unified service that can switch between modes
                 var userInteractionService = new UserInteractionServiceRouter(webViewService, nativeService);

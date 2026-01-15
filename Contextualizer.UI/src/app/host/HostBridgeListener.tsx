@@ -48,6 +48,13 @@ type CronListMessage = {
   jobs: CronJobDto[];
 };
 
+type CronUpdateResultMessage = {
+  type: 'cron_update_result';
+  jobId: string;
+  success: boolean;
+  error?: string;
+};
+
 type AppSettingsMessage = {
   type: 'app_settings';
   settings: AppSettingsDto;
@@ -83,6 +90,13 @@ type ExchangeOperationResultMessage = {
   error?: string;
 };
 
+type ExchangeDetailsMessage = {
+  type: 'exchange_details';
+  handlerId: string;
+  package: HandlerPackageDto | null;
+  error?: string;
+};
+
 export function HostBridgeListener() {
   const navigate = useNavigate();
 
@@ -108,6 +122,8 @@ export function HostBridgeListener() {
   const setExchangeInstalling = useHandlerExchangeStore((s) => s.setInstalling);
   const setExchangeUpdating = useHandlerExchangeStore((s) => s.setUpdating);
   const setExchangeRemoving = useHandlerExchangeStore((s) => s.setRemoving);
+  const setExchangeDetailsError = useHandlerExchangeStore((s) => s.setDetailsError);
+  const setExchangeDetailsPackage = useHandlerExchangeStore((s) => s.setDetailsPackage);
 
   useEffect(() => {
     // IMPORTANT: do not rely on a single "lastMessage" snapshot for host events.
@@ -127,6 +143,16 @@ export function HostBridgeListener() {
       if (type === 'cron_list') {
         const m = payload as CronListMessage;
         if (Array.isArray(m.jobs)) setCron({ isRunning: !!m.isRunning, jobs: m.jobs });
+        return;
+      }
+
+      if (type === 'cron_update_result') {
+        const m = payload as CronUpdateResultMessage;
+        if (!m.success) {
+          addLog('error', `Failed to update cron job '${m.jobId}'`, m.error);
+        } else {
+          addLog('success', `Cron job '${m.jobId}' updated`);
+        }
         return;
       }
 
@@ -225,6 +251,17 @@ export function HostBridgeListener() {
         } else {
           addLog('error', `Failed to remove '${m.handlerId}'`, m.error);
         }
+        return;
+      }
+
+      if (type === 'exchange_details') {
+        const m = payload as ExchangeDetailsMessage;
+        if (m.error) {
+          setExchangeDetailsError(m.error);
+          addLog('error', `Failed to load details for '${m.handlerId}'`, m.error);
+          return;
+        }
+        setExchangeDetailsPackage(m.handlerId, (m.package ?? null) as HandlerPackageDto | null);
         return;
       }
 

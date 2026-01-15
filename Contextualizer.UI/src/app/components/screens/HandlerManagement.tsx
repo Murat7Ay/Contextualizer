@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { cn } from '../ui/utils';
+import { ScrollArea } from '../ui/scroll-area';
 import { useActivityLogStore } from '../../stores/activityLogStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useHandlersStore } from '../../stores/handlersStore';
@@ -77,7 +78,8 @@ export function HandlerManagement() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <ScrollArea className="h-full">
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-semibold mb-2">Handler Management</h1>
@@ -238,6 +240,7 @@ export function HandlerManagement() {
           </p>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </ScrollArea>
   );
 }

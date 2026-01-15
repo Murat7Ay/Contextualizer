@@ -64,6 +64,12 @@ export function triggerCronJob(jobId: string): boolean {
   return postWebView2Message({ type: 'cron_trigger', jobId });
 }
 
+export function updateCronJob(jobId: string, cronExpression: string, timezone?: string): boolean {
+  if (!jobId) return false;
+  if (!cronExpression) return false;
+  return postWebView2Message({ type: 'cron_update', jobId, cronExpression, timezone });
+}
+
 export function requestAppSettings(): boolean {
   return postWebView2Message({ type: 'app_settings_request' });
 }

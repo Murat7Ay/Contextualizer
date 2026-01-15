@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using WpfInteractionApp.Services;
 
 namespace WpfInteractionApp
 {
@@ -41,6 +42,9 @@ namespace WpfInteractionApp
             
             Loaded += (s, e) => 
             {
+                // Best-effort activation. Windows may block focus-stealing, but this makes the dialog
+                // visible when the app is in the background and provides a taskbar flash fallback.
+                WindowActivationHelper.BringToFrontBestEffort(this);
                 Activate();
                 Focus();
                 SetInitialFocus();
@@ -81,7 +85,9 @@ namespace WpfInteractionApp
                     MultiSelectListBox.Visibility = Visibility.Visible;
                     foreach (var item in _request.SelectionItems)
                     {
-                        MultiSelectListBox.Items.Add(new ListBoxItem { Content = item.Display, Tag = item.Value });
+                        var lbi = new ListBoxItem { Content = item.Display, Tag = item.Value };
+                        try { lbi.Style = (Style)FindResource("Carbon.ListBoxItem"); } catch { /* ignore */ }
+                        MultiSelectListBox.Items.Add(lbi);
                     }
 
                     if (!string.IsNullOrEmpty(defaultValue))
@@ -100,7 +106,9 @@ namespace WpfInteractionApp
                     SelectionComboBox.Visibility = Visibility.Visible;
                     foreach (var item in _request.SelectionItems)
                     {
-                        SelectionComboBox.Items.Add(new ComboBoxItem { Content = item.Display, Tag = item.Value });
+                        var cbi = new ComboBoxItem { Content = item.Display, Tag = item.Value };
+                        try { cbi.Style = (Style)FindResource("Carbon.ComboBoxItem"); } catch { /* ignore */ }
+                        SelectionComboBox.Items.Add(cbi);
                     }
 
                     if (!string.IsNullOrEmpty(defaultValue))

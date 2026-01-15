@@ -8,7 +8,10 @@ import { cn } from '../ui/utils';
 import { useActivityLogStore } from '../../stores/activityLogStore';
 import { Search, X, Play, Pencil } from 'lucide-react';
 import { useCronStore, type CronJobDto } from '../../stores/cronStore';
-import { requestCronList, setCronJobEnabled, triggerCronJob } from '../../host/webview2Bridge';
+import { requestCronList, setCronJobEnabled, triggerCronJob, updateCronJob } from '../../host/webview2Bridge';
+import { ScrollArea } from '../ui/scroll-area';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Label } from '../ui/label';
 
 type StatusFilter = 'all' | 'active' | 'disabled';
 
@@ -31,6 +34,10 @@ export function CronManager() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [editOpen, setEditOpen] = useState(false);
+  const [editJobId, setEditJobId] = useState<string>('');
+  const [editCronExpression, setEditCronExpression] = useState<string>('');
+  const [editTimezone, setEditTimezone] = useState<string>('');
 
   useEffect(() => {
     requestCronList();
@@ -67,7 +74,12 @@ export function CronManager() {
   };
 
   const editJob = (jobId: string) => {
-    addLog('info', `Edit requested for cron job: ${jobId} (not implemented yet)`);
+    const job = jobs.find((j) => j.jobId === jobId);
+    if (!job) return;
+    setEditJobId(job.jobId);
+    setEditCronExpression(job.cronExpression ?? '');
+    setEditTimezone(job.timezone ?? '');
+    setEditOpen(true);
   };
 
   const clearFilters = () => {
@@ -76,7 +88,8 @@ export function CronManager() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <ScrollArea className="h-full">
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-semibold mb-2">Cron Job Manager</h1>
@@ -207,6 +220,67 @@ export function CronManager() {
           })}
         </div>
       )}
-    </div>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit cron job</DialogTitle>
+            <DialogDescription>
+              Update the cron expression (and optional timezone) for this job.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Job ID</Label>
+              <Input value={editJobId} disabled />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Cron expression</Label>
+              <Input
+                value={editCronExpression}
+                onChange={(e) => setEditCronExpression(e.target.value)}
+                placeholder="0 8 * * MON-FRI"
+                className="font-mono"
+              />
+              <div className="text-xs text-muted-foreground">
+                Example: <span className="font-mono">0 8 * * MON-FRI</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Timezone (optional)</Label>
+              <Input
+                value={editTimezone}
+                onChange={(e) => setEditTimezone(e.target.value)}
+                placeholder="Europe/Istanbul"
+                className="font-mono"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                const ok = updateCronJob(editJobId, editCronExpression.trim(), editTimezone.trim() || undefined);
+                if (!ok) {
+                  addLog('error', 'Failed to send cron update request (host not available?)');
+                  return;
+                }
+                setEditOpen(false);
+              }}
+              disabled={!editJobId || !editCronExpression.trim()}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      </div>
+    </ScrollArea>
   );
 }

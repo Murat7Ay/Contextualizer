@@ -461,6 +461,10 @@ namespace WpfInteractionApp
                         HandleCronTrigger(root);
                         break;
 
+                    case "cron_update":
+                        HandleCronUpdate(root);
+                        break;
+
                     case "app_settings_request":
                         HandleAppSettingsRequest();
                         break;
@@ -532,6 +536,70 @@ namespace WpfInteractionApp
             catch (Exception ex)
             {
                 Debug.WriteLine($"ReactShellWindow message handling error: {ex}");
+            }
+        }
+
+        private void HandleCronUpdate(JsonElement root)
+        {
+            try
+            {
+                if (!root.TryGetProperty("jobId", out var jobIdProp) || jobIdProp.ValueKind != JsonValueKind.String)
+                    return;
+                if (!root.TryGetProperty("cronExpression", out var cronProp) || cronProp.ValueKind != JsonValueKind.String)
+                    return;
+
+                var jobId = jobIdProp.GetString() ?? string.Empty;
+                var cronExpression = cronProp.GetString() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(jobId) || string.IsNullOrWhiteSpace(cronExpression))
+                    return;
+
+                string? timezone = null;
+                if (root.TryGetProperty("timezone", out var tzProp) && tzProp.ValueKind == JsonValueKind.String)
+                    timezone = tzProp.GetString();
+
+                var cron = ServiceLocator.SafeGet<ICronService>();
+                if (cron == null)
+                {
+                    PostToUi(new { type = "cron_update_result", jobId, success = false, error = "Cron service not available" });
+                    return;
+                }
+
+                if (!cron.ValidateCronExpression(cronExpression))
+                {
+                    PostToUi(new { type = "cron_update_result", jobId, success = false, error = "Invalid cron expression" });
+                    return;
+                }
+
+                var info = cron.GetJobInfo(jobId);
+                if (info == null || info.HandlerConfig == null)
+                {
+                    PostToUi(new { type = "cron_update_result", jobId, success = false, error = "Cron job not found" });
+                    return;
+                }
+
+                var effectiveTz = string.IsNullOrWhiteSpace(timezone) ? info.Timezone : timezone;
+                var ok = cron.UpdateJob(jobId, cronExpression, info.HandlerConfig, effectiveTz);
+                PostToUi(new { type = "cron_update_result", jobId, success = ok, error = ok ? null : "Failed to update cron job" });
+
+                PostToastToUi(ok ? LogType.Success : LogType.Error,
+                    ok ? $"Cron job '{jobId}' updated" : $"Failed to update cron job '{jobId}'",
+                    "Cron",
+                    6);
+
+                if (ok)
+                {
+                    // Refresh the cron list so UI reflects updated expression immediately
+                    HandleCronListRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"HandleCronUpdate error: {ex}");
+                try
+                {
+                    PostToastToUi(LogType.Error, "Failed to update cron job", "Cron", 8, ex.Message);
+                }
+                catch { /* ignore */ }
             }
         }
 

@@ -5,6 +5,7 @@ import { ActivityLog } from './ActivityLog';
 import { useTabStore } from '../../stores/tabStore';
 import { useAppStore } from '../../stores/appStore';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '../ui/resizable';
+import { ScrollArea } from '../ui/scroll-area';
 
 export function MainLayout() {
   const tabs = useTabStore((state) => state.tabs);
@@ -25,9 +26,9 @@ export function MainLayout() {
         {activityLogPosition === 'right' ? (
           <ResizablePanelGroup direction="horizontal">
             <ResizablePanel defaultSize={70} minSize={30}>
-              <div className="h-full overflow-auto">
+              <ScrollArea className="h-full">
                 <Outlet />
-              </div>
+              </ScrollArea>
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
@@ -37,9 +38,9 @@ export function MainLayout() {
         ) : (
           <ResizablePanelGroup direction="vertical" className="flex-1">
             <ResizablePanel defaultSize={70} minSize={30}>
-              <div className="h-full overflow-auto">
+              <ScrollArea className="h-full">
                 <Outlet />
-              </div>
+              </ScrollArea>
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
