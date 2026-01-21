@@ -52,11 +52,16 @@ namespace WpfInteractionApp
             ShowNotification(message, LogType.Info, string.Empty, duration, null);
         }
 
-        public async Task<bool> ShowConfirmationAsync(string title, string message)
+        public Task<bool> ShowConfirmationAsync(string title, string message)
+        {
+            return ShowConfirmationAsync(new ConfirmationRequest { Title = title, Message = message });
+        }
+
+        public async Task<bool> ShowConfirmationAsync(ConfirmationRequest request)
         {
             try
             {
-                return await _shellWindow.RequestConfirmAsync(title, message, UiTimeout);
+                return await _shellWindow.RequestConfirmAsync(request, UiTimeout);
             }
             catch (Exception ex)
             {

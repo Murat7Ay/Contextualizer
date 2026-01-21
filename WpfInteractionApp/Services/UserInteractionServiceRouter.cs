@@ -101,6 +101,11 @@ namespace WpfInteractionApp.Services
             return Current.ShowConfirmationAsync(title, message);
         }
 
+        public Task<bool> ShowConfirmationAsync(ConfirmationRequest request)
+        {
+            return Current.ShowConfirmationAsync(request);
+        }
+
         public string? GetUserInput(UserInputRequest? request)
         {
             return Current.GetUserInput(request);

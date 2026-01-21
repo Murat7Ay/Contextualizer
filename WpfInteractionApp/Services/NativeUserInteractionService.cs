@@ -104,27 +104,27 @@ namespace WpfInteractionApp.Services
             });
         }
 
-        public async Task<bool> ShowConfirmationAsync(string title, string message)
+        public Task<bool> ShowConfirmationAsync(string title, string message)
         {
-            var tcs = new TaskCompletionSource<bool>();
-            
-            _dispatcher.BeginInvoke(() =>
+            return ShowConfirmationAsync(new ConfirmationRequest { Title = title, Message = message });
+        }
+
+        public async Task<bool> ShowConfirmationAsync(ConfirmationRequest request)
+        {
+            try
             {
-                try
+                var result = _dispatcher.Invoke(() =>
                 {
-                    var dialog = new NativeConfirmationDialog(title, message);
-                    WindowActivationHelper.BringToFrontBestEffort(dialog);
-                    var result = dialog.ShowDialogSync();
-                    tcs.TrySetResult(result);
-                }
-                catch (System.Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"NativeUserInteractionService.ShowConfirmationAsync error: {ex.Message}");
-                    tcs.TrySetResult(false);
-                }
-            });
-            
-            return await tcs.Task;
+                    var dialog = new NativeConfirmationDialog(request);
+                    return dialog.ShowDialogSync();
+                });
+                return await Task.FromResult(result);
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"NativeUserInteractionService.ShowConfirmationAsync error: {ex.Message}");
+                return await Task.FromResult(false);
+            }
         }
 
         public string? GetUserInput(UserInputRequest? request)
@@ -138,9 +138,6 @@ namespace WpfInteractionApp.Services
                     var dialog = new NativeUserInputDialog(request);
                     // Don't set Owner - it can interfere with Topmost behavior
                     dialog.Topmost = true;
-                    WindowActivationHelper.BringToFrontBestEffort(dialog);
-                    dialog.Activate();
-
                     if (dialog.ShowDialog() == true)
                         return dialog.UserInput;
                     
@@ -165,9 +162,6 @@ namespace WpfInteractionApp.Services
                     // Don't set Owner - it can interfere with Topmost behavior
                     // Dialog is already set to Topmost and CenterScreen in XAML
                     dialog.Topmost = true;
-                    WindowActivationHelper.BringToFrontBestEffort(dialog);
-                    dialog.Activate();
-
                     return dialog.ShowNavigationDialog();
                 }
                 catch (Exception ex)

@@ -8,9 +8,9 @@
         MaxWidth="550"
         SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
-        Background="Transparent"
+        Background="{DynamicResource Carbon.Brush.Background.Primary}"
         WindowStyle="None"
-        AllowsTransparency="True"
+        AllowsTransparency="False"
         ResizeMode="NoResize"
         Topmost="True"
         ShowInTaskbar="True">
@@ -112,11 +112,32 @@
 
             <!-- Content -->
             <Grid Grid.Row="1" Margin="24,20">
-                <TextBlock x:Name="MessageBlock" 
-                          TextWrapping="Wrap" 
-                          FontSize="14"
-                          LineHeight="22"
-                          Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                <StackPanel>
+                    <TextBlock x:Name="MessageBlock" 
+                              TextWrapping="Wrap" 
+                              FontSize="14"
+                              LineHeight="22"
+                              Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+
+                    <Expander x:Name="DetailsExpander" Header="Details" Visibility="Collapsed" Margin="0,12,0,0">
+                        <Border BorderBrush="{DynamicResource Carbon.Brush.Background.Tertiary}" BorderThickness="1" CornerRadius="6" Padding="8">
+                            <Grid>
+                                <TextBox x:Name="DetailsTextBox"
+                                         Visibility="Collapsed"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         FontFamily="Consolas"
+                                         FontSize="12"
+                                         Background="{DynamicResource Carbon.Brush.Background.Secondary}"
+                                         Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                                         BorderThickness="0"
+                                         MaxHeight="240"/>
+
+                            </Grid>
+                        </Border>
+                    </Expander>
+                </StackPanel>
             </Grid>
 
             <!-- Footer -->

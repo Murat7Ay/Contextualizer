@@ -26,36 +26,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Assets\Ace\ace.js" />
-    <None Remove="Assets\Ace\ace.min.js" />
-    <None Remove="Assets\Ace\mode-sql.js" />
-    <None Remove="Assets\Ace\mode-sql.min.js" />
-    <None Remove="Assets\Ace\theme-monokai.js" />
-    <None Remove="Assets\Ace\theme-monokai.min.js" />
-    <None Remove="Assets\Ace\theme-sqlserver.js" />
-    <None Remove="Assets\Ace\theme-sqlserver.min.js" />
-    <None Remove="Assets\Ace\theme-textmate.js" />
-    <None Remove="Assets\Ace\theme-textmate.min.js" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Assets\Ace\ace.js">
+    <Content Include="Assets\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Ace\mode-sql.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Ace\theme-tomorrow_night.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Ace\theme-monokai.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Ace\theme-sqlserver.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Ace\theme-textmate.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 

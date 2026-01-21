@@ -23,7 +23,7 @@ Contextualizer can expose your `handlers.json` handlers as **MCP tools** over HT
 - Choose a **Port** (default `5000`)
 
 Endpoint (SSE transport):
-- `http://127.0.0.1:<port>/mcp/sse`
+- `http://127.0.0.1:<port>/mcp`
 
 ### Enable tools (per handler)
 - Open **Handler Management**

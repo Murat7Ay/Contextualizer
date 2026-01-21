@@ -1,3 +1,5 @@
+using Contextualizer.PluginContracts;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -10,12 +12,18 @@ namespace WpfInteractionApp
         private readonly TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
 
         public NativeConfirmationDialog(string title, string message)
+            : this(new ConfirmationRequest { Title = title, Message = message })
+        {
+        }
+
+        public NativeConfirmationDialog(ConfirmationRequest request)
         {
             InitializeComponent();
-            
-            Title = title;
-            TitleBlock.Text = title;
-            MessageBlock.Text = message;
+
+            Title = request.Title;
+            TitleBlock.Text = request.Title;
+            MessageBlock.Text = request.Message;
+            ApplyDetails(request.Details);
             
             // Always center on screen and be topmost
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -30,6 +38,44 @@ namespace WpfInteractionApp
                 OkButton.Focus();
             };
         }
+
+        private void ApplyDetails(ConfirmationDetails? details)
+        {
+            if (details == null)
+            {
+                DetailsExpander.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var format = (details.Format ?? "text").Trim().ToLowerInvariant();
+            string text = details.Text ?? string.Empty;
+            if (format == "json")
+            {
+                if (details.Json.HasValue)
+                {
+                    text = JsonSerializer.Serialize(details.Json.Value, new JsonSerializerOptions { WriteIndented = true });
+                }
+            }
+
+            if (format == "markdown")
+            {
+                // Markdown deprecated for native confirm; render as plain text.
+                format = "text";
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                DetailsExpander.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            DetailsTextBox.Text = text;
+            DetailsTextBox.Visibility = Visibility.Visible;
+            DetailsExpander.Visibility = Visibility.Visible;
+            DetailsExpander.IsExpanded = true;
+        }
+
+        // Table format removed; send markdown tables in details.text instead.
 
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -57,6 +103,7 @@ namespace WpfInteractionApp
             // Ensure result is set if window is closed via X or Alt+F4
             if (!_tcs.Task.IsCompleted)
                 _tcs.SetResult(false);
+
         }
 
         public Task<bool> ShowDialogAsync()

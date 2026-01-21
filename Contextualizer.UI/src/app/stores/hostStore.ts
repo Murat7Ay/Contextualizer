@@ -5,7 +5,7 @@ export interface HostInfo {
   appVersion?: string;
   theme?: Theme;
   apiBaseUrl?: string;
-  mcpSseUrl?: string;
+  mcpUrl?: string;
 }
 
 interface HostStore {

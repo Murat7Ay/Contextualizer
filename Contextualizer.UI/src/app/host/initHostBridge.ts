@@ -4,7 +4,7 @@ import { useHostStore } from '../stores/hostStore';
 import { addWebView2MessageListener, isWebView2Available, postWebView2Message } from './webview2Bridge';
 
 type HostMessage =
-  | { type: 'host_ready'; appVersion?: string; theme?: 'light' | 'dark'; apiBaseUrl?: string; mcpSseUrl?: string }
+  | { type: 'host_ready'; appVersion?: string; theme?: 'light' | 'dark'; apiBaseUrl?: string; mcpUrl?: string }
   | { type: 'theme_changed'; theme: 'light' | 'dark' }
   | { type: 'pong'; id?: string }
   | { type: 'log'; level?: 'success' | 'error' | 'warning' | 'info' | 'debug' | 'critical'; message?: string; details?: string }
@@ -47,7 +47,7 @@ export function initHostBridge(): () => void {
         appVersion: msg.appVersion,
         theme: msg.theme,
         apiBaseUrl: msg.apiBaseUrl,
-        mcpSseUrl: msg.mcpSseUrl,
+        mcpUrl: msg.mcpUrl,
       });
 
       if (msg.theme) {

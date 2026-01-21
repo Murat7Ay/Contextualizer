@@ -1812,7 +1812,7 @@ function AdvancedSettings() {
 
               <div className="p-3 bg-muted rounded-md">
                 <Label className="text-sm font-semibold mb-2 block">Endpoint URL</Label>
-                <code className="text-xs">http://127.0.0.1:{mcpPort}/mcp/sse</code>
+                <code className="text-xs">http://127.0.0.1:{mcpPort}/mcp</code>
               </div>
 
               <div className="flex items-center gap-3">
@@ -1892,7 +1892,7 @@ function AdvancedSettings() {
               </div>
               <div>
                 <span className="font-semibold">MCP SSE:</span>{' '}
-                <span className="text-muted-foreground">{hostInfo.mcpSseUrl ?? '—'}</span>
+                <span className="text-muted-foreground">{hostInfo.mcpUrl ?? '—'}</span>
               </div>
               <div>
                 <span className="font-semibold">Last pong:</span>{' '}

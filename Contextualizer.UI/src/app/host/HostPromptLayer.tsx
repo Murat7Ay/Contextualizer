@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -9,6 +9,7 @@ import { ScrollArea } from '../components/ui/scroll-area';
 import { Checkbox } from '../components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import { cn } from '../components/ui/utils';
+import { MarkdownViewer } from '../components/screens/dynamic/MarkdownViewer';
 import { addWebView2MessageListener, postWebView2Message } from './webview2Bridge';
 
 type SelectionItemDto = { value: string; display: string };
@@ -24,8 +25,22 @@ type UserInputRequestDto = {
   selection_items?: SelectionItemDto[];
   is_multi_select?: boolean;
   is_file_picker?: boolean;
+  file_extensions?: string[];
+  is_folder_picker?: boolean;
   is_multi_line?: boolean;
+  is_date?: boolean;
+  is_date_picker?: boolean;
+  is_time?: boolean;
+  is_time_picker?: boolean;
+  is_date_time?: boolean;
+  is_datetime_picker?: boolean;
   default_value?: string;
+};
+
+type ConfirmDetails = {
+  format?: 'text' | 'json' | 'markdown';
+  text?: string;
+  json?: unknown;
 };
 
 type ConfirmRequest = {
@@ -33,6 +48,7 @@ type ConfirmRequest = {
   requestId: string;
   title?: string;
   message: string;
+  details?: ConfirmDetails;
 };
 
 type UserInputRequestMsg = {
@@ -61,6 +77,14 @@ type FileDialogResponseMsg = {
   error?: string;
 };
 
+type FolderDialogResponseMsg = {
+  type: 'ui_open_folder_dialog_response';
+  requestId: string;
+  cancelled?: boolean;
+  path?: string;
+  error?: string;
+};
+
 type Prompt =
   | { kind: 'confirm'; msg: ConfirmRequest }
   | { kind: 'input'; msg: UserInputRequestMsg }
@@ -80,6 +104,10 @@ function isFileDialogResponse(message: unknown): message is FileDialogResponseMs
   return !!message && typeof message === 'object' && (message as any).type === 'ui_open_file_dialog_response';
 }
 
+function isFolderDialogResponse(message: unknown): message is FolderDialogResponseMsg {
+  return !!message && typeof message === 'object' && (message as any).type === 'ui_open_folder_dialog_response';
+}
+
 function defaultValueForRequest(req: UserInputRequestDto, context?: Record<string, string>): string {
   if (context && req.key && typeof context[req.key] === 'string' && context[req.key].length > 0) {
     return context[req.key];
@@ -87,9 +115,28 @@ function defaultValueForRequest(req: UserInputRequestDto, context?: Record<strin
   return req.default_value ?? '';
 }
 
+function buildFileFilter(extensions?: string[]): string {
+  if (!extensions || extensions.length === 0) return 'All Files|*.*';
+  const normalized = extensions
+    .map((ext) => ext.trim())
+    .filter((ext) => ext.length > 0)
+    .map((ext) => {
+      if (ext === '*' || ext === '*.*') return '';
+      if (ext.startsWith('*.')) return ext;
+      if (ext.startsWith('.')) return `*${ext}`;
+      if (ext.includes('*')) return ext;
+      return `*.${ext}`;
+    })
+    .filter(Boolean);
+  if (normalized.length === 0) return 'All Files|*.*';
+  const label = `Allowed Files (${normalized.map((e) => e.replace('*', '')).join(', ')})`;
+  return `${label}|${normalized.join(';')}|All Files|*.*`;
+}
+
 export function HostPromptLayer() {
   const [queue, setQueue] = useState<Prompt[]>([]);
   const current = queue.length > 0 ? queue[0] : null;
+  const blockAutoClose = current?.kind === 'confirm';
 
   const [value, setValue] = useState('');
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
@@ -132,6 +179,16 @@ export function HostPromptLayer() {
           return;
         }
 
+        if (typeof payload.path === 'string') {
+          setSelectedValues([]);
+          setValue(payload.path);
+        }
+      }
+
+      if (pendingId && isFolderDialogResponse(payload) && payload.requestId === pendingId) {
+        pendingFileRequestIdRef.current = null;
+        setPendingFileRequestId(null);
+        if ((payload as any).cancelled) return;
         if (typeof payload.path === 'string') {
           setSelectedValues([]);
           setValue(payload.path);
@@ -206,6 +263,33 @@ export function HostPromptLayer() {
     if (current.kind === 'confirm') return current.msg.message ?? '';
     return current.msg.request?.message ?? '';
   }, [current]);
+
+  const renderConfirmDetails = () => {
+    if (!current || current.kind !== 'confirm' || !current.msg.details) return null;
+    const details = current.msg.details;
+    const format = details.format ?? (details.json ? 'json' : details.text ? 'text' : undefined);
+    if (!format) return null;
+
+    if (format === 'markdown') {
+      const md = details.text ?? '';
+      if (!md) return null;
+      return (
+        <ScrollArea className="max-h-72 border rounded-md bg-muted/30">
+          <div className="p-3">
+            <MarkdownViewer markdown={md} />
+          </div>
+        </ScrollArea>
+      );
+    }
+
+    const text = format === 'json' ? JSON.stringify(details.json ?? details.text ?? {}, null, 2) : details.text ?? '';
+    if (!text) return null;
+    return (
+      <ScrollArea className="max-h-72 border rounded-md bg-muted/30">
+        <pre className="text-xs font-mono whitespace-pre-wrap p-3">{text}</pre>
+      </ScrollArea>
+    );
+  };
 
   const closeAsCancel = () => {
     if (!current) return;
@@ -327,8 +411,24 @@ export function HostPromptLayer() {
       type: 'ui_open_file_dialog_request',
       requestId,
       title: req.title || 'Select File',
-      filter: 'All Files|*.*',
+      filter: buildFileFilter(req.file_extensions),
       multiSelect: !!req.is_multi_select,
+    });
+  };
+
+  const browseFolder = () => {
+    if (!current || (current.kind !== 'input' && current.kind !== 'nav')) return;
+    const req = current.msg.request;
+    if (!req.is_folder_picker) return;
+
+    const requestId = `${Date.now()}_${Math.random()}`;
+    setPendingFileRequestId(requestId);
+
+    postWebView2Message({
+      type: 'ui_open_folder_dialog_request',
+      requestId,
+      title: req.title || 'Select Folder',
+      initialPath: value || req.default_value,
     });
   };
 
@@ -336,6 +436,27 @@ export function HostPromptLayer() {
     if (!current || current.kind === 'confirm') return null;
     const req = current.msg.request;
     const required = req.is_required !== false;
+    const isDate = req.is_date || req.is_date_picker;
+    const isTime = req.is_time || req.is_time_picker;
+    const isDateTime = req.is_date_time || req.is_datetime_picker;
+
+    if (req.is_folder_picker) {
+      return (
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">
+            {req.title}
+            {required && <span className="text-destructive"> *</span>}
+          </Label>
+          <div className="flex gap-2">
+            <Input value={value} readOnly placeholder="Select a folder..." className="flex-1" />
+            <Button variant="outline" onClick={browseFolder} disabled={!!pendingFileRequestId}>
+              Browse
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Folder path will be returned to the host.</p>
+        </div>
+      );
+    }
 
     if (req.is_file_picker) {
       return (
@@ -351,6 +472,42 @@ export function HostPromptLayer() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">File path will be returned to the host.</p>
+        </div>
+      );
+    }
+
+    if (isDateTime) {
+      return (
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">
+            {req.title}
+            {required && <span className="text-destructive"> *</span>}
+          </Label>
+          <Input type="datetime-local" value={value} onChange={(e) => setValue(e.target.value)} />
+        </div>
+      );
+    }
+
+    if (isDate) {
+      return (
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">
+            {req.title}
+            {required && <span className="text-destructive"> *</span>}
+          </Label>
+          <Input type="date" value={value} onChange={(e) => setValue(e.target.value)} />
+        </div>
+      );
+    }
+
+    if (isTime) {
+      return (
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">
+            {req.title}
+            {required && <span className="text-destructive"> *</span>}
+          </Label>
+          <Input type="time" value={value} onChange={(e) => setValue(e.target.value)} />
         </div>
       );
     }
@@ -474,8 +631,17 @@ export function HostPromptLayer() {
   };
 
   return (
-    <Dialog open={!!current} onOpenChange={(open) => !open && closeAsCancel()}>
-      <DialogContent key={current?.msg.requestId ?? 'none'}>
+    <Dialog
+      open={!!current}
+      onOpenChange={(open) => {
+        if (!open && !blockAutoClose) closeAsCancel();
+      }}
+    >
+      <DialogContent
+        key={current?.msg.requestId ?? 'none'}
+        onPointerDownOutside={blockAutoClose ? (e) => e.preventDefault() : undefined}
+        onEscapeKeyDown={blockAutoClose ? (e) => e.preventDefault() : undefined}
+      >
         <DialogHeader>
           <DialogTitle className="text-lg">{title}</DialogTitle>
           <DialogDescription className="whitespace-pre-wrap">{description}</DialogDescription>
@@ -494,6 +660,7 @@ export function HostPromptLayer() {
           </Alert>
         )}
 
+        {current && current.kind === 'confirm' && renderConfirmDetails()}
         {current && current.kind !== 'confirm' && renderInput()}
 
         <DialogFooter>

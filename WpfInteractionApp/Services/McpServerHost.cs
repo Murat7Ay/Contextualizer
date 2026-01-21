@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -34,7 +33,6 @@ namespace WpfInteractionApp.Services
         private const string ConfigReloadToolName = "config_reload";
         private const string HandlerDocsToolName = "handler_docs";
 
-        private readonly ConcurrentDictionary<string, SseSession> _sessions = new(StringComparer.Ordinal);
         private readonly JsonSerializerOptions _jsonOptions = new()
         {
             WriteIndented = false,
@@ -164,60 +162,9 @@ namespace WpfInteractionApp.Services
             // Health endpoint
             app.MapGet("/mcp/health", () => Results.Json(new { ok = true, service = "contextualizer-mcp" }));
 
-            // SSE endpoint
-            app.MapGet("/mcp/sse", async (HttpContext httpContext) =>
+            // Streamable HTTP endpoint (single POST returns JSON or SSE stream)
+            app.MapPost("/mcp", async (HttpContext httpContext) =>
             {
-                httpContext.Response.Headers.CacheControl = "no-cache";
-                httpContext.Response.Headers.Connection = "keep-alive";
-                httpContext.Response.ContentType = "text/event-stream";
-
-                var sessionId = Guid.NewGuid().ToString("N");
-                var session = new SseSession(sessionId);
-                _sessions[sessionId] = session;
-
-                // Inform the client where to POST JSON-RPC messages
-                await WriteSseEventAsync(httpContext, "endpoint", $"/mcp/message?sessionId={sessionId}", httpContext.RequestAborted);
-
-                // Keep-alive heartbeat (some proxies/clients close idle SSE connections)
-                var heartbeat = Task.Run(async () =>
-                {
-                    while (!httpContext.RequestAborted.IsCancellationRequested)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(15), httpContext.RequestAborted);
-                        await WriteSseCommentAsync(httpContext, "ping", httpContext.RequestAborted);
-                    }
-                }, httpContext.RequestAborted);
-
-                try
-                {
-                    await foreach (var message in session.Reader.ReadAllAsync(httpContext.RequestAborted))
-                    {
-                        await WriteSseEventAsync(httpContext, "message", message, httpContext.RequestAborted);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    // Client disconnected
-                }
-                finally
-                {
-                    session.TryComplete();
-                    _sessions.TryRemove(sessionId, out _);
-                    try { await heartbeat; } catch { /* ignore */ }
-                }
-            });
-
-            // Message endpoint (client POSTs JSON-RPC requests here; responses are pushed via SSE)
-            app.MapPost("/mcp/message", async (HttpContext httpContext) =>
-            {
-                var sessionId = httpContext.Request.Query["sessionId"].ToString();
-                if (string.IsNullOrWhiteSpace(sessionId) || !_sessions.TryGetValue(sessionId, out var session))
-                {
-                    httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-                    await httpContext.Response.WriteAsync("Unknown sessionId", httpContext.RequestAborted);
-                    return;
-                }
-
                 string body;
                 using (var reader = new StreamReader(httpContext.Request.Body, Encoding.UTF8))
                 {
@@ -251,16 +198,28 @@ namespace WpfInteractionApp.Services
                     return;
                 }
 
-                // Notifications (no id) don't need responses
                 var response = await HandleJsonRpcAsync(request);
-                if (response != null)
+                if (response == null)
                 {
-                    var json = JsonSerializer.Serialize(response, _jsonOptions);
-                    await session.Writer.WriteAsync(json, httpContext.RequestAborted);
+                    httpContext.Response.StatusCode = StatusCodes.Status204NoContent;
+                    return;
                 }
 
-                // Spec behavior: acknowledge receipt; actual response travels over SSE.
-                httpContext.Response.StatusCode = StatusCodes.Status202Accepted;
+                var json = JsonSerializer.Serialize(response, _jsonOptions);
+                var accept = httpContext.Request.Headers.Accept.ToString();
+                if (!string.IsNullOrWhiteSpace(accept) &&
+                    accept.Contains("text/event-stream", StringComparison.OrdinalIgnoreCase))
+                {
+                    httpContext.Response.Headers.CacheControl = "no-cache";
+                    httpContext.Response.Headers.Connection = "keep-alive";
+                    httpContext.Response.ContentType = "text/event-stream";
+                    await WriteSseEventAsync(httpContext, "message", json, httpContext.RequestAborted);
+                    return;
+                }
+
+                httpContext.Response.ContentType = "application/json";
+                httpContext.Response.StatusCode = StatusCodes.Status200OK;
+                await httpContext.Response.WriteAsync(json, httpContext.RequestAborted);
             });
 
             _app = app;
@@ -279,12 +238,6 @@ namespace WpfInteractionApp.Services
                 _cts?.Cancel();
             }
             catch { /* ignore */ }
-
-            foreach (var session in _sessions.Values)
-            {
-                session.TryComplete();
-            }
-            _sessions.Clear();
 
             try
             {
@@ -382,7 +335,7 @@ namespace WpfInteractionApp.Services
             tools.Add(new McpTool
             {
                 Name = UiConfirmToolName,
-                Description = "Show a confirmation dialog to the user and return { confirmed: boolean }.",
+                Description = "Show a confirmation dialog to the user. Supports details.format = text|json. Returns { confirmed: boolean }.",
                 InputSchema = UiConfirmSchema()
             });
 
@@ -1016,19 +969,19 @@ Returns { cancelled: boolean, values: object }.
                 };
             }
 
-            string title = "Confirmation";
-            string message = string.Empty;
-
-            if (callParams.Arguments.HasValue && callParams.Arguments.Value.ValueKind == JsonValueKind.Object)
+            UiConfirmArgs? args = null;
+            try
             {
-                foreach (var prop in callParams.Arguments.Value.EnumerateObject())
-                {
-                    if (prop.NameEquals("title"))
-                        title = prop.Value.GetString() ?? title;
-                    else if (prop.NameEquals("message"))
-                        message = prop.Value.GetString() ?? string.Empty;
-                }
+                if (callParams.Arguments.HasValue)
+                    args = callParams.Arguments.Value.Deserialize<UiConfirmArgs>(_jsonOptions);
             }
+            catch (JsonException)
+            {
+                // ignore, handled below
+            }
+
+            string title = args?.Title ?? "Confirmation";
+            string message = args?.Message ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -1039,7 +992,14 @@ Returns { cancelled: boolean, values: object }.
                 };
             }
 
-            bool confirmed = await ui.ShowConfirmationAsync(title, message);
+            var confirmRequest = new ConfirmationRequest
+            {
+                Title = title,
+                Message = message,
+                Details = args?.Details
+            };
+
+            bool confirmed = await ui.ShowConfirmationAsync(confirmRequest);
             var payload = new Dictionary<string, object> { ["confirmed"] = confirmed };
             var text = JsonSerializer.Serialize(payload, _jsonOptions);
 
@@ -1378,7 +1338,15 @@ Returns { cancelled: boolean, values: object }.
               "type": "object",
               "properties": {
                 "title": { "type": "string" },
-                "message": { "type": "string" }
+                "message": { "type": "string" },
+                "details": {
+                  "type": "object",
+                  "properties": {
+                    "format": { "type": "string", "description": "text | json" },
+                    "text": { "type": "string" },
+                    "json": { "type": "object" }
+                  }
+                }
               },
               "required": ["message"]
             }
@@ -1413,7 +1381,15 @@ Returns { cancelled: boolean, values: object }.
                       "is_password": { "type": "boolean", "description": "If true, shows a password input (masked)" },
                       "is_multi_select": { "type": "boolean", "description": "If true, allows multiple selection. Requires is_selection_list" },
                       "is_file_picker": { "type": "boolean", "description": "If true, shows a file browser dialog" },
+                      "file_extensions": { "type": "array", "items": { "type": "string" }, "description": "Optional list of allowed extensions (e.g. .txt, .json)" },
+                      "is_folder_picker": { "type": "boolean", "description": "If true, shows a folder picker dialog" },
                       "is_multi_line": { "type": "boolean", "description": "If true, shows a multi-line text area" },
+                      "is_date": { "type": "boolean", "description": "If true, shows a date picker (yyyy-MM-dd)" },
+                      "is_date_picker": { "type": "boolean", "description": "Alias for is_date" },
+                      "is_time": { "type": "boolean", "description": "If true, shows a time picker (HH:mm)" },
+                      "is_time_picker": { "type": "boolean", "description": "Alias for is_time" },
+                      "is_date_time": { "type": "boolean", "description": "If true, shows a date-time picker (yyyy-MM-ddTHH:mm)" },
+                      "is_datetime_picker": { "type": "boolean", "description": "Alias for is_date_time" },
                       "default_value": { "type": "string", "description": "Default value pre-filled in the input" },
                       "selection_items": {
                         "type": "array",
@@ -1871,7 +1847,14 @@ seeder: { "key": "$(group_1)", "ts": "$func:now().format(\\"o\\")" }
   "selection_items": [ {"value":"a","display":"A"} ],
   "is_multi_select": false,
   "is_file_picker": false,
+  "is_folder_picker": false,
   "is_multi_line": false,
+  "is_date": false,
+  "is_date_picker": false,
+  "is_time": false,
+  "is_time_picker": false,
+  "is_date_time": false,
+  "is_datetime_picker": false,
   "default_value": "",
   "dependent_key": "country",
   "dependent_selection_item_map": {
@@ -2063,37 +2046,6 @@ If no `mcp_input_schema` is provided:
             await context.Response.Body.FlushAsync(cancellationToken);
         }
 
-        private static async Task WriteSseCommentAsync(HttpContext context, string comment, CancellationToken cancellationToken)
-        {
-            await context.Response.WriteAsync($": {comment}\n\n", cancellationToken);
-            await context.Response.Body.FlushAsync(cancellationToken);
-        }
-
-        private sealed class SseSession
-        {
-            private readonly System.Threading.Channels.Channel<string> _channel;
-            public string SessionId { get; }
-
-            public SseSession(string sessionId)
-            {
-                SessionId = sessionId;
-                _channel = System.Threading.Channels.Channel.CreateUnbounded<string>(
-                    new System.Threading.Channels.UnboundedChannelOptions
-                    {
-                        AllowSynchronousContinuations = false,
-                        SingleReader = true,
-                        SingleWriter = false
-                    });
-            }
-
-            public System.Threading.Channels.ChannelReader<string> Reader => _channel.Reader;
-            public System.Threading.Channels.ChannelWriter<string> Writer => _channel.Writer;
-
-            public void TryComplete()
-            {
-                try { _channel.Writer.TryComplete(); } catch { /* ignore */ }
-            }
-        }
 
         private sealed class JsonRpcRequest
         {
@@ -2168,6 +2120,18 @@ If no `mcp_input_schema` is provided:
 
             [JsonPropertyName("user_inputs")]
             public List<UserInputRequest> UserInputs { get; set; } = new();
+        }
+
+        private sealed class UiConfirmArgs
+        {
+            [JsonPropertyName("title")]
+            public string? Title { get; set; }
+
+            [JsonPropertyName("message")]
+            public string? Message { get; set; }
+
+            [JsonPropertyName("details")]
+            public ConfirmationDetails? Details { get; set; }
         }
 
         private sealed class McpToolsCallResult

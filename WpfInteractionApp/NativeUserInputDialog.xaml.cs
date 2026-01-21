@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -71,10 +72,18 @@ namespace WpfInteractionApp
             SelectionComboBox.Visibility = Visibility.Collapsed;
             MultiSelectListBox.Visibility = Visibility.Collapsed;
             FilePickerGrid.Visibility = Visibility.Collapsed;
+            DatePickerPanel.Visibility = Visibility.Collapsed;
+            TimePickerPanel.Visibility = Visibility.Collapsed;
+            DateTimePickerGrid.Visibility = Visibility.Collapsed;
 
-            if (_request.IsFilePicker)
+            var isDateTime = _request.IsDateTime || _request.IsDateTimePicker;
+            var isDate = _request.IsDate || _request.IsDatePicker;
+            var isTime = _request.IsTime || _request.IsTimePicker;
+
+            if (_request.IsFolderPicker || _request.IsFilePicker)
             {
                 FilePickerGrid.Visibility = Visibility.Visible;
+                BrowseButton.Content = _request.IsFolderPicker ? "Browse Folder" : "Browse";
                 if (!string.IsNullOrEmpty(defaultValue))
                     FilePathTextBox.Text = defaultValue;
             }
@@ -118,6 +127,33 @@ namespace WpfInteractionApp
                     }
                 }
             }
+            else if (isDateTime)
+            {
+                DateTimePickerGrid.Visibility = Visibility.Visible;
+                if (!string.IsNullOrWhiteSpace(defaultValue) && DateTime.TryParse(defaultValue, out var dt))
+                {
+                    DateTimeDatePicker.SelectedDate = dt.Date;
+                    DateTimeTimeTextBox.Text = dt.ToString("HH:mm");
+                }
+                DateTimeDatePicker.SelectedDateChanged += (s, e) => ValidateInput();
+                DateTimeTimeTextBox.TextChanged += (s, e) => ValidateInput();
+            }
+            else if (isDate)
+            {
+                DatePickerPanel.Visibility = Visibility.Visible;
+                if (!string.IsNullOrWhiteSpace(defaultValue) && DateTime.TryParse(defaultValue, out var d))
+                {
+                    DatePicker.SelectedDate = d.Date;
+                }
+                DatePicker.SelectedDateChanged += (s, e) => ValidateInput();
+            }
+            else if (isTime)
+            {
+                TimePickerPanel.Visibility = Visibility.Visible;
+                if (!string.IsNullOrWhiteSpace(defaultValue))
+                    TimeTextBox.Text = defaultValue;
+                TimeTextBox.TextChanged += (s, e) => ValidateInput();
+            }
             else if (_request.IsPassword)
             {
                 PasswordBox.Visibility = Visibility.Visible;
@@ -155,22 +191,87 @@ namespace WpfInteractionApp
             bool isValid = true;
             string errorMessage = "";
 
-            if (_request.IsRequired && string.IsNullOrWhiteSpace(input))
+            var isDateTime = _request.IsDateTime || _request.IsDateTimePicker;
+            var isDate = _request.IsDate || _request.IsDatePicker;
+            var isTime = _request.IsTime || _request.IsTimePicker;
+
+            if (isDateTime)
             {
-                isValid = false;
-                errorMessage = "This field is required";
-            }
-            else if (!string.IsNullOrEmpty(_request.ValidationRegex) && !string.IsNullOrWhiteSpace(input))
-            {
-                try
+                if (_request.IsRequired && DateTimeDatePicker.SelectedDate == null)
                 {
-                    if (!Regex.IsMatch(input, _request.ValidationRegex))
+                    isValid = false;
+                    errorMessage = "Date is required";
+                }
+                else if (!string.IsNullOrWhiteSpace(DateTimeTimeTextBox.Text) && !TryParseTime(DateTimeTimeTextBox.Text, out _))
+                {
+                    isValid = false;
+                    errorMessage = "Invalid time format (HH:mm)";
+                }
+            }
+            else if (isDate)
+            {
+                if (_request.IsRequired && DatePicker.SelectedDate == null)
+                {
+                    isValid = false;
+                    errorMessage = "Date is required";
+                }
+            }
+            else if (isTime)
+            {
+                if (_request.IsRequired && string.IsNullOrWhiteSpace(TimeTextBox.Text))
+                {
+                    isValid = false;
+                    errorMessage = "Time is required";
+                }
+                else if (!string.IsNullOrWhiteSpace(TimeTextBox.Text) && !TryParseTime(TimeTextBox.Text, out _))
+                {
+                    isValid = false;
+                    errorMessage = "Invalid time format (HH:mm)";
+                }
+            }
+            else if (_request.IsSelectionList)
+            {
+                if (_request.IsMultiSelect)
+                {
+                    if (_request.IsRequired && MultiSelectListBox.SelectedItems.Count == 0)
                     {
                         isValid = false;
-                        errorMessage = "Input format is invalid";
+                        errorMessage = "Please select at least one item";
                     }
                 }
-                catch { isValid = false; errorMessage = "Invalid validation pattern"; }
+                else
+                {
+                    if (_request.IsRequired && SelectionComboBox.SelectedItem == null)
+                    {
+                        isValid = false;
+                        errorMessage = "Please select an item";
+                    }
+                }
+            }
+            else
+            {
+                if (_request.IsFilePicker || _request.IsFolderPicker)
+                    input = FilePathTextBox.Text;
+                else if (_request.IsPassword)
+                    input = PasswordBox.Password;
+
+                if (_request.IsRequired && string.IsNullOrWhiteSpace(input))
+                {
+                    isValid = false;
+                    errorMessage = "This field is required";
+                }
+                else if (!string.IsNullOrEmpty(_request.ValidationRegex) && !string.IsNullOrWhiteSpace(input))
+                {
+                    try
+                    {
+                        if (!Regex.IsMatch(input, _request.ValidationRegex))
+                        {
+                            isValid = false;
+                            errorMessage = "Input format is invalid";
+                        }
+                    }
+                    catch { isValid = false; errorMessage = "Invalid validation pattern"; }
+                }
             }
 
             if (!isValid)
@@ -192,11 +293,28 @@ namespace WpfInteractionApp
 
         private void SetInitialFocus()
         {
-            if (_request.IsFilePicker) BrowseButton.Focus();
+            var isDateTime = _request.IsDateTime || _request.IsDateTimePicker;
+            var isDate = _request.IsDate || _request.IsDatePicker;
+            var isTime = _request.IsTime || _request.IsTimePicker;
+
+            if (_request.IsFilePicker || _request.IsFolderPicker) BrowseButton.Focus();
             else if (_request.IsSelectionList)
             {
                 if (_request.IsMultiSelect) MultiSelectListBox.Focus();
                 else SelectionComboBox.Focus();
+            }
+            else if (isDateTime)
+            {
+                DateTimeDatePicker.Focus();
+            }
+            else if (isDate)
+            {
+                DatePicker.Focus();
+            }
+            else if (isTime)
+            {
+                TimeTextBox.Focus();
+                TimeTextBox.SelectAll();
             }
             else if (_request.IsPassword) PasswordBox.Focus();
             else { InputTextBox.Focus(); InputTextBox.SelectAll(); }
@@ -204,27 +322,64 @@ namespace WpfInteractionApp
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new OpenFileDialog
+            if (_request.IsFolderPicker)
+            {
+                using var folderDialog = new System.Windows.Forms.FolderBrowserDialog
+                {
+                    Description = "Select Folder",
+                    ShowNewFolderButton = true,
+                    SelectedPath = FilePathTextBox.Text
+                };
+
+                if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    FilePathTextBox.Text = folderDialog.SelectedPath;
+                return;
+            }
+
+            var fileDialog = new OpenFileDialog
             {
                 Title = "Select File",
                 Filter = GetFileFilter()
             };
 
-            if (dialog.ShowDialog() == true)
-                FilePathTextBox.Text = dialog.FileName;
+            if (fileDialog.ShowDialog() == true)
+                FilePathTextBox.Text = fileDialog.FileName;
         }
 
-        private static string GetFileFilter()
+        private string GetFileFilter()
         {
-            // UserInputRequest doesn't have FileExtensions property - use default filter
-            return "All Files|*.*";
+            var extensions = _request.FileExtensions;
+            if (extensions == null || extensions.Count == 0)
+                return "All Files|*.*";
+
+            var patterns = new List<string>();
+            foreach (var ext in extensions)
+            {
+                if (string.IsNullOrWhiteSpace(ext)) continue;
+                var e = ext.Trim();
+                if (e == "*" || e == "*.*") continue;
+                if (e.StartsWith("*.")) { patterns.Add(e); continue; }
+                if (e.StartsWith(".")) { patterns.Add($"*{e}"); continue; }
+                if (e.Contains("*")) { patterns.Add(e); continue; }
+                patterns.Add($"*.{e}");
+            }
+
+            if (patterns.Count == 0)
+                return "All Files|*.*";
+
+            var label = $"Allowed Files ({string.Join(", ", patterns.Select(p => p.Replace("*", "")))})";
+            return $"{label}|{string.Join(";", patterns)}|All Files|*.*";
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             string input;
             
-            if (_request.IsFilePicker)
+            var isDateTime = _request.IsDateTime || _request.IsDateTimePicker;
+            var isDate = _request.IsDate || _request.IsDatePicker;
+            var isTime = _request.IsTime || _request.IsTimePicker;
+
+            if (_request.IsFolderPicker || _request.IsFilePicker)
             {
                 input = FilePathTextBox.Text;
             }
@@ -241,6 +396,51 @@ namespace WpfInteractionApp
                     var selectedItem = SelectionComboBox.SelectedItem as ComboBoxItem;
                     input = selectedItem?.Tag?.ToString() ?? "";
                 }
+            }
+            else if (isDateTime)
+            {
+                if (DateTimeDatePicker.SelectedDate == null)
+                {
+                    ValidationErrorText.Text = "Date is required";
+                    ValidationBorder.Visibility = Visibility.Visible;
+                    SetInitialFocus();
+                    return;
+                }
+
+                if (!TryParseTime(DateTimeTimeTextBox.Text, out var time))
+                {
+                    ValidationErrorText.Text = "Invalid time format (HH:mm)";
+                    ValidationBorder.Visibility = Visibility.Visible;
+                    SetInitialFocus();
+                    return;
+                }
+
+                var date = DateTimeDatePicker.SelectedDate.Value.Date + time;
+                input = date.ToString("yyyy-MM-ddTHH:mm");
+            }
+            else if (isDate)
+            {
+                if (DatePicker.SelectedDate == null)
+                {
+                    ValidationErrorText.Text = "Date is required";
+                    ValidationBorder.Visibility = Visibility.Visible;
+                    SetInitialFocus();
+                    return;
+                }
+
+                input = DatePicker.SelectedDate.Value.ToString("yyyy-MM-dd");
+            }
+            else if (isTime)
+            {
+                if (!TryParseTime(TimeTextBox.Text, out var time))
+                {
+                    ValidationErrorText.Text = "Invalid time format (HH:mm)";
+                    ValidationBorder.Visibility = Visibility.Visible;
+                    SetInitialFocus();
+                    return;
+                }
+
+                input = new DateTime(1, 1, 1).Add(time).ToString("HH:mm");
             }
             else if (_request.IsPassword)
             {
@@ -304,6 +504,27 @@ namespace WpfInteractionApp
         {
             ShowDialog();
             return NavigationResult;
+        }
+
+        private static bool TryParseTime(string input, out TimeSpan time)
+        {
+            if (TimeSpan.TryParse(input, CultureInfo.CurrentCulture, out time))
+                return true;
+            if (DateTime.TryParse(input, CultureInfo.CurrentCulture, DateTimeStyles.NoCurrentDateDefault, out var dt))
+            {
+                time = dt.TimeOfDay;
+                return true;
+            }
+            if (TimeSpan.TryParse(input, CultureInfo.InvariantCulture, out time))
+                return true;
+            if (DateTime.TryParse(input, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out dt))
+            {
+                time = dt.TimeOfDay;
+                return true;
+            }
+
+            time = default;
+            return false;
         }
     }
 }

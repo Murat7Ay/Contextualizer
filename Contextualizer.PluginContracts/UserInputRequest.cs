@@ -29,8 +29,24 @@ namespace Contextualizer.PluginContracts
         public bool IsMultiSelect { get; set; } = false;
         [JsonPropertyName("is_file_picker")]
         public bool IsFilePicker { get; set; } = false;
+        [JsonPropertyName("file_extensions")]
+        public List<string>? FileExtensions { get; set; }
+        [JsonPropertyName("is_folder_picker")]
+        public bool IsFolderPicker { get; set; } = false;
         [JsonPropertyName("is_multi_line")]
         public bool IsMultiLine { get; set; } = false;
+        [JsonPropertyName("is_date")]
+        public bool IsDate { get; set; } = false;
+        [JsonPropertyName("is_date_picker")]
+        public bool IsDatePicker { get; set; } = false;
+        [JsonPropertyName("is_time")]
+        public bool IsTime { get; set; } = false;
+        [JsonPropertyName("is_time_picker")]
+        public bool IsTimePicker { get; set; } = false;
+        [JsonPropertyName("is_date_time")]
+        public bool IsDateTime { get; set; } = false;
+        [JsonPropertyName("is_datetime_picker")]
+        public bool IsDateTimePicker { get; set; } = false;
         [JsonPropertyName("default_value")]
         public string DefaultValue { get; set; } = string.Empty;
         [JsonPropertyName("dependent_key")]

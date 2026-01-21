@@ -1783,14 +1783,14 @@ namespace WpfInteractionApp
             Debug.WriteLine($"SendHostReady: wpfTheme={wpfTheme}, uiTheme={uiTheme}");
             PostLogToUi(LogType.Debug, $"Host ready: theme={uiTheme} (WPF: {wpfTheme})");
 
-            string? mcpSseUrl = null;
+            string? mcpUrl = null;
             try
             {
                 var settingsService = ServiceLocator.SafeGet<Services.SettingsService>();
                 if (settingsService?.Settings?.McpSettings?.Enabled == true)
                 {
                     var port = settingsService.Settings.McpSettings.Port;
-                    mcpSseUrl = $"http://127.0.0.1:{port}/mcp/sse";
+                    mcpUrl = $"http://127.0.0.1:{port}/mcp";
                 }
             }
             catch
@@ -1804,7 +1804,7 @@ namespace WpfInteractionApp
                 protocolVersion = UiProtocolVersion,
                 appVersion,
                 theme = uiTheme,
-                mcpSseUrl,
+                mcpUrl,
             });
 
             _lastThemeSentToUi = uiTheme;
@@ -2058,7 +2058,12 @@ namespace WpfInteractionApp
             }
         }
 
-        public async Task<bool> RequestConfirmAsync(string title, string message, TimeSpan? timeout = null)
+        public Task<bool> RequestConfirmAsync(string title, string message, TimeSpan? timeout = null)
+        {
+            return RequestConfirmAsync(new ConfirmationRequest { Title = title, Message = message }, timeout);
+        }
+
+        public async Task<bool> RequestConfirmAsync(ConfirmationRequest request, TimeSpan? timeout = null)
         {
             await WaitForUiReadyAsync(timeout);
             BringToFrontSafe();
@@ -2071,8 +2076,9 @@ namespace WpfInteractionApp
             {
                 type = "ui_confirm_request",
                 requestId,
-                title,
-                message
+                title = request.Title,
+                message = request.Message,
+                details = request.Details
             });
 
             return await WaitWithTimeoutAsync(requestId, tcs.Task, _pendingConfirms, timeout);

@@ -325,7 +325,7 @@ namespace WpfInteractionApp
                 _mcpServerHost = new McpServerHost();
                 await _mcpServerHost.StartAsync(port);
 
-                userInteractionService.ShowActivityFeedback(LogType.Info, $"MCP server started: http://127.0.0.1:{port}/mcp/sse");
+                userInteractionService.ShowActivityFeedback(LogType.Info, $"MCP server started: http://127.0.0.1:{port}/mcp");
             }
             catch (Exception ex)
             {

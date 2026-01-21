@@ -215,6 +215,32 @@
                                Style="{StaticResource DialogButton.Secondary}"
                                Click="BrowseButton_Click" Margin="8,0,0,0"/>
                     </Grid>
+
+                    <StackPanel x:Name="DatePickerPanel" Visibility="Collapsed">
+                        <DatePicker x:Name="DatePicker"
+                                    SelectedDateFormat="Short"
+                                    Margin="0,0,0,4"/>
+                    </StackPanel>
+
+                    <StackPanel x:Name="TimePickerPanel" Visibility="Collapsed">
+                        <TextBox x:Name="TimeTextBox" Style="{StaticResource DialogTextBox}"
+                                 Text=""/>
+                    </StackPanel>
+
+                    <Grid x:Name="DateTimePickerGrid" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <DatePicker x:Name="DateTimeDatePicker"
+                                    Grid.Column="0"
+                                    SelectedDateFormat="Short"
+                                    Margin="0,0,8,0"/>
+                        <TextBox x:Name="DateTimeTimeTextBox"
+                                 Grid.Column="1"
+                                 Width="90"
+                                 Style="{StaticResource DialogTextBox}"/>
+                    </Grid>
                 </Grid>
             </Grid>
 

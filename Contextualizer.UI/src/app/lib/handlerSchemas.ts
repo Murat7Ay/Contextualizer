@@ -30,7 +30,12 @@ export type UserInputDraft = {
   selection_items?: SelectionItemDraft[];
   is_multi_select?: boolean;
   is_file_picker?: boolean;
+  file_extensions?: string[];
+  is_folder_picker?: boolean;
   is_multi_line?: boolean;
+  is_date?: boolean;
+  is_time?: boolean;
+  is_date_time?: boolean;
   default_value?: string;
   dependent_key?: string;
   dependent_selection_item_map?: Record<string, DependentSelectionItemMapDraft>;
