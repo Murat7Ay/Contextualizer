@@ -22,8 +22,10 @@ namespace WpfInteractionApp.Services
         // Management tools (gated by settings.mcp_settings.management_tools_enabled)
         private const string HandlersListToolName = "handlers_list";
         private const string HandlersGetToolName = "handlers_get";
-        private const string HandlerAddToolName = "handler_add";
-        private const string HandlerUpdateToolName = "handler_update";
+        private const string HandlerCreateDatabaseToolName = "handler_create_database";
+        private const string HandlerUpdateDatabaseToolName = "handler_update_database";
+        private const string HandlerCreateApiToolName = "handler_create_api";
+        private const string HandlerUpdateApiToolName = "handler_update_api";
         private const string HandlerDeleteToolName = "handler_delete";
         private const string HandlerReloadToolName = "handler_reload";
         private const string PluginsListToolName = "plugins_list";
@@ -343,15 +345,18 @@ namespace WpfInteractionApp.Services
             {
                 Name = UiUserInputsToolName,
                 Description = """
-Prompt user for inputs. Each input in user_inputs array MUST include the appropriate type flag:
-- Text input: just key, title, message
-- Password: add "is_password": true  
-- File picker: add "is_file_picker": true
-- Multi-line: add "is_multi_line": true
-- Dropdown: add "is_selection_list": true and "selection_items": [{"value":"v1","display":"Option 1"}]
-- Multi-select: add "is_multi_select": true with is_selection_list
+Prompt the user for inputs sequentially. "user_inputs" is an array of objects with required fields:
+- key, title, message
 
-Example for file picker: {"key":"file","title":"Select","message":"Pick file","is_file_picker":true}
+Optional fields include:
+- validation_regex, is_required, default_value
+- is_password, is_multi_line
+- is_file_picker, is_folder_picker, file_extensions
+- is_selection_list (+ selection_items), is_multi_select
+- is_date / is_date_picker, is_time / is_time_picker, is_date_time / is_datetime_picker
+- dependent_key, dependent_selection_item_map
+- config_target (secrets.section.key or config.section.key)
+
 Returns { cancelled: boolean, values: object }.
 """,
                 InputSchema = UiUserInputsSchema()
@@ -360,14 +365,14 @@ Returns { cancelled: boolean, values: object }.
             tools.Add(new McpTool
             {
                 Name = UiNotifyToolName,
-                Description = "Show a non-blocking notification/toast to the user (does not wait for input). Returns { ok: boolean }.",
+                Description = "Show a non-blocking notification/toast. level=info|success|warning|error|critical|debug. durationSeconds (or duration_seconds) in 1..600. Returns { ok: boolean }.",
                 InputSchema = UiNotifySchema()
             });
 
             tools.Add(new McpTool
             {
                 Name = UiShowMarkdownToolName,
-                Description = "Show a markdown tab in the app (screen_id=markdown2). Returns { shown: boolean }.",
+                Description = "Show a markdown tab in the app (screen_id=markdown2). Accepts autoFocus/bringToFront or auto_focus/bring_to_front. Returns { shown: boolean }.",
                 InputSchema = UiShowMarkdownSchema()
             });
 
@@ -404,8 +409,10 @@ Returns { cancelled: boolean, values: object }.
             {
                 tools.Add(new McpTool { Name = HandlersListToolName, Description = "List handlers from handlers.json (optionally include full configs).", InputSchema = HandlersListSchema() });
                 tools.Add(new McpTool { Name = HandlersGetToolName, Description = "Get a single handler config by name.", InputSchema = HandlersGetSchema() });
-                tools.Add(new McpTool { Name = HandlerAddToolName, Description = "Add a new handler to handlers.json and optionally reload handlers.", InputSchema = HandlerAddSchema() });
-                tools.Add(new McpTool { Name = HandlerUpdateToolName, Description = "Update an existing handler by name (partial update) and optionally reload handlers.", InputSchema = HandlerUpdateSchema() });
+                tools.Add(new McpTool { Name = HandlerCreateDatabaseToolName, Description = "Create a Database handler (type=Database).", InputSchema = HandlerCreateSchema() });
+                tools.Add(new McpTool { Name = HandlerUpdateDatabaseToolName, Description = "Update a Database handler by name (partial update).", InputSchema = HandlerUpdateSchema() });
+                tools.Add(new McpTool { Name = HandlerCreateApiToolName, Description = "Create an Api handler (type=Api).", InputSchema = HandlerCreateSchema() });
+                tools.Add(new McpTool { Name = HandlerUpdateApiToolName, Description = "Update an Api handler by name (partial update).", InputSchema = HandlerUpdateSchema() });
                 tools.Add(new McpTool { Name = HandlerDeleteToolName, Description = "Delete an existing handler by name and optionally reload handlers.", InputSchema = HandlerDeleteSchema() });
                 tools.Add(new McpTool { Name = HandlerReloadToolName, Description = "Reload handlers from handlers.json (optionally reload plugins).", InputSchema = HandlerReloadSchema() });
                 tools.Add(new McpTool { Name = PluginsListToolName, Description = "List loaded plugin names (actions/validators/context_providers) and registered handler types.", InputSchema = EmptyObjectSchema() });
@@ -646,8 +653,10 @@ Returns { cancelled: boolean, values: object }.
             var name = callParams.Name ?? string.Empty;
             if (!string.Equals(name, HandlersListToolName, StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(name, HandlersGetToolName, StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(name, HandlerAddToolName, StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(name, HandlerUpdateToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlerCreateDatabaseToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlerUpdateDatabaseToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlerCreateApiToolName, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(name, HandlerUpdateApiToolName, StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(name, HandlerDeleteToolName, StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(name, HandlerReloadToolName, StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(name, PluginsListToolName, StringComparison.OrdinalIgnoreCase) &&
@@ -706,10 +715,11 @@ Returns { cancelled: boolean, values: object }.
                     return ToolOk(request, new { success = true, handler = cfg });
                 }
 
-                if (string.Equals(name, HandlerAddToolName, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(name, HandlerCreateDatabaseToolName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(name, HandlerCreateApiToolName, StringComparison.OrdinalIgnoreCase))
                 {
                     if (args.ValueKind != JsonValueKind.Object || !args.TryGetProperty("handler_config", out var hc) || hc.ValueKind != JsonValueKind.Object)
-                        return ToolError(request, "handler_add requires arguments.handler_config (object)");
+                        return ToolError(request, "handler_create requires arguments.handler_config (object)");
 
                     bool reload = true;
                     if (args.TryGetProperty("reload_after_add", out var ra) && ra.ValueKind is JsonValueKind.True or JsonValueKind.False)
@@ -721,6 +731,12 @@ Returns { cancelled: boolean, values: object }.
                     var cfg = hc.Deserialize<HandlerConfig>(_jsonOptions);
                     if (cfg == null) return ToolError(request, "Invalid handler_config JSON");
 
+                    var expectedType = string.Equals(name, HandlerCreateDatabaseToolName, StringComparison.OrdinalIgnoreCase) ? "Database" : "Api";
+                    if (string.IsNullOrWhiteSpace(cfg.Type))
+                        cfg.Type = expectedType;
+                    if (!string.Equals(cfg.Type, expectedType, StringComparison.OrdinalIgnoreCase))
+                        return ToolError(request, $"handler_config.type must be '{expectedType}'");
+
                     var res = await store.AddAsync(cfg);
                     if (!res.Success) return ToolError(request, $"{res.Code}: {res.Error}");
 
@@ -730,7 +746,8 @@ Returns { cancelled: boolean, values: object }.
                     return ToolOk(request, new { success = true, name = cfg.Name, type = cfg.Type });
                 }
 
-                if (string.Equals(name, HandlerUpdateToolName, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(name, HandlerUpdateDatabaseToolName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(name, HandlerUpdateApiToolName, StringComparison.OrdinalIgnoreCase))
                 {
                     if (args.ValueKind != JsonValueKind.Object || !args.TryGetProperty("handler_name", out var hn) || hn.ValueKind != JsonValueKind.String)
                         return ToolError(request, "handler_update requires arguments.handler_name");
@@ -743,6 +760,12 @@ Returns { cancelled: boolean, values: object }.
 
                     var store = TryCreateHandlerConfigStore();
                     if (store == null) return ToolError(request, "HandlerConfigStore not available");
+
+                    var existing = await store.GetByNameAsync(hn.GetString() ?? string.Empty);
+                    if (existing == null) return ToolError(request, "Handler not found");
+                    var expectedType = string.Equals(name, HandlerUpdateDatabaseToolName, StringComparison.OrdinalIgnoreCase) ? "Database" : "Api";
+                    if (!string.Equals(existing.Type, expectedType, StringComparison.OrdinalIgnoreCase))
+                        return ToolError(request, $"Handler '{existing.Name}' is not type '{expectedType}'");
 
                     var res = await store.UpdatePartialAsync(hn.GetString() ?? string.Empty, up);
                     if (!res.Success) return ToolError(request, $"{res.Code}: {res.Error}");
@@ -1424,7 +1447,8 @@ Returns { cancelled: boolean, values: object }.
                 "title": { "type": "string" },
                 "message": { "type": "string" },
                 "level": { "type": "string" },
-                "durationSeconds": { "type": "integer" }
+                "durationSeconds": { "type": "integer" },
+                "duration_seconds": { "type": "integer" }
               },
               "required": ["message"]
             }
@@ -1442,7 +1466,9 @@ Returns { cancelled: boolean, values: object }.
                 "title": { "type": "string" },
                 "markdown": { "type": "string" },
                 "autoFocus": { "type": "boolean" },
-                "bringToFront": { "type": "boolean" }
+                "bringToFront": { "type": "boolean" },
+                "auto_focus": { "type": "boolean" },
+                "bring_to_front": { "type": "boolean" }
               },
               "required": ["markdown"]
             }
@@ -1491,7 +1517,7 @@ Returns { cancelled: boolean, values: object }.
             return doc.RootElement.Clone();
         }
 
-        private static JsonElement HandlerAddSchema()
+        private static JsonElement HandlerCreateSchema()
         {
             const string schemaJson = """
             {

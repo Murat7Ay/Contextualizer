@@ -21,7 +21,6 @@ export function HandlerEditorPage({ mode }: Props) {
 
   const onDone = () => {
     requestHandlersList();
-    navigate('/handlers');
   };
 
   const title = mode === 'new' ? 'New Handler' : `Edit Handler: ${handlerName ?? ''}`;

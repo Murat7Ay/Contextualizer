@@ -124,10 +124,16 @@ namespace Contextualizer.Core.Services
             }
             else if (type.Equals(ApiHandler.TypeName, StringComparison.OrdinalIgnoreCase))
             {
-                if (string.IsNullOrWhiteSpace(config.Url))
+                var httpUrl = config.Http?.Request?.Url;
+                if (string.IsNullOrWhiteSpace(httpUrl) && string.IsNullOrWhiteSpace(config.Url))
+                {
                     errors.Add("url is required for Api handler.");
+                }
                 else
-                    errors.AddRange(ValidateUrl(config.Url));
+                {
+                    var urlToValidate = !string.IsNullOrWhiteSpace(httpUrl) ? httpUrl : config.Url;
+                    errors.AddRange(ValidateUrl(urlToValidate));
+                }
 
                 if (!string.IsNullOrWhiteSpace(config.Regex))
                     errors.AddRange(ValidateRegexPattern(config.Regex, "regex"));

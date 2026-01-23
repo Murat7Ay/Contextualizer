@@ -34,8 +34,11 @@ export type UserInputDraft = {
   is_folder_picker?: boolean;
   is_multi_line?: boolean;
   is_date?: boolean;
+  is_date_picker?: boolean;
   is_time?: boolean;
+  is_time_picker?: boolean;
   is_date_time?: boolean;
+  is_datetime_picker?: boolean;
   default_value?: string;
   dependent_key?: string;
   dependent_selection_item_map?: Record<string, DependentSelectionItemMapDraft>;
@@ -104,6 +107,9 @@ export type HandlerConfigDraft = {
   request_body?: unknown;
   content_type?: string;
   timeout_seconds?: number;
+
+  // advanced HTTP config (Api)
+  http?: unknown;
 
   validator?: string;
   context_provider?: string;
@@ -326,32 +332,49 @@ export function validateDraft(draft: HandlerConfigDraft): { ok: boolean; errors:
   if (!draft.type || String(draft.type).trim().length === 0) errors.push('type is required');
 
   const ht = coerceToHandlerType(draft.type);
-  if (!ht) {
-    errors.push(`unsupported type: ${draft.type}`);
-    return { ok: false, errors };
+
+  // Minimal semantic rules (heavy validation lives in Core)
+  if (ht === 'Custom' && !draft.validator && !draft.context_provider) {
+    errors.push('custom handler requires validator or context_provider');
+  }
+  if (ht === 'Synthetic' && !draft.reference_handler && !draft.actual_type) {
+    errors.push('synthetic handler requires reference_handler or actual_type');
   }
 
-  const schema = handlerSchemas[ht];
-  for (const f of schema.fields) {
-    if (!f.required) continue;
-    const v = (draft as any)[f.key];
-    const isEmptyArray = Array.isArray(v) && v.length === 0;
-    const isEmptyString = typeof v === 'string' && v.trim().length === 0;
-    const isMissing = v == null || isEmptyString || isEmptyArray;
-    if (isMissing) errors.push(`${String(f.key)} is required for type ${schema.typeLabel}`);
+  const validateUserInput = (input: UserInputDraft, prefix: string) => {
+    if (input.is_selection_list && (!input.selection_items || input.selection_items.length === 0)) {
+      errors.push(`${prefix}.selection_items is required when is_selection_list=true`);
+    }
+    if (input.is_multi_select && !input.is_selection_list) {
+      errors.push(`${prefix}.is_multi_select requires is_selection_list=true`);
+    }
+    if (input.config_target) {
+      const parts = input.config_target.split('.', 3);
+      if (parts.length !== 3) {
+        errors.push(`${prefix}.config_target must be 'secrets.section.key' or 'config.section.key'`);
+      }
+    }
+  };
+
+  const userInputs = draft.user_inputs ?? [];
+  userInputs.forEach((input, idx) => validateUserInput(input, `user_inputs[${idx}]`));
+
+  if (draft.synthetic_input) {
+    validateUserInput(draft.synthetic_input, 'synthetic_input');
   }
 
-  // extra semantic rules (lightweight; heavy validation lives in Core)
-  if (ht === 'Custom') {
-    if (!draft.validator && !draft.context_provider) {
-      errors.push('custom handler requires validator or context_provider');
-    }
-  }
-  if (ht === 'Synthetic') {
-    if (!draft.reference_handler && !draft.actual_type) {
-      errors.push('synthetic handler requires reference_handler or actual_type');
-    }
-  }
+  const actions = draft.actions ?? [];
+  actions.forEach((action, actionIndex) => {
+    const aInputs = action.user_inputs ?? [];
+    aInputs.forEach((input, idx) => validateUserInput(input, `actions[${actionIndex}].user_inputs[${idx}]`));
+    const inner = action.inner_actions ?? [];
+    inner.forEach((innerAction, innerIndex) => {
+      const innerInputs = innerAction.user_inputs ?? [];
+      innerInputs.forEach((input, idx) =>
+        validateUserInput(input, `actions[${actionIndex}].inner_actions[${innerIndex}].user_inputs[${idx}]`)
+      );
+    });
+  });
 
   return { ok: errors.length === 0, errors };
 }

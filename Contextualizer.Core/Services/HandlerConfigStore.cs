@@ -270,7 +270,8 @@ namespace Contextualizer.Core.Services
 
             foreach (var kvp in updatesNode)
             {
-                baseNode[kvp.Key] = kvp.Value;
+                // JsonNode cannot be attached to multiple parents; clone to avoid "node already has a parent".
+                baseNode[kvp.Key] = kvp.Value?.DeepClone();
                 updatedFields.Add(kvp.Key);
             }
 

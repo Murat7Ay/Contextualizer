@@ -84,6 +84,10 @@ namespace Contextualizer.PluginContracts
         [JsonPropertyName("timeout_seconds")]
         public int? TimeoutSeconds { get; set; }
 
+        // Advanced HTTP configuration (optional; overrides legacy API fields when provided)
+        [JsonPropertyName("http")]
+        public HttpConfig? Http { get; set; }
+
         // Database Handler Properties
         [JsonPropertyName("command_timeout_seconds")]
         public int? CommandTimeoutSeconds { get; set; }
@@ -172,6 +176,234 @@ namespace Contextualizer.PluginContracts
         /// </summary>
         [JsonPropertyName("mcp_seed_overwrite")]
         public bool McpSeedOverwrite { get; set; } = false;
+    }
+
+    public sealed class HttpConfig
+    {
+        [JsonPropertyName("request")]
+        public HttpRequestConfig? Request { get; set; }
+
+        [JsonPropertyName("auth")]
+        public HttpAuthConfig? Auth { get; set; }
+
+        [JsonPropertyName("proxy")]
+        public HttpProxyConfig? Proxy { get; set; }
+
+        [JsonPropertyName("tls")]
+        public HttpTlsConfig? Tls { get; set; }
+
+        [JsonPropertyName("timeouts")]
+        public HttpTimeoutsConfig? Timeouts { get; set; }
+
+        [JsonPropertyName("retry")]
+        public HttpRetryConfig? Retry { get; set; }
+
+        [JsonPropertyName("pagination")]
+        public HttpPaginationConfig? Pagination { get; set; }
+
+        [JsonPropertyName("response")]
+        public HttpResponseConfig? Response { get; set; }
+
+        [JsonPropertyName("output")]
+        public HttpOutputConfig? Output { get; set; }
+    }
+
+    public sealed class HttpRequestConfig
+    {
+        [JsonPropertyName("url")]
+        public string? Url { get; set; }
+
+        [JsonPropertyName("method")]
+        public string? Method { get; set; }
+
+        [JsonPropertyName("headers")]
+        public Dictionary<string, string>? Headers { get; set; }
+
+        [JsonPropertyName("query")]
+        public Dictionary<string, string>? Query { get; set; }
+
+        [JsonPropertyName("body")]
+        public JsonElement? Body { get; set; }
+
+        [JsonPropertyName("body_text")]
+        public string? BodyText { get; set; }
+
+        [JsonPropertyName("content_type")]
+        public string? ContentType { get; set; }
+
+        [JsonPropertyName("charset")]
+        public string? Charset { get; set; }
+
+        [JsonPropertyName("allow_body_for_get")]
+        public bool? AllowBodyForGet { get; set; }
+
+        [JsonPropertyName("allow_body_for_delete")]
+        public bool? AllowBodyForDelete { get; set; }
+    }
+
+    public sealed class HttpAuthConfig
+    {
+        [JsonPropertyName("type")]
+        public string? Type { get; set; } // basic | bearer | oauth2 | api_key | custom
+
+        [JsonPropertyName("token")]
+        public string? Token { get; set; }
+
+        [JsonPropertyName("username")]
+        public string? Username { get; set; }
+
+        [JsonPropertyName("password")]
+        public string? Password { get; set; }
+
+        [JsonPropertyName("header_name")]
+        public string? HeaderName { get; set; }
+
+        [JsonPropertyName("query_name")]
+        public string? QueryName { get; set; }
+
+        [JsonPropertyName("token_prefix")]
+        public string? TokenPrefix { get; set; } // e.g. "Bearer"
+    }
+
+    public sealed class HttpProxyConfig
+    {
+        [JsonPropertyName("url")]
+        public string? Url { get; set; }
+
+        [JsonPropertyName("username")]
+        public string? Username { get; set; }
+
+        [JsonPropertyName("password")]
+        public string? Password { get; set; }
+
+        [JsonPropertyName("bypass")]
+        public List<string>? Bypass { get; set; }
+
+        [JsonPropertyName("use_system_proxy")]
+        public bool? UseSystemProxy { get; set; }
+
+        [JsonPropertyName("use_default_credentials")]
+        public bool? UseDefaultCredentials { get; set; }
+    }
+
+    public sealed class HttpTlsConfig
+    {
+        [JsonPropertyName("allow_invalid_cert")]
+        public bool? AllowInvalidCert { get; set; }
+
+        [JsonPropertyName("min_tls")]
+        public string? MinTls { get; set; } // e.g. "1.2"
+
+        [JsonPropertyName("client_cert_path")]
+        public string? ClientCertPath { get; set; }
+
+        [JsonPropertyName("client_cert_password")]
+        public string? ClientCertPassword { get; set; }
+    }
+
+    public sealed class HttpTimeoutsConfig
+    {
+        [JsonPropertyName("connect_seconds")]
+        public int? ConnectSeconds { get; set; }
+
+        [JsonPropertyName("read_seconds")]
+        public int? ReadSeconds { get; set; }
+
+        [JsonPropertyName("overall_seconds")]
+        public int? OverallSeconds { get; set; }
+    }
+
+    public sealed class HttpRetryConfig
+    {
+        [JsonPropertyName("enabled")]
+        public bool? Enabled { get; set; }
+
+        [JsonPropertyName("max_attempts")]
+        public int? MaxAttempts { get; set; }
+
+        [JsonPropertyName("base_delay_ms")]
+        public int? BaseDelayMs { get; set; }
+
+        [JsonPropertyName("max_delay_ms")]
+        public int? MaxDelayMs { get; set; }
+
+        [JsonPropertyName("jitter")]
+        public bool? Jitter { get; set; }
+
+        [JsonPropertyName("retry_on_status")]
+        public List<int>? RetryOnStatus { get; set; }
+
+        [JsonPropertyName("retry_on_exceptions")]
+        public List<string>? RetryOnExceptions { get; set; }
+    }
+
+    public sealed class HttpPaginationConfig
+    {
+        [JsonPropertyName("type")]
+        public string? Type { get; set; } // cursor | offset | page
+
+        [JsonPropertyName("cursor_path")]
+        public string? CursorPath { get; set; }
+
+        [JsonPropertyName("next_param")]
+        public string? NextParam { get; set; }
+
+        [JsonPropertyName("limit_param")]
+        public string? LimitParam { get; set; }
+
+        [JsonPropertyName("offset_param")]
+        public string? OffsetParam { get; set; }
+
+        [JsonPropertyName("page_param")]
+        public string? PageParam { get; set; }
+
+        [JsonPropertyName("page_size")]
+        public int? PageSize { get; set; }
+
+        [JsonPropertyName("max_pages")]
+        public int? MaxPages { get; set; }
+
+        [JsonPropertyName("start_page")]
+        public int? StartPage { get; set; }
+
+        [JsonPropertyName("start_offset")]
+        public int? StartOffset { get; set; }
+    }
+
+    public sealed class HttpResponseConfig
+    {
+        [JsonPropertyName("expect")]
+        public string? Expect { get; set; } // json | text | binary
+
+        [JsonPropertyName("flatten_json")]
+        public bool? FlattenJson { get; set; }
+
+        [JsonPropertyName("flatten_prefix")]
+        public string? FlattenPrefix { get; set; }
+
+        [JsonPropertyName("max_bytes")]
+        public int? MaxBytes { get; set; }
+
+        [JsonPropertyName("include_headers")]
+        public bool? IncludeHeaders { get; set; }
+
+        [JsonPropertyName("header_prefix")]
+        public string? HeaderPrefix { get; set; }
+    }
+
+    public sealed class HttpOutputConfig
+    {
+        [JsonPropertyName("mappings")]
+        public Dictionary<string, string>? Mappings { get; set; } // context_key -> json_path
+
+        [JsonPropertyName("header_mappings")]
+        public Dictionary<string, string>? HeaderMappings { get; set; } // context_key -> header_name
+
+        [JsonPropertyName("include_raw_body")]
+        public bool? IncludeRawBody { get; set; }
+
+        [JsonPropertyName("raw_body_key")]
+        public string? RawBodyKey { get; set; }
     }
 
 }
