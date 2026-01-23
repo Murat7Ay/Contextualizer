@@ -4,6 +4,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Button } from '../ui/button';
 import { HandlerEditorBody } from './HandlerEditorDialog';
 import { requestHandlersList } from '../../host/webview2Bridge';
+import { useTabStore } from '../../stores/tabStore';
 
 type Props = {
   mode: 'new' | 'edit';
@@ -12,6 +13,7 @@ type Props = {
 export function HandlerEditorPage({ mode }: Props) {
   const navigate = useNavigate();
   const params = useParams();
+  const { closeTab, tabs, activeTabId } = useTabStore();
 
   const handlerName = useMemo(() => {
     if (mode !== 'edit') return undefined;
@@ -21,6 +23,17 @@ export function HandlerEditorPage({ mode }: Props) {
 
   const onDone = () => {
     requestHandlersList();
+  };
+
+  const handleCancel = () => {
+    // Close the current active tab if it's a handler editor tab
+    if (activeTabId) {
+      const currentTab = tabs.find((t) => t.id === activeTabId);
+      if (currentTab && (currentTab.screenId === 'handler_editor_new' || currentTab.screenId === 'handler_editor_edit')) {
+        closeTab(activeTabId);
+      }
+    }
+    navigate('/handlers');
   };
 
   const title = mode === 'new' ? 'New Handler' : `Edit Handler: ${handlerName ?? ''}`;
@@ -52,7 +65,7 @@ export function HandlerEditorPage({ mode }: Props) {
           open
           mode={mode}
           handlerName={handlerName}
-          onCancel={() => navigate('/handlers')}
+          onCancel={handleCancel}
           onSaved={onDone}
           onDeleted={onDone}
         />

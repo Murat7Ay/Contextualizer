@@ -8,10 +8,9 @@ import { cn } from '../ui/utils';
 import { useActivityLogStore } from '../../stores/activityLogStore';
 import { useHandlerExchangeStore, type HandlerPackageDto } from '../../stores/handlerExchangeStore';
 import { useHostStore } from '../../stores/hostStore';
-import { Search, RefreshCcw, Plus, FileText, Download, Trash2, Loader2 } from 'lucide-react';
+import { Search, RefreshCcw, FileText, Download, Trash2, Loader2 } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Badge } from '../ui/badge';
 import {
   requestExchangePackages,
   requestExchangePackageDetails,
@@ -19,7 +18,6 @@ import {
   updateExchangePackage,
   removeExchangePackage,
 } from '../../host/webview2Bridge';
-import { ExchangePublishDialog } from './ExchangePublishDialog';
 
 type SortMode = 'name_asc' | 'name_desc' | 'newest' | 'most_downloaded';
 
@@ -56,7 +54,6 @@ export function HandlerExchange() {
   const [searchQuery, setSearchQuery] = useState('');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [sortMode, setSortMode] = useState<SortMode>('name_asc');
-  const [publishOpen, setPublishOpen] = useState(false);
 
   // Load packages on mount
   useEffect(() => {
@@ -110,14 +107,6 @@ export function HandlerExchange() {
     requestExchangePackages();
   };
 
-  const addNewHandler = () => {
-    if (!canUseHost) {
-      addLog('warning', 'Host not connected');
-      return;
-    }
-    setPublishOpen(true);
-  };
-
   const showDetails = (pkg: HandlerPackageDto) => {
     if (!canUseHost) return;
     openDetails(pkg.id);
@@ -163,10 +152,6 @@ export function HandlerExchange() {
               <RefreshCcw className="h-4 w-4 mr-2" />
             )}
             Refresh
-          </Button>
-          <Button variant="outline" onClick={addNewHandler}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add New
           </Button>
         </div>
       </div>
@@ -356,8 +341,6 @@ export function HandlerExchange() {
           })}
         </div>
       )}
-
-      <ExchangePublishDialog open={publishOpen} onOpenChange={setPublishOpen} />
 
       <Dialog open={detailsOpen} onOpenChange={(o) => (!o ? closeDetails() : null)}>
         <DialogContent className="sm:max-w-2xl">
