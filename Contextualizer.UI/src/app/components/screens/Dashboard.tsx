@@ -8,8 +8,15 @@ import { useHostStore } from '../../stores/hostStore';
 import { useHandlersStore } from '../../stores/handlersStore';
 import { useCronStore } from '../../stores/cronStore';
 import { useActivityLogStore } from '../../stores/activityLogStore';
+import { useHandlerExchangeStore } from '../../stores/handlerExchangeStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { executeManualHandler, reloadHandlers, requestCronList, requestHandlersList } from '../../host/webview2Bridge';
+import {
+  executeManualHandler,
+  reloadHandlers,
+  requestCronList,
+  requestHandlersList,
+  requestExchangePackages,
+} from '../../host/webview2Bridge';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -23,6 +30,11 @@ export function Dashboard() {
   const cronLoaded = useCronStore((s) => s.loaded);
   const cronRunning = useCronStore((s) => s.isRunning);
   const logs = useActivityLogStore((s) => s.logs);
+  const exchangePackages = useHandlerExchangeStore((s) => s.packages);
+  const exchangeLoaded = useHandlerExchangeStore((s) => s.loaded);
+  const exchangeLoading = useHandlerExchangeStore((s) => s.loading);
+  const exchangeError = useHandlerExchangeStore((s) => s.error);
+  const setExchangeLoading = useHandlerExchangeStore((s) => s.setLoading);
 
   const manualHandlers = useMemo(() => handlers.filter((h) => h.isManual), [handlers]);
   const [selectedManual, setSelectedManual] = useState<string>('');
@@ -31,7 +43,19 @@ export function Dashboard() {
     if (!webView2Available || !hostConnected) return;
     if (!handlersLoaded) requestHandlersList();
     if (!cronLoaded) requestCronList();
-  }, [cronLoaded, handlersLoaded, hostConnected, webView2Available]);
+    if (!exchangeLoaded && !exchangeLoading) {
+      setExchangeLoading(true);
+      requestExchangePackages();
+    }
+  }, [
+    cronLoaded,
+    exchangeLoaded,
+    exchangeLoading,
+    handlersLoaded,
+    hostConnected,
+    setExchangeLoading,
+    webView2Available,
+  ]);
 
   useEffect(() => {
     if (selectedManual) return;
@@ -142,8 +166,18 @@ export function Dashboard() {
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">—</div>
-            <p className="text-xs text-muted-foreground">Marketplace is not wired yet</p>
+            <div className="text-2xl font-bold">
+              {!canUseHost ? '—' : exchangeLoading && !exchangeLoaded ? '…' : exchangePackages.length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {!canUseHost
+                ? 'Connect to host to load stats'
+                : exchangeError
+                ? `Failed to load packages: ${exchangeError}`
+                : exchangeLoading
+                ? 'Loading marketplace packages…'
+                : `${exchangePackages.length} packages available`}
+            </p>
           </CardContent>
         </Card>
       </div>

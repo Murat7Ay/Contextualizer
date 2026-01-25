@@ -12,6 +12,16 @@ import { Search, RefreshCcw, FileText, Download, Trash2, Loader2 } from 'lucide-
 import { ScrollArea } from '../ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
+import {
   requestExchangePackages,
   requestExchangePackageDetails,
   installExchangePackage,
@@ -54,6 +64,13 @@ export function HandlerExchange() {
   const [searchQuery, setSearchQuery] = useState('');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [sortMode, setSortMode] = useState<SortMode>('name_asc');
+  const [confirmAction, setConfirmAction] = useState<
+    | {
+        type: 'install' | 'remove';
+        pkg: HandlerPackageDto;
+      }
+    | null
+  >(null);
 
   // Load packages on mount
   useEffect(() => {
@@ -131,30 +148,41 @@ export function HandlerExchange() {
     removeExchangePackage(id);
   };
 
+  const confirmAndRun = () => {
+    if (!confirmAction) return;
+    const { type, pkg } = confirmAction;
+    if (type === 'install') {
+      install(pkg.id);
+    } else {
+      remove(pkg.id);
+    }
+    setConfirmAction(null);
+  };
+
   const isOperating = (id: string) =>
     installingIds.has(id) || updatingIds.has(id) || removingIds.has(id);
 
   return (
     <ScrollArea className="h-full">
       <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-semibold mb-2">Handler Exchange</h1>
-          <p className="text-sm text-muted-foreground">
-            Browse community packages and manage installed templates.
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[28px] font-semibold mb-2">Handler Exchange</h1>
+            <p className="text-sm text-muted-foreground">
+              Browse community packages and manage installed templates.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={refresh} disabled={loading || !canUseHost}>
+              {loading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCcw className="h-4 w-4 mr-2" />
+              )}
+              Refresh
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={refresh} disabled={loading || !canUseHost}>
-            {loading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <RefreshCcw className="h-4 w-4 mr-2" />
-            )}
-            Refresh
-          </Button>
-        </div>
-      </div>
 
       <Card>
         <CardHeader className="pb-3">
@@ -168,7 +196,6 @@ export function HandlerExchange() {
               placeholder="Search packages..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-9"
             />
           </div>
 
@@ -272,7 +299,7 @@ export function HandlerExchange() {
                       {!pkg.isInstalled ? (
                         <Button
                           size="sm"
-                          onClick={() => install(pkg.id)}
+                          onClick={() => setConfirmAction({ type: 'install', pkg })}
                           disabled={operating}
                         >
                           {installingIds.has(pkg.id) ? (
@@ -302,7 +329,7 @@ export function HandlerExchange() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => remove(pkg.id)}
+                            onClick={() => setConfirmAction({ type: 'remove', pkg })}
                             disabled={operating}
                           >
                             {removingIds.has(pkg.id) ? (
@@ -416,6 +443,30 @@ export function HandlerExchange() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction?.type === 'install' ? 'Install package' : 'Remove package'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction?.type === 'install'
+                ? `Install '${confirmAction.pkg.name}' from the marketplace?`
+                : `Remove '${confirmAction?.pkg.name}' from your installed handlers? This cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmAndRun}
+              className={confirmAction?.type === 'remove' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : undefined}
+            >
+              {confirmAction?.type === 'install' ? 'Install' : 'Remove'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       </div>
     </ScrollArea>
   );
