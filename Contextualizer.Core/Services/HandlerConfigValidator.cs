@@ -116,7 +116,7 @@ namespace Contextualizer.Core.Services
                     errors.Add("connector is required for Database handler (mssql/plsql).");
                 if (string.IsNullOrWhiteSpace(config.Query))
                     errors.Add("query is required for Database handler.");
-                else if (!DatabaseHandler.IsSafeSqlQuery(HandlerContextProcessor.ReplaceDynamicValues(config.Query, new Dictionary<string, string>())))
+                else if (!Contextualizer.Core.Handlers.Database.DatabaseSafetyValidator.IsSafeSqlQuery(HandlerContextProcessor.ReplaceDynamicValues(config.Query, new Dictionary<string, string>())))
                     errors.Add("query is not safe (SELECT-only policy).");
 
                 if (!string.IsNullOrWhiteSpace(config.Regex))
