@@ -18,7 +18,7 @@ namespace WpfInteractionApp.Services.Mcp
 
         private const string HandlersListToolName = "handlers_list";
         private const string HandlersGetToolName = "handlers_get";
-        private const string HandlerCreateDatabaseToolName = "handler_create_database";
+        private const string DatabaseToolCreateToolName = "database_tool_create";
         private const string HandlerUpdateDatabaseToolName = "handler_update_database";
         private const string HandlerCreateApiToolName = "handler_create_api";
         private const string HandlerUpdateApiToolName = "handler_update_api";
@@ -112,7 +112,7 @@ Returns { cancelled: boolean, values: object }.
             {
                 tools.Add(new McpTool { Name = HandlersListToolName, Description = "List handlers from handlers.json (optionally include full configs).", InputSchema = SchemaBuilder.HandlersListSchema() });
                 tools.Add(new McpTool { Name = HandlersGetToolName, Description = "Get a single handler config by name.", InputSchema = SchemaBuilder.HandlersGetSchema() });
-                tools.Add(new McpTool { Name = HandlerCreateDatabaseToolName, Description = "Create a Database handler (type=Database).", InputSchema = SchemaBuilder.HandlerCreateSchema() });
+                tools.Add(new McpTool { Name = DatabaseToolCreateToolName, Description = "Create a Database handler optimized for MCP usage. Automatically enables MCP and provides database-specific parameters.", InputSchema = SchemaBuilder.DatabaseToolCreateSchema() });
                 tools.Add(new McpTool { Name = HandlerUpdateDatabaseToolName, Description = "Update a Database handler by name (partial update).", InputSchema = SchemaBuilder.HandlerUpdateSchema() });
                 tools.Add(new McpTool { Name = HandlerCreateApiToolName, Description = "Create an Api handler (type=Api).", InputSchema = SchemaBuilder.HandlerCreateSchema() });
                 tools.Add(new McpTool { Name = HandlerUpdateApiToolName, Description = "Update an Api handler by name (partial update).", InputSchema = SchemaBuilder.HandlerUpdateSchema() });
