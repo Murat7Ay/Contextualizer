@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  wiki:
+    image: ghcr.io/requarks/wiki:2
+    container_name: contextualizer-wiki
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: wiki
+      DB_PASS: wiki
+      DB_NAME: wiki
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/wiki/data
+      - ./pages:/wiki/pages
+
+  db:
+    image: postgres:15
+    container_name: contextualizer-wiki-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_USER: wiki
+      POSTGRES_PASSWORD: wiki
+    volumes:
+      - ./db:/var/lib/postgresql/data
