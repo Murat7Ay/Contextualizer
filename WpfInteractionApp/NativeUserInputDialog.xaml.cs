@@ -76,6 +76,39 @@ namespace WpfInteractionApp
             TimePickerPanel.Visibility = Visibility.Collapsed;
             DateTimePickerGrid.Visibility = Visibility.Collapsed;
 
+            // Clear and populate time ComboBoxes
+            TimeHourComboBox.Items.Clear();
+            TimeMinuteComboBox.Items.Clear();
+            DateTimeHourComboBox.Items.Clear();
+            DateTimeMinuteComboBox.Items.Clear();
+
+            // Populate hour ComboBoxes (0-23)
+            Style? comboBoxItemStyle = null;
+            try { comboBoxItemStyle = (Style)FindResource("Carbon.ComboBoxItem"); } catch { /* ignore */ }
+            
+            for (int h = 0; h < 24; h++)
+            {
+                var hourItem = new ComboBoxItem { Content = h.ToString("00"), Tag = h };
+                if (comboBoxItemStyle != null) hourItem.Style = comboBoxItemStyle;
+                TimeHourComboBox.Items.Add(hourItem);
+                
+                var dateTimeHourItem = new ComboBoxItem { Content = h.ToString("00"), Tag = h };
+                if (comboBoxItemStyle != null) dateTimeHourItem.Style = comboBoxItemStyle;
+                DateTimeHourComboBox.Items.Add(dateTimeHourItem);
+            }
+
+            // Populate minute ComboBoxes (0-59)
+            for (int m = 0; m < 60; m++)
+            {
+                var minuteItem = new ComboBoxItem { Content = m.ToString("00"), Tag = m };
+                if (comboBoxItemStyle != null) minuteItem.Style = comboBoxItemStyle;
+                TimeMinuteComboBox.Items.Add(minuteItem);
+                
+                var dateTimeMinuteItem = new ComboBoxItem { Content = m.ToString("00"), Tag = m };
+                if (comboBoxItemStyle != null) dateTimeMinuteItem.Style = comboBoxItemStyle;
+                DateTimeMinuteComboBox.Items.Add(dateTimeMinuteItem);
+            }
+
             var isDateTime = _request.IsDateTime || _request.IsDateTimePicker;
             var isDate = _request.IsDate || _request.IsDatePicker;
             var isTime = _request.IsTime || _request.IsTimePicker;
@@ -133,10 +166,24 @@ namespace WpfInteractionApp
                 if (!string.IsNullOrWhiteSpace(defaultValue) && DateTime.TryParse(defaultValue, out var dt))
                 {
                     DateTimeDatePicker.SelectedDate = dt.Date;
-                    DateTimeTimeTextBox.Text = dt.ToString("HH:mm");
+                    // Set hour and minute ComboBoxes
+                    var hourItem = DateTimeHourComboBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (int)i.Tag == dt.Hour);
+                    if (hourItem != null) DateTimeHourComboBox.SelectedItem = hourItem;
+                    var minuteItem = DateTimeMinuteComboBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (int)i.Tag == dt.Minute);
+                    if (minuteItem != null) DateTimeMinuteComboBox.SelectedItem = minuteItem;
+                }
+                else
+                {
+                    // Default to current time if no default value
+                    var now = DateTime.Now;
+                    var hourItem = DateTimeHourComboBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (int)i.Tag == now.Hour);
+                    if (hourItem != null) DateTimeHourComboBox.SelectedItem = hourItem;
+                    var minuteItem = DateTimeMinuteComboBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (int)i.Tag == now.Minute);
+                    if (minuteItem != null) DateTimeMinuteComboBox.SelectedItem = minuteItem;
                 }
                 DateTimeDatePicker.SelectedDateChanged += (s, e) => ValidateInput();
-                DateTimeTimeTextBox.TextChanged += (s, e) => ValidateInput();
+                DateTimeHourComboBox.SelectionChanged += (s, e) => ValidateInput();
+                DateTimeMinuteComboBox.SelectionChanged += (s, e) => ValidateInput();
             }
             else if (isDate)
             {
@@ -150,9 +197,25 @@ namespace WpfInteractionApp
             else if (isTime)
             {
                 TimePickerPanel.Visibility = Visibility.Visible;
-                if (!string.IsNullOrWhiteSpace(defaultValue))
-                    TimeTextBox.Text = defaultValue;
-                TimeTextBox.TextChanged += (s, e) => ValidateInput();
+                if (!string.IsNullOrWhiteSpace(defaultValue) && TryParseTime(defaultValue, out var time))
+                {
+                    // Set hour and minute ComboBoxes from parsed time
+                    var hourItem = TimeHourComboBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (int)i.Tag == time.Hours);
+                    if (hourItem != null) TimeHourComboBox.SelectedItem = hourItem;
+                    var minuteItem = TimeMinuteComboBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (int)i.Tag == time.Minutes);
+                    if (minuteItem != null) TimeMinuteComboBox.SelectedItem = minuteItem;
+                }
+                else
+                {
+                    // Default to current time if no valid default value
+                    var now = DateTime.Now;
+                    var hourItem = TimeHourComboBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (int)i.Tag == now.Hour);
+                    if (hourItem != null) TimeHourComboBox.SelectedItem = hourItem;
+                    var minuteItem = TimeMinuteComboBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (int)i.Tag == now.Minute);
+                    if (minuteItem != null) TimeMinuteComboBox.SelectedItem = minuteItem;
+                }
+                TimeHourComboBox.SelectionChanged += (s, e) => ValidateInput();
+                TimeMinuteComboBox.SelectionChanged += (s, e) => ValidateInput();
             }
             else if (_request.IsPassword)
             {
@@ -202,10 +265,10 @@ namespace WpfInteractionApp
                     isValid = false;
                     errorMessage = "Date is required";
                 }
-                else if (!string.IsNullOrWhiteSpace(DateTimeTimeTextBox.Text) && !TryParseTime(DateTimeTimeTextBox.Text, out _))
+                else if (_request.IsRequired && (DateTimeHourComboBox.SelectedItem == null || DateTimeMinuteComboBox.SelectedItem == null))
                 {
                     isValid = false;
-                    errorMessage = "Invalid time format (HH:mm)";
+                    errorMessage = "Time is required";
                 }
             }
             else if (isDate)
@@ -218,15 +281,10 @@ namespace WpfInteractionApp
             }
             else if (isTime)
             {
-                if (_request.IsRequired && string.IsNullOrWhiteSpace(TimeTextBox.Text))
+                if (_request.IsRequired && (TimeHourComboBox.SelectedItem == null || TimeMinuteComboBox.SelectedItem == null))
                 {
                     isValid = false;
                     errorMessage = "Time is required";
-                }
-                else if (!string.IsNullOrWhiteSpace(TimeTextBox.Text) && !TryParseTime(TimeTextBox.Text, out _))
-                {
-                    isValid = false;
-                    errorMessage = "Invalid time format (HH:mm)";
                 }
             }
             else if (_request.IsSelectionList)
@@ -313,8 +371,7 @@ namespace WpfInteractionApp
             }
             else if (isTime)
             {
-                TimeTextBox.Focus();
-                TimeTextBox.SelectAll();
+                TimeHourComboBox.Focus();
             }
             else if (_request.IsPassword) PasswordBox.Focus();
             else { InputTextBox.Focus(); InputTextBox.SelectAll(); }
@@ -407,15 +464,19 @@ namespace WpfInteractionApp
                     return;
                 }
 
-                if (!TryParseTime(DateTimeTimeTextBox.Text, out var time))
+                if (DateTimeHourComboBox.SelectedItem == null || DateTimeMinuteComboBox.SelectedItem == null)
                 {
-                    ValidationErrorText.Text = "Invalid time format (HH:mm)";
+                    ValidationErrorText.Text = "Time is required";
                     ValidationBorder.Visibility = Visibility.Visible;
                     SetInitialFocus();
                     return;
                 }
 
-                var date = DateTimeDatePicker.SelectedDate.Value.Date + time;
+                var hourItem = DateTimeHourComboBox.SelectedItem as ComboBoxItem;
+                var minuteItem = DateTimeMinuteComboBox.SelectedItem as ComboBoxItem;
+                var hour = hourItem?.Tag is int h ? h : 0;
+                var minute = minuteItem?.Tag is int m ? m : 0;
+                var date = DateTimeDatePicker.SelectedDate.Value.Date.AddHours(hour).AddMinutes(minute);
                 input = date.ToString("yyyy-MM-ddTHH:mm");
             }
             else if (isDate)
@@ -432,15 +493,19 @@ namespace WpfInteractionApp
             }
             else if (isTime)
             {
-                if (!TryParseTime(TimeTextBox.Text, out var time))
+                if (TimeHourComboBox.SelectedItem == null || TimeMinuteComboBox.SelectedItem == null)
                 {
-                    ValidationErrorText.Text = "Invalid time format (HH:mm)";
+                    ValidationErrorText.Text = "Time is required";
                     ValidationBorder.Visibility = Visibility.Visible;
                     SetInitialFocus();
                     return;
                 }
 
-                input = new DateTime(1, 1, 1).Add(time).ToString("HH:mm");
+                var hourItem = TimeHourComboBox.SelectedItem as ComboBoxItem;
+                var minuteItem = TimeMinuteComboBox.SelectedItem as ComboBoxItem;
+                var hour = hourItem?.Tag is int h ? h : 0;
+                var minute = minuteItem?.Tag is int m ? m : 0;
+                input = $"{hour:D2}:{minute:D2}";
             }
             else if (_request.IsPassword)
             {

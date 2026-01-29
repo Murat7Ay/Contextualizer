@@ -222,24 +222,46 @@
                                     Margin="0,0,0,4"/>
                     </StackPanel>
 
-                    <StackPanel x:Name="TimePickerPanel" Visibility="Collapsed">
-                        <TextBox x:Name="TimeTextBox" Style="{StaticResource DialogTextBox}"
-                                 Text=""/>
-                    </StackPanel>
+                    <Grid x:Name="TimePickerPanel" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="TimeHourComboBox" Grid.Column="0"
+                                 Style="{StaticResource DialogComboBox}"
+                                 ItemContainerStyle="{StaticResource Carbon.ComboBoxItem}"/>
+                        <TextBlock Grid.Column="1" Text=":" VerticalAlignment="Center" 
+                                  HorizontalAlignment="Center" FontSize="18" FontWeight="Bold"
+                                  Foreground="{DynamicResource Carbon.Brush.Text.Primary}"/>
+                        <ComboBox x:Name="TimeMinuteComboBox" Grid.Column="2"
+                                 Style="{StaticResource DialogComboBox}"
+                                 ItemContainerStyle="{StaticResource Carbon.ComboBoxItem}"/>
+                    </Grid>
 
                     <Grid x:Name="DateTimePickerGrid" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="8"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <DatePicker x:Name="DateTimeDatePicker"
                                     Grid.Column="0"
                                     SelectedDateFormat="Short"
                                     Margin="0,0,8,0"/>
-                        <TextBox x:Name="DateTimeTimeTextBox"
-                                 Grid.Column="1"
-                                 Width="90"
-                                 Style="{StaticResource DialogTextBox}"/>
+                        <ComboBox x:Name="DateTimeHourComboBox" Grid.Column="1"
+                                 Style="{StaticResource DialogComboBox}"
+                                 ItemContainerStyle="{StaticResource Carbon.ComboBoxItem}"
+                                 Width="80"/>
+                        <TextBlock Grid.Column="2" Text=":" VerticalAlignment="Center" 
+                                  HorizontalAlignment="Center" FontSize="18" FontWeight="Bold"
+                                  Foreground="{DynamicResource Carbon.Brush.Text.Primary}"
+                                  Margin="4,0"/>
+                        <ComboBox x:Name="DateTimeMinuteComboBox" Grid.Column="3"
+                                 Style="{StaticResource DialogComboBox}"
+                                 ItemContainerStyle="{StaticResource Carbon.ComboBoxItem}"
+                                 Width="80"/>
                     </Grid>
                 </Grid>
             </Grid>

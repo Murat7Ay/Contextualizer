@@ -39,7 +39,7 @@ namespace WpfInteractionApp.Services.Mcp
             tools.Add(new McpTool
             {
                 Name = UiConfirmToolName,
-                Description = "Show a confirmation dialog to the user. Supports details.format = text|json. Returns { confirmed: boolean }.",
+                Description = "Show a confirmation dialog to the user. Optional 'details' object: {format: 'text'|'json', text?: string, json?: object}. Use details.text when format='text', details.json when format='json'. Returns { confirmed: boolean }.",
                 InputSchema = SchemaBuilder.UiConfirmSchema()
             });
 
@@ -48,16 +48,30 @@ namespace WpfInteractionApp.Services.Mcp
                 Name = UiUserInputsToolName,
                 Description = """
 Prompt the user for inputs sequentially. "user_inputs" is an array of objects with required fields:
-- key, title, message
+- key (string): Unique key to store the user's input
+- title (string): Dialog title
+- message (string): Prompt message shown to user
 
-Optional fields include:
-- validation_regex, is_required, default_value
-- is_password, is_multi_line
-- is_file_picker, is_folder_picker, file_extensions
-- is_selection_list (+ selection_items), is_multi_select
-- is_date / is_date_picker, is_time / is_time_picker, is_date_time / is_datetime_picker
-- dependent_key, dependent_selection_item_map
-- config_target (secrets.section.key or config.section.key)
+Optional fields:
+- validation_regex (string): Optional regex pattern for input validation
+- is_required (boolean): If true, user must provide a value (default: true)
+- default_value (string): Default value pre-filled in the input
+- is_password (boolean): If true, shows a password input (masked)
+- is_multi_line (boolean): If true, shows a multi-line text area
+- is_file_picker (boolean): If true, shows a file browser dialog
+- is_folder_picker (boolean): If true, shows a folder picker dialog
+- file_extensions (array of strings): Optional list of allowed extensions (e.g. [".txt", ".json"])
+- is_selection_list (boolean): If true, shows a dropdown. REQUIRES selection_items array
+- selection_items (array): Required when is_selection_list=true. Array of {value: string, display: string} objects
+- is_multi_select (boolean): If true, allows multiple selection. REQUIRES is_selection_list=true
+- is_date / is_date_picker (boolean): If true, shows a date picker. Returns value in yyyy-MM-dd format (e.g., "2026-01-30")
+- is_time / is_time_picker (boolean): If true, shows a time picker. Returns value in HH:mm format (24-hour, e.g., "14:30" for 2:30 PM, "09:05" for 9:05 AM)
+- is_date_time / is_datetime_picker (boolean): If true, shows a date-time picker. Returns value in yyyy-MM-ddTHH:mm format (e.g., "2026-01-30T14:30")
+- dependent_key (string): Key of a previous input whose value determines selection_items
+- dependent_selection_item_map (object): Map where keys are values from dependent_key, values are {selection_items: [{value: string, display: string}], default_value?: string}. Example: {"TR": {"selection_items": [{"value": "34", "display": "Istanbul"}], "default_value": "34"}}
+- config_target (string): Format "secrets.section.key" or "config.section.key" to save the input value
+
+Optional "context" object: Initial context values (key-value pairs) for dependent selections.
 
 Returns { cancelled: boolean, values: object }.
 """,
@@ -67,14 +81,14 @@ Returns { cancelled: boolean, values: object }.
             tools.Add(new McpTool
             {
                 Name = UiNotifyToolName,
-                Description = "Show a non-blocking notification/toast. level=info|success|warning|error|critical|debug. durationSeconds (or duration_seconds) in 1..600. Returns { ok: boolean }.",
+                Description = "Show a non-blocking notification/toast. Required: message (string). Optional: title (string), level (string: info|success|warning|error|critical|debug, default: info), durationSeconds (integer, 1-600, default: 5) or duration_seconds (accepted alias). Both durationSeconds and duration_seconds are accepted (camelCase preferred). Returns { ok: boolean }.",
                 InputSchema = SchemaBuilder.UiNotifySchema()
             });
 
             tools.Add(new McpTool
             {
                 Name = UiShowMarkdownToolName,
-                Description = "Show a markdown tab in the app (screen_id=markdown2). Accepts autoFocus/bringToFront or auto_focus/bring_to_front. Returns { shown: boolean }.",
+                Description = "Show a markdown tab in the app (screen_id=markdown2). Required: markdown (string). Optional: title (string, default: 'Markdown'), autoFocus/auto_focus (boolean, default: false), bringToFront/bring_to_front (boolean, default: false). Both camelCase (autoFocus, bringToFront) and snake_case (auto_focus, bring_to_front) are accepted (camelCase preferred). Returns { shown: boolean }.",
                 InputSchema = SchemaBuilder.UiShowMarkdownSchema()
             });
 
