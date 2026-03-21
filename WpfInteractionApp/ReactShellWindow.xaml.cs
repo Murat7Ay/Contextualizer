@@ -5,6 +5,7 @@ using Microsoft.Web.WebView2.Wpf;
 using Microsoft.Win32;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using WpfInteractionApp.Services;
+using WpfInteractionApp.Settings;
 
 namespace WpfInteractionApp
 {
@@ -557,6 +559,22 @@ namespace WpfInteractionApp
                     case "exchange_publish":
                         _ = HandleExchangePublishAsync(root);
                         break;
+
+                    case "ai_skills_hub_list_request":
+                        HandleAiSkillsHubListRequest();
+                        break;
+
+                    case "ai_skills_hub_deploy_request":
+                        HandleAiSkillsHubDeployRequest(root);
+                        break;
+
+                    case "ai_skills_hub_remove_request":
+                        HandleAiSkillsHubRemoveRequest(root);
+                        break;
+
+                    case "ai_skills_hub_pull_request":
+                        HandleAiSkillsHubPullRequest(root);
+                        break;
                 }
             }
             catch (Exception ex)
@@ -707,6 +725,17 @@ namespace WpfInteractionApp
                             port = s.McpSettings?.Port ?? 5000,
                             useNativeUi = s.McpSettings?.UseNativeUi ?? true,
                             managementToolsEnabled = s.McpSettings?.ManagementToolsEnabled ?? false
+                        },
+                        aiSkillsHub = new
+                        {
+                            sources = (s.AiSkillsHub?.Sources ?? new List<AiSkillsSourceEntry>()).Select(x => new
+                            {
+                                id = x.Id,
+                                path = x.Path,
+                                label = x.Label
+                            }).ToList(),
+                            cursorSkillsPath = s.AiSkillsHub?.CursorSkillsPath,
+                            copilotSkillsPath = s.AiSkillsHub?.CopilotSkillsPath
                         }
                     }
                 });
@@ -882,6 +911,37 @@ namespace WpfInteractionApp
                         s.McpSettings.ManagementToolsEnabled = mte.ValueKind == JsonValueKind.True;
                 }
 
+                if (settingsEl.TryGetProperty("aiSkillsHub", out var ash) && ash.ValueKind == JsonValueKind.Object)
+                {
+                    s.AiSkillsHub ??= new AiSkillsHubSettings();
+                    if (ash.TryGetProperty("sources", out var srcArr) && srcArr.ValueKind == JsonValueKind.Array)
+                    {
+                        var list = new List<AiSkillsSourceEntry>();
+                        foreach (var el in srcArr.EnumerateArray())
+                        {
+                            if (el.ValueKind != JsonValueKind.Object)
+                                continue;
+                            if (!el.TryGetProperty("id", out var idEl) || idEl.ValueKind != JsonValueKind.String)
+                                continue;
+                            if (!el.TryGetProperty("path", out var pathEl) || pathEl.ValueKind != JsonValueKind.String)
+                                continue;
+                            var id = idEl.GetString()?.Trim() ?? string.Empty;
+                            var path = pathEl.GetString()?.Trim() ?? string.Empty;
+                            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(path))
+                                continue;
+                            string? label = null;
+                            if (el.TryGetProperty("label", out var labEl) && labEl.ValueKind == JsonValueKind.String)
+                                label = labEl.GetString();
+                            list.Add(new AiSkillsSourceEntry { Id = id, Path = path, Label = label });
+                        }
+                        s.AiSkillsHub.Sources = list;
+                    }
+                    if (ash.TryGetProperty("cursorSkillsPath", out var csp) && csp.ValueKind == JsonValueKind.String)
+                        s.AiSkillsHub.CursorSkillsPath = csp.GetString();
+                    if (ash.TryGetProperty("copilotSkillsPath", out var cpsp) && cpsp.ValueKind == JsonValueKind.String)
+                        s.AiSkillsHub.CopilotSkillsPath = cpsp.GetString();
+                }
+
                 settingsService.SaveSettings();
 
                 PostToUi(new { type = "app_settings_saved", ok = true });
@@ -891,6 +951,217 @@ namespace WpfInteractionApp
             catch (Exception ex)
             {
                 PostToUi(new { type = "app_settings_saved", ok = false, error = ex.Message });
+            }
+        }
+
+        private AiSkillsHubService? GetAiSkillsHubService()
+        {
+            var ss = ServiceLocator.SafeGet<Services.SettingsService>();
+            if (ss?.Settings == null)
+                return null;
+            return new AiSkillsHubService(ss.Settings.AiSkillsHub ?? new AiSkillsHubSettings());
+        }
+
+        private void HandleAiSkillsHubListRequest()
+        {
+            try
+            {
+                var hub = GetAiSkillsHubService();
+                if (hub == null)
+                {
+                    PostToUi(new { type = "ai_skills_hub_list", error = "Settings not available" });
+                    return;
+                }
+
+                var result = hub.BuildList();
+                PostToUi(new
+                {
+                    type = "ai_skills_hub_list",
+                    cursorSkillsRoot = result.CursorSkillsRoot,
+                    copilotSkillsRoot = result.CopilotSkillsRoot,
+                    sources = result.Sources,
+                    skills = result.Skills.Select(r => new
+                    {
+                        skillName = r.SkillName,
+                        sourceId = r.SourceId,
+                        sourceLabel = r.SourceLabel,
+                        hasSkillMd = r.HasSkillMd,
+                        nameConflict = r.NameConflict,
+                        sourceHash = r.SourceHash,
+                        cursorSync = r.CursorSync,
+                        copilotSync = r.CopilotSync
+                    }).ToList(),
+                    globalOnlySkills = result.GlobalOnlySkills.Select(g => new
+                    {
+                        skillName = g.SkillName,
+                        inCursor = g.InCursor,
+                        inCopilot = g.InCopilot,
+                        hasSkillMdCursor = g.HasSkillMdCursor,
+                        hasSkillMdCopilot = g.HasSkillMdCopilot
+                    }).ToList()
+                });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "ai_skills_hub_list", error = ex.Message });
+            }
+        }
+
+        private void HandleAiSkillsHubDeployRequest(JsonElement root)
+        {
+            try
+            {
+                var hub = GetAiSkillsHubService();
+                if (hub == null)
+                {
+                    PostToUi(new { type = "ai_skills_hub_deploy_result", ok = false, error = "Settings not available" });
+                    return;
+                }
+
+                string? customRoot = null;
+                if (root.TryGetProperty("customDestinationRoot", out var cdr) && cdr.ValueKind == JsonValueKind.String)
+                    customRoot = cdr.GetString();
+
+                if (!root.TryGetProperty("deployments", out var depArr) || depArr.ValueKind != JsonValueKind.Array)
+                {
+                    PostToUi(new { type = "ai_skills_hub_deploy_result", ok = false, error = "Missing deployments" });
+                    return;
+                }
+
+                var results = new List<object>();
+                foreach (var el in depArr.EnumerateArray())
+                {
+                    if (el.ValueKind != JsonValueKind.Object)
+                        continue;
+                    if (!el.TryGetProperty("skillName", out var sn) || sn.ValueKind != JsonValueKind.String)
+                        continue;
+                    if (!el.TryGetProperty("sourceId", out var sid) || sid.ValueKind != JsonValueKind.String)
+                        continue;
+                    var skillName = sn.GetString() ?? string.Empty;
+                    var sourceId = sid.GetString() ?? string.Empty;
+                    var toCursor = false;
+                    var toCopilot = false;
+                    if (el.TryGetProperty("targets", out var tg) && tg.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var t in tg.EnumerateArray())
+                        {
+                            if (t.ValueKind != JsonValueKind.String)
+                                continue;
+                            var v = t.GetString() ?? string.Empty;
+                            if (string.Equals(v, "cursor", StringComparison.OrdinalIgnoreCase))
+                                toCursor = true;
+                            else if (string.Equals(v, "copilot", StringComparison.OrdinalIgnoreCase))
+                                toCopilot = true;
+                        }
+                    }
+
+                    var r = hub.DeploySkill(skillName, sourceId, toCursor, toCopilot, customRoot);
+                    results.Add(new { skillName, sourceId, ok = r.Ok, error = r.Error, detail = r.Detail });
+                }
+
+                PostToUi(new { type = "ai_skills_hub_deploy_result", ok = true, results });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "ai_skills_hub_deploy_result", ok = false, error = ex.Message });
+            }
+        }
+
+        private void HandleAiSkillsHubRemoveRequest(JsonElement root)
+        {
+            try
+            {
+                var hub = GetAiSkillsHubService();
+                if (hub == null)
+                {
+                    PostToUi(new { type = "ai_skills_hub_remove_result", ok = false, error = "Settings not available" });
+                    return;
+                }
+
+                if (!root.TryGetProperty("skillNames", out var namesArr) || namesArr.ValueKind != JsonValueKind.Array)
+                {
+                    PostToUi(new { type = "ai_skills_hub_remove_result", ok = false, error = "Missing skillNames" });
+                    return;
+                }
+
+                var fromCursor = false;
+                var fromCopilot = false;
+                if (root.TryGetProperty("targets", out var tg) && tg.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var t in tg.EnumerateArray())
+                    {
+                        if (t.ValueKind != JsonValueKind.String)
+                            continue;
+                        var v = t.GetString() ?? string.Empty;
+                        if (string.Equals(v, "cursor", StringComparison.OrdinalIgnoreCase))
+                            fromCursor = true;
+                        else if (string.Equals(v, "copilot", StringComparison.OrdinalIgnoreCase))
+                            fromCopilot = true;
+                    }
+                }
+
+                var results = new List<object>();
+                foreach (var el in namesArr.EnumerateArray())
+                {
+                    if (el.ValueKind != JsonValueKind.String)
+                        continue;
+                    var skillName = el.GetString() ?? string.Empty;
+                    var r = hub.RemoveSkill(skillName, fromCursor, fromCopilot);
+                    results.Add(new { skillName, ok = r.Ok, error = r.Error });
+                }
+
+                PostToUi(new { type = "ai_skills_hub_remove_result", ok = true, results });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "ai_skills_hub_remove_result", ok = false, error = ex.Message });
+            }
+        }
+
+        private void HandleAiSkillsHubPullRequest(JsonElement root)
+        {
+            try
+            {
+                var hub = GetAiSkillsHubService();
+                if (hub == null)
+                {
+                    PostToUi(new { type = "ai_skills_hub_pull_result", ok = false, error = "Settings not available" });
+                    return;
+                }
+
+                if (!root.TryGetProperty("fromTarget", out var ft) || ft.ValueKind != JsonValueKind.String)
+                {
+                    PostToUi(new { type = "ai_skills_hub_pull_result", ok = false, error = "Missing fromTarget" });
+                    return;
+                }
+                if (!root.TryGetProperty("toSourceId", out var ts) || ts.ValueKind != JsonValueKind.String)
+                {
+                    PostToUi(new { type = "ai_skills_hub_pull_result", ok = false, error = "Missing toSourceId" });
+                    return;
+                }
+                if (!root.TryGetProperty("skillNames", out var namesArr) || namesArr.ValueKind != JsonValueKind.Array)
+                {
+                    PostToUi(new { type = "ai_skills_hub_pull_result", ok = false, error = "Missing skillNames" });
+                    return;
+                }
+
+                var fromTarget = ft.GetString() ?? string.Empty;
+                var toSourceId = ts.GetString() ?? string.Empty;
+                var results = new List<object>();
+                foreach (var el in namesArr.EnumerateArray())
+                {
+                    if (el.ValueKind != JsonValueKind.String)
+                        continue;
+                    var skillName = el.GetString() ?? string.Empty;
+                    var r = hub.PullSkill(skillName, fromTarget, toSourceId);
+                    results.Add(new { skillName, ok = r.Ok, error = r.Error });
+                }
+
+                PostToUi(new { type = "ai_skills_hub_pull_result", ok = true, results });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "ai_skills_hub_pull_result", ok = false, error = ex.Message });
             }
         }
 

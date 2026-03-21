@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Contextualizer.PluginContracts;
 
@@ -41,6 +42,37 @@ namespace WpfInteractionApp.Settings
 
         [JsonPropertyName("mcp_settings")]
         public McpSettings McpSettings { get; set; } = new McpSettings();
+
+        [JsonPropertyName("ai_skills_hub")]
+        public AiSkillsHubSettings AiSkillsHub { get; set; } = new AiSkillsHubSettings();
+
+        /// <summary>Legacy single root; migrated to <see cref="AiSkillsHubSettings.Sources"/> on load.</summary>
+        [JsonPropertyName("shared_root_path")]
+        public string? SharedRootPath { get; set; }
+    }
+
+    public class AiSkillsHubSettings
+    {
+        [JsonPropertyName("sources")]
+        public List<AiSkillsSourceEntry> Sources { get; set; } = new List<AiSkillsSourceEntry>();
+
+        [JsonPropertyName("cursor_skills_path")]
+        public string? CursorSkillsPath { get; set; }
+
+        [JsonPropertyName("copilot_skills_path")]
+        public string? CopilotSkillsPath { get; set; }
+    }
+
+    public class AiSkillsSourceEntry
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("path")]
+        public string Path { get; set; } = string.Empty;
+
+        [JsonPropertyName("label")]
+        public string? Label { get; set; }
     }
 
     public class McpSettings

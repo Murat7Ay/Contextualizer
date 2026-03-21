@@ -1,4 +1,4 @@
-import { useLocation, useParams } from 'react-router-dom';
+import { Navigate, useLocation, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { useTabStore } from '../../stores/tabStore';
@@ -14,6 +14,10 @@ export function DynamicTabScreen() {
   const location = useLocation();
   const tabs = useTabStore((state) => state.tabs);
   const activeTabId = useTabStore((state) => state.activeTabId);
+
+  if (screenId === 'ai-skills' || screenId === 'ai_skills') {
+    return <Navigate to="/ai-skills" replace />;
+  }
   // Prefer matching the actual current pathname (most reliable across encoding differences).
   // Fallback to computed route to support edge cases.
   const route = screenId && title ? `/tab/${screenId}/${encodeURIComponent(title)}` : null;

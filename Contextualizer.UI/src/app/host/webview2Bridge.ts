@@ -265,6 +265,42 @@ export function publishExchangePackage(pkg: unknown): boolean {
   return postWebView2Message({ type: 'exchange_publish', package: pkg });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Skills Hub
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type AiSkillsHubDeployment = {
+  skillName: string;
+  sourceId: string;
+  targets: ('cursor' | 'copilot')[];
+};
+
+export function requestAiSkillsHubList(): boolean {
+  return postWebView2Message({ type: 'ai_skills_hub_list_request' });
+}
+
+export function requestAiSkillsHubDeploy(
+  deployments: AiSkillsHubDeployment[],
+  customDestinationRoot?: string | null
+): boolean {
+  const payload: Record<string, unknown> = {
+    type: 'ai_skills_hub_deploy_request',
+    deployments,
+  };
+  if (customDestinationRoot != null && customDestinationRoot !== '') {
+    payload.customDestinationRoot = customDestinationRoot;
+  }
+  return postWebView2Message(payload);
+}
+
+export function requestAiSkillsHubRemove(skillNames: string[], targets: ('cursor' | 'copilot')[]): boolean {
+  return postWebView2Message({ type: 'ai_skills_hub_remove_request', skillNames, targets });
+}
+
+export function requestAiSkillsHubPull(skillNames: string[], fromTarget: 'cursor' | 'copilot', toSourceId: string): boolean {
+  return postWebView2Message({ type: 'ai_skills_hub_pull_request', skillNames, fromTarget, toSourceId });
+}
+
 export function addWebView2MessageListener(handler: (payload: unknown) => void): () => void {
   if (!isWebView2Available()) return () => {};
 

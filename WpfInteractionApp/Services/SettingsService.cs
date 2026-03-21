@@ -64,6 +64,8 @@ namespace WpfInteractionApp.Services
                     _settings.ConfigSystem ??= new ConfigSystemSettings();
                     _settings.KeyboardShortcut ??= new KeyboardShortcut();
                     _settings.McpSettings ??= new McpSettings();
+                    _settings.AiSkillsHub ??= new AiSkillsHubSettings();
+                    MigrateLegacyAiSkillsHub(_settings);
                 }
                 else
                 {
@@ -79,7 +81,25 @@ namespace WpfInteractionApp.Services
                 _settings.UISettings.InitialDeploymentSettings ??= new InitialDeploymentSettings();
                 _settings.UISettings.NetworkUpdateSettings ??= new NetworkUpdateSettings();
                 _settings.McpSettings ??= new McpSettings();
+                _settings.AiSkillsHub ??= new AiSkillsHubSettings();
+                MigrateLegacyAiSkillsHub(_settings);
             }
+        }
+
+        private static void MigrateLegacyAiSkillsHub(AppSettings s)
+        {
+            s.AiSkillsHub ??= new AiSkillsHubSettings();
+            if (s.AiSkillsHub.Sources.Count > 0)
+                return;
+            if (string.IsNullOrWhiteSpace(s.SharedRootPath))
+                return;
+            s.AiSkillsHub.Sources.Add(new AiSkillsSourceEntry
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Path = s.SharedRootPath.Trim(),
+                Label = "Default"
+            });
+            s.SharedRootPath = null;
         }
 
         public void SaveSettings()

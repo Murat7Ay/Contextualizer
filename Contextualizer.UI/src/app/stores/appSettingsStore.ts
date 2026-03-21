@@ -66,6 +66,13 @@ export interface AppSettingsDto {
     useNativeUi: boolean;
     managementToolsEnabled: boolean;
   };
+
+  /** Omitted in older hosts until first save; merged in setFromHost. */
+  aiSkillsHub?: {
+    sources: { id: string; path: string; label?: string | null }[];
+    cursorSkillsPath?: string | null;
+    copilotSkillsPath?: string | null;
+  };
 }
 
 export interface LogClearResult {
@@ -99,14 +106,23 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
   lastSavedAt: null,
   lastLogClearResult: null,
 
-  setFromHost: (settings) =>
-    set({
+  setFromHost: (settings) => {
+    const merged: AppSettingsDto = {
+      ...settings,
+      aiSkillsHub: settings.aiSkillsHub ?? {
+        sources: [],
+        cursorSkillsPath: null,
+        copilotSkillsPath: null,
+      },
+    };
+    return set({
       loaded: true,
-      settings,
-      draft: settings,
+      settings: merged,
+      draft: merged,
       isSaving: false,
       lastSaveError: null,
-    }),
+    });
+  },
   setDraft: (draft) => set({ draft }),
   resetDraft: () => set({ draft: get().settings }),
   setSaving: (isSaving) => set({ isSaving }),
