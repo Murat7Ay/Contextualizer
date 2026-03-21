@@ -12,28 +12,8 @@ Remove-Item -Path ".\publish" -Recurse -Force -ErrorAction SilentlyContinue
 Write-Host "Restoring packages..." -ForegroundColor Yellow
 dotnet restore
 
-# Build React UI (Contextualizer.UI) for packaging into Assets\Ui\dist
-Write-Host "Building React UI..." -ForegroundColor Yellow
-$uiProject = ".\Contextualizer.UI"
-if (Test-Path "$uiProject\package.json") {
-    Push-Location $uiProject
-    try {
-        if (Test-Path ".\package-lock.json") {
-            npm ci
-        } else {
-            npm install
-        }
-        npm run build
-        Write-Host "React UI built successfully" -ForegroundColor Green
-    } catch {
-        Write-Host "Warning: React UI build failed. The app will show a 'UI build not found' screen at startup." -ForegroundColor Yellow
-        Write-Host $_ -ForegroundColor Yellow
-    } finally {
-        Pop-Location
-    }
-} else {
-    Write-Host "Warning: Contextualizer.UI not found at $uiProject" -ForegroundColor Yellow
-}
+# React UI is built automatically by WpfInteractionApp.csproj (BuildReactUi target, BeforeTargets Build).
+# No separate npm step needed here unless you build only Contextualizer.Core without Wpf.
 
 # Build solution
 Write-Host "Building solution..." -ForegroundColor Yellow

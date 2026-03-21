@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -46,8 +46,22 @@
     <ProjectReference Include="..\Contextualizer.Core\Contextualizer.Core.csproj" />
   </ItemGroup>
 
+  <!-- React UI: build before WPF (vite + copy to WpfInteractionApp\Assets\Ui\dist via npm script). -->
+  <PropertyGroup>
+    <_ReactUiDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\Contextualizer.UI'))</_ReactUiDir>
+    <!-- Set to false to skip npm and only compile WPF (e.g. dotnet build /p:BuildReactUi=false). -->
+    <BuildReactUi Condition="'$(BuildReactUi)' == ''">true</BuildReactUi>
+  </PropertyGroup>
+
+  <Target Name="BuildReactUi" BeforeTargets="Build" Condition="'$(BuildReactUi)' == 'true' And Exists('$(_ReactUiDir)\package.json')">
+    <Message Importance="high" Text="[WpfInteractionApp] Building React UI: $(_ReactUiDir)" />
+    <Exec WorkingDirectory="$(_ReactUiDir)" Command="npm ci" Condition="Exists('$(_ReactUiDir)\package-lock.json')" />
+    <Exec WorkingDirectory="$(_ReactUiDir)" Command="npm install" Condition="!Exists('$(_ReactUiDir)\package-lock.json')" />
+    <Exec WorkingDirectory="$(_ReactUiDir)" Command="npm run build" />
+  </Target>
+
   <!-- Copy packaged React UI (Contextualizer.UI/dist) into output Assets\Ui\dist when present.
-       This keeps the app "packaged-only" even for local F5 runs, without requiring manual copying. -->
+       npm run build already copies dist -> Assets\Ui\dist; this step mirrors into $(OutDir) for F5/publish. -->
   <Target Name="CopyReactUiDistToOutput" AfterTargets="Build" Condition="Exists('..\Contextualizer.UI\dist\index.html')">
     <ItemGroup>
       <ReactUiDistFiles Include="..\Contextualizer.UI\dist\**\*.*" />
