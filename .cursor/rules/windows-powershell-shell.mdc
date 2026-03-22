@@ -1,0 +1,33 @@
+---
+description: Windows PowerShell terminal komutlarında && kullanma
+alwaysApply: true
+---
+
+# Windows (PowerShell): zincir operatörü
+
+Varsayılan **Windows PowerShell 5.1** ortamında `&&` ve `||` **yoktur** (PowerShell 7+ ve `cmd /c` farklıdır). Terminal komutları hata verir veya yanlış parse edilir.
+
+## Yapılacaklar
+
+- Ardışık komutlar için **`;`** kullan veya komutları **ayrı çalıştır**.
+- Repo kökü için **`Set-Location` tekrarından kaçın**: Cursor terminal aracında **`working_directory`** ile çalışma dizinini ver.
+- Önceki komutun başarısına bağlı zincir gerekiyorsa: `cmd1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; cmd2` veya ayrı adımlar.
+
+## Örnekler
+
+```powershell
+# Kötü (WinPS 5.1'de sorun çıkarabilir)
+git fetch && git checkout main && git pull
+
+# İyi
+git fetch; git checkout main; git pull
+```
+
+```powershell
+# İyi — tek komut, cwd araç parametresinde
+git status -sb
+```
+
+## Not
+
+`cmd.exe` içinde `&&` geçerlidir; yine de bu projede tutarlılık için PowerShell’de **`;`** veya **tek komut + `working_directory`** tercih et.
