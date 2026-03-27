@@ -1,6 +1,10 @@
 ---
 name: database-handler-mcp
-description: Creates database handlers with MCP integration for Contextualizer. Handles SQL query configuration, parameter mapping, JSON Schema design, and MCP tool exposure. Use when creating database handlers, exposing database queries as MCP tools, or configuring database-to-MCP workflows.
+description: >-
+  Contextualizer için `handlers.json` içinde `type: "database"` handler'ları ve MCP
+  (`mcp_enabled`, şema, şablon, seed) yapılandırması. Ne zaman: yeni DB handler,
+  SELECT sorgusu/güvenlik, MCP aracı adı veya argüman eşlemesi, `database_tool_create` /
+  `handler_update_database` ile programatik oluşturma/güncelleme.
 ---
 
 # Database Handler with MCP Integration
@@ -133,6 +137,26 @@ WHERE Category = @category
 
 ## MCP Integration
 
+### Tool name (`tools/call`)
+
+The client’s `tools/call` name must match either:
+
+- `mcp_tool_name` (preferred; unique `snake_case`), or
+- If omitted, handler `name` is passed through `McpHelper.Slugify`: letters/digits lowercased; spaces and `.-_` become `_` (e.g. `"User Lookup"` → `user_lookup`).
+
+### How clipboard text is built (`BuildInputText`)
+
+MCP arguments are used to build `ClipboardContent.Text` first (they are also passed in seed context):
+
+1. If **`mcp_input_template` is set** → template; placeholder order: `$file:` → `$config:` → `$func:` → `$(key)` (`McpHelper` / `HandlerContextProcessor`).
+2. Else if a **`text` argument** exists → use that string.
+3. Else if **`mcp_headless: true`** and no template → empty string (typical “SQL params only from seed” setups).
+4. Else → JSON-serialize all arguments (can drive regex-based handlers).
+
+### MCP calls and `CanHandle`
+
+For MCP (`seed` includes `_trigger: mcp`), `Dispatch.ExecuteWithResultAsync` **may continue even when `CanHandle` is false**. That allows empty clipboard text plus SQL parameters from MCP args (e.g. `@product_id`). Normal clipboard flow still rejects empty text.
+
 ### Enable MCP
 
 ```json
@@ -167,6 +191,8 @@ Define JSON Schema for tool arguments:
 }
 ```
 
+If **no `mcp_input_schema`** (and not a File handler, and no generated schema from `user_inputs`), the server falls back to a default such as `{ "text": string }` per `McpHelper`. For database tools, prefer an explicit `mcp_input_schema` that matches your query parameters.
+
 ### MCP Input Template
 
 Map MCP arguments to clipboard input:
@@ -186,7 +212,11 @@ Map MCP arguments to clipboard input:
 
 ### MCP Seed Context
 
-MCP arguments are available as seed context. Use `mcp_seed_overwrite: true` to allow MCP values to override handler-generated context:
+MCP tool arguments arrive in `seedContext`. `DatabaseParameterBuilder` maps them to SQL parameter names (e.g. `customer_id` → `@customer_id` / `:customer_id`). Keys **starting with `_`** are not copied into SQL parameters; `_trigger` is also skipped.
+
+Use `mcp_seed_overwrite: true` when MCP values should override keys the handler already produced (e.g. conflicting regex group names).
+
+Example:
 
 ```json
 {
@@ -201,6 +231,11 @@ MCP arguments are available as seed context. Use `mcp_seed_overwrite: true` to a
   "query": "SELECT * FROM Orders WHERE CustomerId = @customer_id AND OrderDate = @order_date"
 }
 ```
+
+### `mcp_headless` and UI
+
+- If **`requires_confirmation: true`**, a headless MCP call **does not run** (no confirmation dialog).
+- If **`user_inputs`** exist, headless mode requires values from MCP arguments or `default_value`; missing required keys fail fast (`Dispatch` behavior).
 
 ### MCP Return Keys
 
@@ -424,8 +459,12 @@ Use `$config:` placeholders for dynamic configuration:
 ## Reference Files
 
 - Handler implementation: `Contextualizer.Core/DatabaseHandler.cs`
+- Dispatch / MCP pipeline: `Contextualizer.Core/Dispatch.cs` (`ExecuteWithResultAsync`, `_trigger`, headless)
 - Safety validator: `Contextualizer.Core/Handlers/Database/DatabaseSafetyValidator.cs`
 - Parameter builder: `Contextualizer.Core/Handlers/Database/DatabaseParameterBuilder.cs`
 - Query executor: `Contextualizer.Core/Handlers/Database/DatabaseQueryExecutor.cs`
 - Handler config: `Contextualizer.PluginContracts/HandlerConfig.cs`
+- MCP: `WpfInteractionApp/Services/Mcp/McpHelpers/McpHelper.cs` (`Slugify`, `BuildInputText`, tam şema notları)
 - MCP tool executor: `WpfInteractionApp/Services/Mcp/McpToolHandlers/HandlerToolExecutor.cs`
+- MCP eşleştirme (`tools/call`): `WpfInteractionApp/Services/Mcp/McpJsonRpcHandler.cs`
+- İsteğe bağlı yönetim araçları: `WpfInteractionApp/Services/Mcp/McpToolHandlers/Management/DatabaseToolManagementTools.cs` (`database_tool_create`, `handler_update_database`; `McpSettings.ManagementToolsEnabled` açık olmalı)
