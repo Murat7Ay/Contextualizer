@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  rust-tests:
+    name: Rust Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            contextualizer-tauri/src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('contextualizer-tauri/src-tauri/Cargo.lock') }}
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
+
+      - name: Run Rust tests
+        working-directory: contextualizer-tauri/src-tauri
+        run: cargo test --verbose
+
+      - name: Check formatting
+        working-directory: contextualizer-tauri/src-tauri
+        run: cargo fmt -- --check
+
+      - name: Run clippy
+        working-directory: contextualizer-tauri/src-tauri
+        run: cargo clippy -- -D warnings
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: contextualizer-tauri/package-lock.json
+
+      - name: Install dependencies
+        working-directory: contextualizer-tauri
+        run: npm ci
+
+      - name: Run tests
+        working-directory: contextualizer-tauri
+        run: npx vitest run
+
+      - name: Run tests with coverage
+        working-directory: contextualizer-tauri
+        run: npx vitest run --coverage
+
+      - name: TypeScript check
+        working-directory: contextualizer-tauri
+        run: npx tsc --noEmit
+
+  build:
+    name: Build (${{ matrix.os }})
+    needs: [rust-tests, frontend-tests]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: contextualizer-tauri/package-lock.json
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
+
+      - name: Install frontend dependencies
+        working-directory: contextualizer-tauri
+        run: npm ci
+
+      - name: Build Tauri app
+        working-directory: contextualizer-tauri
+        run: npx tauri build
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}

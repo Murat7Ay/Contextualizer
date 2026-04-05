@@ -1,0 +1,4 @@
+# Comment line - should be skipped
+ABC001||Acme Corp||V8
+DEF002||Delta Corp||V12
+GHI003||Gamma Inc||Hybrid

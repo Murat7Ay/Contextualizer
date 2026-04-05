@@ -1,0 +1,50 @@
+[package]
+name = "contextualizer"
+version = "0.1.0"
+edition = "2021"
+description = "Advanced Clipboard Automation and Context Processing Tool"
+rust-version = "1.77.2"
+
+[lib]
+name = "contextualizer_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-http = "2"
+tauri-plugin-os = "2"
+tauri-plugin-process = "2"
+tauri-plugin-updater = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+regex = "1"
+axum = "0.7"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors"] }
+hyper = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+async-stream = "0.3"
+walkdir = "2"
+sysinfo = "0.34"
+reqwest = { version = "0.12", features = ["json"] }
+thiserror = "2"
+open = "5"
+dirs = "6"
+
+[dev-dependencies]
+tempfile = "3"
+axum-test = "16"
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]

@@ -1,0 +1,39 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Tauri Dev (Rust + Frontend)",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["build", "--manifest-path=src-tauri/Cargo.toml", "--no-default-features"]
+      },
+      "preLaunchTask": "vite-dev-server",
+      "env": {
+        "RUST_BACKTRACE": "1",
+        "RUST_LOG": "debug"
+      }
+    },
+    {
+      "name": "Tauri Dev (attach to running)",
+      "type": "lldb",
+      "request": "attach",
+      "program": "${workspaceFolder}/src-tauri/target/debug/contextualizer.exe",
+      "stopOnEntry": false
+    },
+    {
+      "name": "Rust Tests",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["test", "--manifest-path=src-tauri/Cargo.toml", "--no-run"],
+        "filter": {
+          "kind": "lib"
+        }
+      },
+      "env": {
+        "RUST_BACKTRACE": "1"
+      }
+    }
+  ]
+}

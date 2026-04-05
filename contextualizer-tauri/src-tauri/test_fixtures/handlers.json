@@ -1,0 +1,82 @@
+{
+  "handlers": [
+    {
+      "name": "Phone Regex",
+      "type": "regex",
+      "enabled": true,
+      "regex": "^(?P<area>\\d{3})-(?P<number>\\d{4})$",
+      "groups": ["area", "number"],
+      "output_format": "Area: $(area), Number: $(number)",
+      "actions": [
+        {
+          "name": "copytoclipboard",
+          "requires_confirmation": false,
+          "key": "_formatted_output"
+        }
+      ],
+      "mcp_enabled": true,
+      "mcp_tool_name": "phone_lookup"
+    },
+    {
+      "name": "Corp Lookup",
+      "type": "lookup",
+      "enabled": true,
+      "path": "test_fixtures/sample_lookup.txt",
+      "delimiter": "||",
+      "key_names": ["code"],
+      "value_names": ["code", "name", "engine"],
+      "output_format": "Code: $(code), Name: $(name)",
+      "actions": [
+        {
+          "name": "show_window",
+          "requires_confirmation": false,
+          "key": "_formatted_output"
+        }
+      ]
+    },
+    {
+      "name": "Manual Handler",
+      "type": "manual",
+      "enabled": true,
+      "screen_id": "markdown2",
+      "title": "Manual Entry",
+      "actions": [],
+      "user_inputs": [
+        {
+          "key": "input_text",
+          "title": "Input",
+          "message": "Enter text:",
+          "is_required": true,
+          "default_value": ""
+        }
+      ]
+    },
+    {
+      "name": "Disabled Handler",
+      "type": "regex",
+      "enabled": false,
+      "regex": ".*",
+      "actions": []
+    },
+    {
+      "name": "Database Handler",
+      "type": "database",
+      "enabled": true,
+      "connectionString": "Server=localhost;Database=test;",
+      "connector": "mssql",
+      "query": "SELECT * FROM users WHERE id = $(id)",
+      "actions": [],
+      "mcp_enabled": true
+    },
+    {
+      "name": "Cron Handler",
+      "type": "cron",
+      "enabled": true,
+      "cron_expression": "0 */5 * * * *",
+      "cron_timezone": "Europe/Istanbul",
+      "cron_enabled": true,
+      "reference_handler": "Phone Regex",
+      "actions": []
+    }
+  ]
+}
