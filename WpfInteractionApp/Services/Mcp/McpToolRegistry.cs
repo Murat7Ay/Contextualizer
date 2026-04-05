@@ -30,6 +30,7 @@ namespace WpfInteractionApp.Services.Mcp
         private const string ConfigSetValueToolName = "config_set_value";
         private const string ConfigReloadToolName = "config_reload";
         private const string HandlerDocsToolName = "handler_docs";
+        private const string RunShellToolName = "run_shell";
 
         public static List<McpTool> GetAllTools(bool includeManagementTools)
         {
@@ -90,6 +91,35 @@ Returns { cancelled: boolean, values: object }.
                 Name = UiShowMarkdownToolName,
                 Description = "Show a markdown tab in the app (screen_id=markdown2). Required: markdown (string). Optional: title (string, default: 'Markdown'), autoFocus/auto_focus (boolean, default: false), bringToFront/bring_to_front (boolean, default: false). Both camelCase (autoFocus, bringToFront) and snake_case (auto_focus, bring_to_front) are accepted (camelCase preferred). Returns { shown: boolean }.",
                 InputSchema = SchemaBuilder.UiShowMarkdownSchema()
+            });
+
+            // Shell execution tool
+            tools.Add(new McpTool
+            {
+                Name = RunShellToolName,
+                Description = """
+Execute a shell command via PowerShell on the host machine and return stdout, stderr, exit code.
+
+Use this tool when you need to run terminal commands but the IDE terminal is unavailable or restricted. This is your bridge to the operating system.
+
+Behavior:
+- Runs "powershell.exe -NoProfile -NonInteractive -Command <command>"
+- Returns JSON: { exit_code: int, stdout: string, stderr: string, timed_out: bool, elapsed_ms: long }
+- exit_code 0 = success, non-zero = failure, -1 = timed out or killed
+- stdout/stderr are truncated at 50000 chars if too long
+
+Parameters:
+- command (string, required): The PowerShell command to execute. Use semicolons (;) to chain commands, NOT && or ||. Examples: "git status", "Get-ChildItem C:\project", "dotnet build; dotnet test"
+- working_directory (string, optional): Absolute path to set as CWD before running. Must exist. Example: "C:\Users\murat\source\repos\MyProject"
+- timeout_seconds (integer, optional): Max seconds to wait (1-300, default 30). Process is killed on timeout.
+
+Tips:
+- For git operations, always set working_directory to the repo root
+- Use "cmd /c <command>" if you need cmd.exe behavior instead of PowerShell
+- Long output is automatically truncated with a marker showing total length
+- Avoid interactive commands (Read-Host, pause, etc.) — they will hang until timeout
+""",
+                InputSchema = SchemaBuilder.RunShellSchema()
             });
 
             // Handler-based tools

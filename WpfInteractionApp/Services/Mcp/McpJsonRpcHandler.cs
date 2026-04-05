@@ -111,6 +111,10 @@ namespace WpfInteractionApp.Services.Mcp
             if (string.Equals(callParams.Name, "ui_show_markdown", StringComparison.OrdinalIgnoreCase))
                 return await UiToolHandler.HandleUiShowMarkdownAsync(request, callParams, jsonOptions);
 
+            // Shell execution tool
+            if (string.Equals(callParams.Name, ShellToolHandler.RunShellToolName, StringComparison.OrdinalIgnoreCase))
+                return await ShellToolHandler.HandleRunShellAsync(request, callParams, jsonOptions);
+
             // Management tools (gated)
             if (IsManagementToolsEnabled())
             {
