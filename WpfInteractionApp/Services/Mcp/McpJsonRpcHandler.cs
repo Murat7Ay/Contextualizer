@@ -115,6 +115,10 @@ namespace WpfInteractionApp.Services.Mcp
             if (string.Equals(callParams.Name, ShellToolHandler.RunShellToolName, StringComparison.OrdinalIgnoreCase))
                 return await ShellToolHandler.HandleRunShellAsync(request, callParams, jsonOptions);
 
+            var dataToolBuiltin = await DataToolToolHandler.TryHandleBuiltInAsync(request, callParams, jsonOptions);
+            if (dataToolBuiltin != null)
+                return dataToolBuiltin;
+
             // Management tools (gated)
             if (IsManagementToolsEnabled())
             {
@@ -124,31 +128,27 @@ namespace WpfInteractionApp.Services.Mcp
             }
 
             // Find matching handler by mcp_tool_name or slug(name)
-            if (handlerManager == null)
+            if (handlerManager != null)
             {
-                return new JsonRpcResponse
-                {
-                    Id = request.Id,
-                    Error = new JsonRpcError { Code = -32001, Message = "HandlerManager is not available" }
-                };
+                var configs = handlerManager.GetAllHandlerConfigs();
+                var matchedConfig = configs.FirstOrDefault(c =>
+                    c.McpEnabled &&
+                    (string.Equals(c.McpToolName, callParams.Name, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(McpHelper.Slugify(c.Name), callParams.Name, StringComparison.OrdinalIgnoreCase)));
+
+                if (matchedConfig != null)
+                    return await HandlerToolExecutor.ExecuteHandlerAsync(request, matchedConfig, callParams, jsonOptions);
             }
 
-            var configs = handlerManager.GetAllHandlerConfigs();
-            var matchedConfig = configs.FirstOrDefault(c =>
-                c.McpEnabled &&
-                (string.Equals(c.McpToolName, callParams.Name, StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(McpHelper.Slugify(c.Name), callParams.Name, StringComparison.OrdinalIgnoreCase)));
+            var dataToolDynamic = await DataToolToolHandler.TryHandleDynamicAsync(request, callParams, jsonOptions);
+            if (dataToolDynamic != null)
+                return dataToolDynamic;
 
-            if (matchedConfig == null)
+            return new JsonRpcResponse
             {
-                return new JsonRpcResponse
-                {
-                    Id = request.Id,
-                    Error = new JsonRpcError { Code = -32004, Message = $"Tool not found: {callParams.Name}" }
-                };
-            }
-
-            return await HandlerToolExecutor.ExecuteHandlerAsync(request, matchedConfig, callParams, jsonOptions);
+                Id = request.Id,
+                Error = new JsonRpcError { Code = -32004, Message = $"Tool not found: {callParams.Name}" }
+            };
         }
 
         private static JsonRpcResponse CreateMethodNotFound(JsonRpcRequest request)

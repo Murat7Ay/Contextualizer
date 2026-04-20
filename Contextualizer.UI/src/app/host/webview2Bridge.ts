@@ -35,6 +35,28 @@ export function requestHandlersList(): boolean {
   return postWebView2Message({ type: 'handlers_list_request' });
 }
 
+export function requestDataToolsList(): boolean {
+  return postWebView2Message({ type: 'data_tools_list_request' });
+}
+
+export function reloadDataTools(): boolean {
+  return postWebView2Message({ type: 'data_tools_reload' });
+}
+
+export function createDataTool(definition: unknown): boolean {
+  return postWebView2Message({ type: 'data_tool_create', definition });
+}
+
+export function updateDataTool(originalId: string, definition: unknown): boolean {
+  if (!originalId) return false;
+  return postWebView2Message({ type: 'data_tool_update', originalId, definition });
+}
+
+export function deleteDataTool(id: string): boolean {
+  if (!id) return false;
+  return postWebView2Message({ type: 'data_tool_delete', id });
+}
+
 export function requestPluginsList(): boolean {
   return postWebView2Message({ type: 'plugins_list_request' });
 }

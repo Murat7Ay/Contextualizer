@@ -12,7 +12,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using Contextualizer.Core.Services;
-using Contextualizer.PluginContracts;
+using Contextualizer.Core.Services.DataTools;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
@@ -475,6 +475,26 @@ namespace WpfInteractionApp
                         HandleHandlersReload(root);
                         break;
 
+                    case "data_tools_list_request":
+                        SendDataToolsList();
+                        break;
+
+                    case "data_tools_reload":
+                        HandleDataToolsReload();
+                        break;
+
+                    case "data_tool_create":
+                        HandleDataToolCreate(root);
+                        break;
+
+                    case "data_tool_update":
+                        HandleDataToolUpdate(root);
+                        break;
+
+                    case "data_tool_delete":
+                        HandleDataToolDelete(root);
+                        break;
+
                     case "manual_handler_execute":
                         HandleManualHandlerExecute(root);
                         break;
@@ -730,7 +750,8 @@ namespace WpfInteractionApp
                             enabled = s.McpSettings?.Enabled ?? false,
                             port = s.McpSettings?.Port ?? 5000,
                             useNativeUi = s.McpSettings?.UseNativeUi ?? true,
-                            managementToolsEnabled = s.McpSettings?.ManagementToolsEnabled ?? false
+                            managementToolsEnabled = s.McpSettings?.ManagementToolsEnabled ?? false,
+                            dataToolsRegistryPath = s.McpSettings?.DataToolsRegistryPath
                         },
                         aiSkillsHub = new
                         {
@@ -907,6 +928,7 @@ namespace WpfInteractionApp
                 if (settingsEl.TryGetProperty("mcpSettings", out var mcp) && mcp.ValueKind == JsonValueKind.Object)
                 {
                     s.McpSettings ??= new Settings.McpSettings();
+                    string? newRegistryPath = null;
                     if (mcp.TryGetProperty("enabled", out var me) && me.ValueKind is JsonValueKind.True or JsonValueKind.False)
                         s.McpSettings.Enabled = me.ValueKind == JsonValueKind.True;
                     if (mcp.TryGetProperty("port", out var mp) && mp.TryGetInt32(out var mpVal))
@@ -915,6 +937,18 @@ namespace WpfInteractionApp
                         s.McpSettings.UseNativeUi = nui.ValueKind == JsonValueKind.True;
                     if (mcp.TryGetProperty("managementToolsEnabled", out var mte) && mte.ValueKind is JsonValueKind.True or JsonValueKind.False)
                         s.McpSettings.ManagementToolsEnabled = mte.ValueKind == JsonValueKind.True;
+                    if (mcp.TryGetProperty("dataToolsRegistryPath", out var dtrp) && dtrp.ValueKind == JsonValueKind.String)
+                    {
+                        newRegistryPath = dtrp.GetString();
+                        s.McpSettings.DataToolsRegistryPath = newRegistryPath ?? s.McpSettings.DataToolsRegistryPath;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(newRegistryPath))
+                    {
+                        var logger = ServiceLocator.SafeGet<ILoggingService>();
+                        var registry = new DataToolRegistryService(newRegistryPath!, logger);
+                        ServiceLocator.Register(registry);
+                    }
                 }
 
                 if (settingsEl.TryGetProperty("aiSkillsHub", out var ash) && ash.ValueKind == JsonValueKind.Object)
@@ -1553,6 +1587,192 @@ namespace WpfInteractionApp
                 validators = concrete?.GetValidatorNames() ?? Array.Empty<string>(),
                 contextProviders = concrete?.GetContextProviderNames() ?? Array.Empty<string>(),
             });
+        }
+
+        private void SendDataToolsList()
+        {
+            var registry = ServiceLocator.SafeGet<DataToolRegistryService>();
+            if (registry == null)
+            {
+                PostToUi(new { type = "data_tools_list", registryPath = (string?)null, definitions = Array.Empty<object>(), error = "Data tool registry is not available" });
+                return;
+            }
+
+            var definitions = registry.GetAllDefinitions()
+                .Select(d => new
+                {
+                    id = d.Id,
+                    name = d.Name,
+                    tool_name = d.ToolName,
+                    description = d.Description,
+                    provider = d.Provider,
+                    operation = d.Operation,
+                    connection = d.Connection,
+                    statement = d.Statement,
+                    procedure_name = d.ProcedureName,
+                    enabled = d.Enabled,
+                    expose_as_tool = d.ExposeAsTool,
+                    command_timeout_seconds = d.CommandTimeoutSeconds,
+                    connection_timeout_seconds = d.ConnectionTimeoutSeconds,
+                    max_pool_size = d.MaxPoolSize,
+                    min_pool_size = d.MinPoolSize,
+                    disable_pooling = d.DisablePooling,
+                    parameters = d.Parameters,
+                    input_schema = d.InputSchema,
+                    tags = d.Tags,
+                    result = d.Result,
+                    provider_options = d.ProviderOptions,
+                    resolved_tool_name = DataToolRegistryService.ResolveToolName(d),
+                    is_supported = DataToolExecutionService.IsDefinitionSupported(d)
+                })
+                .ToList();
+
+            PostToUi(new
+            {
+                type = "data_tools_list",
+                registryPath = registry.RegistryPath,
+                definitions
+            });
+        }
+
+        private void HandleDataToolsReload()
+        {
+            var registry = ServiceLocator.SafeGet<DataToolRegistryService>();
+            if (registry == null)
+            {
+                PostToUi(new { type = "data_tools_reload_result", ok = false, error = "Data tool registry is not available" });
+                return;
+            }
+
+            try
+            {
+                registry.Reload();
+                SendDataToolsList();
+                PostToUi(new { type = "data_tools_reload_result", ok = true });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "data_tools_reload_result", ok = false, error = ex.Message });
+            }
+        }
+
+        private void HandleDataToolCreate(JsonElement root)
+        {
+            try
+            {
+                if (!root.TryGetProperty("definition", out var definitionEl) || definitionEl.ValueKind != JsonValueKind.Object)
+                {
+                    PostToUi(new { type = "data_tool_create_result", ok = false, error = "Missing definition" });
+                    return;
+                }
+
+                var registry = ServiceLocator.SafeGet<DataToolRegistryService>();
+                if (registry == null)
+                {
+                    PostToUi(new { type = "data_tool_create_result", ok = false, error = "Data tool registry is not available" });
+                    return;
+                }
+
+                var definition = JsonSerializer.Deserialize<DataToolDefinition>(definitionEl.GetRawText());
+                if (definition == null)
+                {
+                    PostToUi(new { type = "data_tool_create_result", ok = false, error = "Invalid definition JSON" });
+                    return;
+                }
+
+                var result = registry.Create(definition);
+                if (!result.Success)
+                {
+                    PostToUi(new { type = "data_tool_create_result", ok = false, error = result.Error ?? "Failed to create definition" });
+                    return;
+                }
+
+                SendDataToolsList();
+                PostToUi(new { type = "data_tool_create_result", ok = true, id = result.Definition?.Id ?? definition.Id });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "data_tool_create_result", ok = false, error = ex.Message });
+            }
+        }
+
+        private void HandleDataToolUpdate(JsonElement root)
+        {
+            try
+            {
+                if (!TryGetString(root, "originalId", out var originalId))
+                {
+                    PostToUi(new { type = "data_tool_update_result", ok = false, error = "Missing originalId" });
+                    return;
+                }
+
+                if (!root.TryGetProperty("definition", out var definitionEl) || definitionEl.ValueKind != JsonValueKind.Object)
+                {
+                    PostToUi(new { type = "data_tool_update_result", ok = false, error = "Missing definition" });
+                    return;
+                }
+
+                var registry = ServiceLocator.SafeGet<DataToolRegistryService>();
+                if (registry == null)
+                {
+                    PostToUi(new { type = "data_tool_update_result", ok = false, error = "Data tool registry is not available" });
+                    return;
+                }
+
+                var definition = JsonSerializer.Deserialize<DataToolDefinition>(definitionEl.GetRawText());
+                if (definition == null)
+                {
+                    PostToUi(new { type = "data_tool_update_result", ok = false, error = "Invalid definition JSON" });
+                    return;
+                }
+
+                var result = registry.Update(originalId, definition);
+                if (!result.Success)
+                {
+                    PostToUi(new { type = "data_tool_update_result", ok = false, error = result.Error ?? "Failed to update definition" });
+                    return;
+                }
+
+                SendDataToolsList();
+                PostToUi(new { type = "data_tool_update_result", ok = true, id = result.Definition?.Id ?? definition.Id, originalId = originalId });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "data_tool_update_result", ok = false, error = ex.Message });
+            }
+        }
+
+        private void HandleDataToolDelete(JsonElement root)
+        {
+            try
+            {
+                if (!TryGetString(root, "id", out var id))
+                {
+                    PostToUi(new { type = "data_tool_delete_result", ok = false, error = "Missing id" });
+                    return;
+                }
+
+                var registry = ServiceLocator.SafeGet<DataToolRegistryService>();
+                if (registry == null)
+                {
+                    PostToUi(new { type = "data_tool_delete_result", ok = false, error = "Data tool registry is not available" });
+                    return;
+                }
+
+                var result = registry.Delete(id);
+                if (!result.Success)
+                {
+                    PostToUi(new { type = "data_tool_delete_result", ok = false, error = result.Error ?? "Failed to delete definition" });
+                    return;
+                }
+
+                SendDataToolsList();
+                PostToUi(new { type = "data_tool_delete_result", ok = true, id });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "data_tool_delete_result", ok = false, error = ex.Message });
+            }
         }
 
         private HandlerConfigStore? TryGetHandlerConfigStore()

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Home, Settings, Package, Calendar, ShoppingBag, Sun, Moon, Zap, PanelRight, Sparkles } from 'lucide-react';
+import { Home, Settings, Package, Calendar, ShoppingBag, Sun, Moon, Zap, PanelRight, Sparkles, Database } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import {
@@ -62,6 +62,11 @@ export function Toolbar() {
     navigate('/cron');
   };
 
+  const handleOpenDataTools = () => {
+    openTab('data-tools', 'Data Tools');
+    navigate('/data-tools');
+  };
+
   const handleOpenAiSkills = () => {
     openTab('ai-skills', 'AI Skills');
     navigate('/ai-skills');
@@ -105,6 +110,11 @@ export function Toolbar() {
       <Button variant="ghost" size="sm" onClick={handleOpenCron} title="Cron Manager">
         <Calendar className="h-4 w-4 mr-2" />
         Cron Jobs
+      </Button>
+
+      <Button variant="ghost" size="sm" onClick={handleOpenDataTools} title="Data Tools">
+        <Database className="h-4 w-4 mr-2" />
+        Data Tools
       </Button>
 
       <Button variant="ghost" size="sm" onClick={handleOpenAiSkills} title="AI Skills Hub">

@@ -29,6 +29,7 @@ import { sendPing } from '../../host/initHostBridge';
 import {
   openFileDialog,
   openFolderDialog,
+  openExternalUrl,
   postWebView2Message,
   requestAppSettings,
   requestClearLogs,
@@ -1706,6 +1707,39 @@ function AdvancedSettings() {
   const mcpEnabled = !!draft?.mcpSettings?.enabled;
   const mcpPort = draft?.mcpSettings?.port ?? 5000;
   const mcpMgmtToolsEnabled = !!draft?.mcpSettings?.managementToolsEnabled;
+  const dataToolsRegistryPath = draft?.mcpSettings?.dataToolsRegistryPath ?? '';
+
+  async function browseDataToolsRegistryFile() {
+    if (disabled) return;
+    const r = await openFileDialog({
+      title: 'Select Data Tools Registry File',
+      filter: 'JSON Files (*.json)|*.json|All Files (*.*)|*.*',
+    });
+    if (r.cancelled) return;
+    const path = r.path ?? r.paths?.[0];
+    if (!path) return;
+
+    updateDraft((d) => ({
+      ...d,
+      mcpSettings: {
+        ...d.mcpSettings,
+        dataToolsRegistryPath: path,
+      },
+    }));
+  }
+
+  function openDataToolsRegistry() {
+    const path = dataToolsRegistryPath.trim();
+    if (!path) {
+      toast('Data tools registry path is empty.');
+      return;
+    }
+
+    const ok = openExternalUrl(path);
+    if (!ok) {
+      toast('Host bridge is not available.');
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -1808,6 +1842,51 @@ function AdvancedSettings() {
                   }
                   disabled={disabled || !mcpEnabled}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Data Tools Registry</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={dataToolsRegistryPath}
+                    onChange={(e) =>
+                      updateDraft((d) => ({
+                        ...d,
+                        mcpSettings: {
+                          ...d.mcpSettings,
+                          dataToolsRegistryPath: e.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="C:\\PortableApps\\Contextualizer\\Config\\data-tools.json"
+                    disabled={disabled}
+                  />
+                  <Button variant="outline" onClick={browseDataToolsRegistryFile} disabled={disabled}>
+                    Browse
+                  </Button>
+                  <Button variant="outline" onClick={openDataToolsRegistry} disabled={disabled || !dataToolsRegistryPath.trim()}>
+                    Open
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  This file stores registry-backed MCP data tool definitions. If the file does not exist yet, save the path and restart once; the host creates a sample JSON automatically.
+                </p>
+              </div>
+
+              <div className="p-3 bg-muted rounded-md space-y-2">
+                <Label className="text-sm font-semibold block">How to fill it</Label>
+                <p className="text-xs text-muted-foreground">
+                  Put named definitions into the registry and reference connection strings from config/secrets instead of hardcoding them.
+                </p>
+                <code className="text-xs block whitespace-pre-wrap break-all">
+                  {`"connection": "$config:connections.main_mssql"`}
+                </code>
+                <p className="text-xs text-muted-foreground">
+                  Config file: {draft.configSystem?.configFilePath || 'not set'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Secrets file: {draft.configSystem?.secretsFilePath || 'not set'}
+                </p>
               </div>
 
               <div className="p-3 bg-muted rounded-md">

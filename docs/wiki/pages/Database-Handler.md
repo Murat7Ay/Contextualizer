@@ -21,5 +21,11 @@ Executes a parameterized SQL query and produces a context result set (optionally
 - Regex groups map into query parameters.
 - Only SELECT statements are allowed.
 
+## Database Handler vs Data Tools
+- Database handler: part of the handler pipeline; best for clipboard-driven select queries plus actions and formatting.
+- Data tools: MCP-native registry-backed tools; better for discoverable named operations and generic select/scalar/execute/procedure access.
+- Use the handler when you want runtime formatting, seeding, user inputs, or handler actions. Use data tools when the better abstraction is a stable MCP tool contract.
+
 ## Related
 - Handler entry: [Contextualizer.Core/DatabaseHandler.cs](Contextualizer.Core/DatabaseHandler.cs)
+- Data tools: [docs/wiki/pages/Data-Tools.md](docs/wiki/pages/Data-Tools.md)

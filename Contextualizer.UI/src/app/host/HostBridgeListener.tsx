@@ -8,6 +8,7 @@ import { useActivityLogStore } from '../stores/activityLogStore';
 import { useAppSettingsStore, type AppSettingsDto, type LogClearResult } from '../stores/appSettingsStore';
 import { useAppStore } from '../stores/appStore';
 import { useHandlerExchangeStore, type HandlerPackageDto } from '../stores/handlerExchangeStore';
+import { useDataToolsStore, type DataToolDefinitionDto } from '../stores/dataToolsStore';
 import { addWebView2MessageListener, executeToastAction, notifyToastClosed, requestExchangePackages } from './webview2Bridge';
 import { CountdownToastView, type CountdownToastAction } from '../components/ui/countdown-toast';
 
@@ -40,6 +41,13 @@ type ToastMessage = {
 type HandlersListMessage = {
   type: 'handlers_list';
   handlers: HandlerDto[];
+};
+
+type DataToolsListMessage = {
+  type: 'data_tools_list';
+  registryPath: string | null;
+  definitions: DataToolDefinitionDto[];
+  error?: string;
 };
 
 type CronListMessage = {
@@ -116,6 +124,8 @@ export function HostBridgeListener() {
   const markSaved = useAppSettingsStore((s) => s.markSaved);
   const setLogClearResult = useAppSettingsStore((s) => s.setLogClearResult);
   const setTheme = useAppStore((s) => s.setTheme);
+  const setDataToolsFromHost = useDataToolsStore((s) => s.setFromHost);
+  const setDataToolsError = useDataToolsStore((s) => s.setError);
 
   // Handler Exchange store actions
   const setExchangePackages = useHandlerExchangeStore((s) => s.setPackages);
@@ -143,6 +153,18 @@ export function HostBridgeListener() {
       if (type === 'handlers_list') {
         const m = payload as HandlersListMessage;
         if (Array.isArray(m.handlers)) setHandlers(m.handlers);
+        return;
+      }
+
+      if (type === 'data_tools_list') {
+        const m = payload as DataToolsListMessage;
+        if (m.error) {
+          addLog('error', 'Failed to load data tools', m.error);
+          setDataToolsError(m.error);
+          return;
+        }
+
+        setDataToolsFromHost(m.registryPath ?? null, Array.isArray(m.definitions) ? m.definitions : []);
         return;
       }
 

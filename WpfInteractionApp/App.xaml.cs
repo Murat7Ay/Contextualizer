@@ -9,6 +9,7 @@ using Contextualizer.PluginContracts;
 using Contextualizer.PluginContracts.Interfaces;
 using System.IO;
 using System.Threading.Tasks;
+using Contextualizer.Core.Services.DataTools;
 
 namespace WpfInteractionApp
 {
@@ -48,6 +49,11 @@ namespace WpfInteractionApp
                 var loggingConfig = _settingsService.Settings.LoggingSettings.ToLoggingConfiguration();
                 _loggingService.SetConfiguration(loggingConfig);
                 ServiceLocator.Register<ILoggingService>(_loggingService);
+
+                var dataToolRegistry = new DataToolRegistryService(
+                    _settingsService.Settings.McpSettings.DataToolsRegistryPath,
+                    _loggingService);
+                ServiceLocator.Register<DataToolRegistryService>(dataToolRegistry);
 
                 // Log application startup
                 using (_loggingService.BeginScope("ApplicationStartup", new Dictionary<string, object>

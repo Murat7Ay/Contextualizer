@@ -14,6 +14,7 @@ This index links to all top-level pages in the wiki.
 - Plugins: [docs/wiki/pages/Plugins.md](docs/wiki/pages/Plugins.md)
 - UI: [docs/wiki/pages/UI.md](docs/wiki/pages/UI.md)
 - MCP: [docs/wiki/pages/MCP.md](docs/wiki/pages/MCP.md)
+- Data Tools: [docs/wiki/pages/Data-Tools.md](docs/wiki/pages/Data-Tools.md)
 - Cron: [docs/wiki/pages/Cron.md](docs/wiki/pages/Cron.md)
 
 ## Ops & Support

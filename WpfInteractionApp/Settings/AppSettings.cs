@@ -95,6 +95,9 @@ namespace WpfInteractionApp.Settings
         /// </summary>
         [JsonPropertyName("management_tools_enabled")]
         public bool ManagementToolsEnabled { get; set; } = false;
+
+        [JsonPropertyName("data_tools_registry_path")]
+        public string DataToolsRegistryPath { get; set; } = @"C:\PortableApps\Contextualizer\Config\data-tools.json";
     }
 
     public class ConfigSystemSettings

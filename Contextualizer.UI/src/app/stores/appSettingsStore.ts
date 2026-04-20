@@ -65,6 +65,7 @@ export interface AppSettingsDto {
     port: number;
     useNativeUi: boolean;
     managementToolsEnabled: boolean;
+    dataToolsRegistryPath: string;
   };
 
   /** Omitted in older hosts until first save; merged in setFromHost. */

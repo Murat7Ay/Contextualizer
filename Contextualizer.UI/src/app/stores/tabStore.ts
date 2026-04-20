@@ -94,6 +94,9 @@ function getRouteForScreen(screenId: string, title: string): string {
     case 'cron_manager':
     case 'cron':
       return '/cron';
+    case 'data_tools':
+    case 'data-tools':
+      return '/data-tools';
     case 'ai-skills':
     case 'ai_skills':
       return '/ai-skills';

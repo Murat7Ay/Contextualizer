@@ -110,6 +110,27 @@ These tools are always available (they do not depend on `handlers.json`):
 
 This lets an agent first collect inputs via `ui_user_inputs`, then call a handler tool using those values as arguments.
 
+### Built-in MCP data tools (registry-backed)
+Contextualizer can also expose a registry of parameterized database tools for MCP. This is intended for cases where you want the MCP client to call narrow, named operations instead of generating long SQL text.
+
+- Generic built-ins:
+  - `db_statements_list`
+  - `db_statement_get`
+  - `db_select_statement`
+  - `db_scalar`
+  - `db_execute`
+  - `db_procedure_execute`
+- Dynamic first-class tools:
+  - enabled definitions with `expose_as_tool: true` are also published directly as tool names such as `get_customer_by_code`
+
+Registry notes:
+- Registry path is configured by `mcp_settings.data_tools_registry_path`
+- Default path: `C:\PortableApps\Contextualizer\Config\data-tools.json`
+- The registry file is auto-created with disabled sample definitions on first run
+- Initial execution support is relational (`mssql`, `plsql`); the registry model is designed for future providers
+
+See `docs/wiki/pages/Data-Tools.md` for the registry format, safety model, and examples.
+
 ## Features
 
 - **Context-Aware Clipboard Management**: Monitors and captures clipboard content with customizable handlers

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Contextualizer.Core;
+using Contextualizer.Core.Services.DataTools;
 using Contextualizer.PluginContracts;
 using WpfInteractionApp.Services.Mcp.McpHelpers;
 using WpfInteractionApp.Services.Mcp.McpModels;
@@ -31,20 +32,36 @@ namespace WpfInteractionApp.Services.Mcp
         private const string ConfigReloadToolName = "config_reload";
         private const string HandlerDocsToolName = "handler_docs";
         private const string RunShellToolName = "run_shell";
+        private const string DataStatementsListToolName = "db_statements_list";
+        private const string DataStatementGetToolName = "db_statement_get";
+        private const string DbSelectStatementToolName = "db_select_statement";
+        private const string DbScalarToolName = "db_scalar";
+        private const string DbExecuteToolName = "db_execute";
+        private const string DbProcedureExecuteToolName = "db_procedure_execute";
 
         public static List<McpTool> GetAllTools(bool includeManagementTools)
         {
             var tools = new List<McpTool>();
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void AddTool(McpTool tool)
+            {
+                if (tool == null || string.IsNullOrWhiteSpace(tool.Name))
+                    return;
+
+                if (names.Add(tool.Name))
+                    tools.Add(tool);
+            }
 
             // Built-in UI tools
-            tools.Add(new McpTool
+            AddTool(new McpTool
             {
                 Name = UiConfirmToolName,
                 Description = "Show a confirmation dialog to the user. Optional 'details' object: {format: 'text'|'json', text?: string, json?: object}. Use details.text when format='text', details.json when format='json'. Returns { confirmed: boolean }.",
                 InputSchema = SchemaBuilder.UiConfirmSchema()
             });
 
-            tools.Add(new McpTool
+            AddTool(new McpTool
             {
                 Name = UiUserInputsToolName,
                 Description = """
@@ -79,14 +96,14 @@ Returns { cancelled: boolean, values: object }.
                 InputSchema = SchemaBuilder.UiUserInputsSchema()
             });
 
-            tools.Add(new McpTool
+            AddTool(new McpTool
             {
                 Name = UiNotifyToolName,
                 Description = "Show a non-blocking notification/toast. Required: message (string). Optional: title (string), level (string: info|success|warning|error|critical|debug, default: info), durationSeconds (integer, 1-600, default: 5) or duration_seconds (accepted alias). Both durationSeconds and duration_seconds are accepted (camelCase preferred). Returns { ok: boolean }.",
                 InputSchema = SchemaBuilder.UiNotifySchema()
             });
 
-            tools.Add(new McpTool
+            AddTool(new McpTool
             {
                 Name = UiShowMarkdownToolName,
                 Description = "Show a markdown tab in the app (screen_id=markdown2). Required: markdown (string). Optional: title (string, default: 'Markdown'), autoFocus/auto_focus (boolean, default: false), bringToFront/bring_to_front (boolean, default: false). Both camelCase (autoFocus, bringToFront) and snake_case (auto_focus, bring_to_front) are accepted (camelCase preferred). Returns { shown: boolean }.",
@@ -94,7 +111,7 @@ Returns { cancelled: boolean, values: object }.
             });
 
             // Shell execution tool
-            tools.Add(new McpTool
+            AddTool(new McpTool
             {
                 Name = RunShellToolName,
                 Description = """
@@ -122,6 +139,49 @@ Tips:
                 InputSchema = SchemaBuilder.RunShellSchema()
             });
 
+            // Built-in data tools
+            AddTool(new McpTool
+            {
+                Name = DataStatementsListToolName,
+                Description = "List configured data-tool definitions from the data-tools registry. Useful for discovery, filtering, and debugging supported providers and operations.",
+                InputSchema = SchemaBuilder.DataStatementsListSchema()
+            });
+
+            AddTool(new McpTool
+            {
+                Name = DataStatementGetToolName,
+                Description = "Get a single data-tool definition by id, including its input schema, provider, operation, and parameter metadata.",
+                InputSchema = SchemaBuilder.DataStatementGetSchema()
+            });
+
+            AddTool(new McpTool
+            {
+                Name = DbSelectStatementToolName,
+                Description = "Execute a registry-backed read/query statement by statement_id. Best for parameterized relational read operations (MSSQL/Oracle today; provider model is extensible).",
+                InputSchema = SchemaBuilder.GenericStatementSchema("statement_id", "Registered data-tool definition id for a SELECT-style statement.")
+            });
+
+            AddTool(new McpTool
+            {
+                Name = DbScalarToolName,
+                Description = "Execute a registry-backed scalar statement by statement_id and return a single value.",
+                InputSchema = SchemaBuilder.GenericStatementSchema("statement_id", "Registered data-tool definition id for a scalar statement.")
+            });
+
+            AddTool(new McpTool
+            {
+                Name = DbExecuteToolName,
+                Description = "Execute a registry-backed DML statement by statement_id and return affected_rows. Intended for INSERT/UPDATE/DELETE/MERGE style operations.",
+                InputSchema = SchemaBuilder.GenericStatementSchema("statement_id", "Registered data-tool definition id for an execute statement.")
+            });
+
+            AddTool(new McpTool
+            {
+                Name = DbProcedureExecuteToolName,
+                Description = "Execute a registry-backed stored procedure by procedure_id. Procedure behavior is controlled by the definition result.mode and parameter metadata.",
+                InputSchema = SchemaBuilder.GenericStatementSchema("procedure_id", "Registered data-tool definition id for a stored procedure.")
+            });
+
             // Handler-based tools
             var handlerManager = ServiceLocator.SafeGet<HandlerManager>();
             if (handlerManager != null)
@@ -142,7 +202,7 @@ Tips:
 
                     var schema = cfg.McpInputSchema ?? SchemaDefinitions.DefaultSchemaForHandler(cfg);
 
-                    tools.Add(new McpTool
+                    AddTool(new McpTool
                     {
                         Name = toolName,
                         Description = description,
@@ -151,23 +211,42 @@ Tips:
                 }
             }
 
+            // Registry-backed direct data tools. These are added after handler tools so
+            // tools/list matches tools/call precedence when names collide.
+            var dataToolRegistry = ServiceLocator.SafeGet<DataToolRegistryService>();
+            if (dataToolRegistry != null)
+            {
+                foreach (var definition in dataToolRegistry.GetSupportedExposedDefinitions())
+                {
+                    AddTool(new McpTool
+                    {
+                        Name = DataToolRegistryService.ResolveToolName(definition),
+                        Description =
+                            !string.IsNullOrWhiteSpace(definition.Description)
+                                ? definition.Description
+                                : $"{definition.Operation} data tool ({definition.Provider})",
+                        InputSchema = DataToolSchemas.SchemaForDefinition(definition)
+                    });
+                }
+            }
+
             // Management tools
             if (includeManagementTools)
             {
-                tools.Add(new McpTool { Name = HandlersListToolName, Description = "List handlers from handlers.json (optionally include full configs).", InputSchema = SchemaBuilder.HandlersListSchema() });
-                tools.Add(new McpTool { Name = HandlersGetToolName, Description = "Get a single handler config by name.", InputSchema = SchemaBuilder.HandlersGetSchema() });
-                tools.Add(new McpTool { Name = DatabaseToolCreateToolName, Description = "Create a Database handler optimized for MCP usage. Automatically enables MCP and provides database-specific parameters.", InputSchema = SchemaBuilder.DatabaseToolCreateSchema() });
-                tools.Add(new McpTool { Name = HandlerUpdateDatabaseToolName, Description = "Update a Database handler by name (partial update).", InputSchema = SchemaBuilder.HandlerUpdateSchema() });
-                tools.Add(new McpTool { Name = HandlerCreateApiToolName, Description = "Create an Api handler (type=Api).", InputSchema = SchemaBuilder.HandlerCreateSchema() });
-                tools.Add(new McpTool { Name = HandlerUpdateApiToolName, Description = "Update an Api handler by name (partial update).", InputSchema = SchemaBuilder.HandlerUpdateSchema() });
-                tools.Add(new McpTool { Name = HandlerDeleteToolName, Description = "Delete an existing handler by name and optionally reload handlers.", InputSchema = SchemaBuilder.HandlerDeleteSchema() });
-                tools.Add(new McpTool { Name = HandlerReloadToolName, Description = "Reload handlers from handlers.json (optionally reload plugins).", InputSchema = SchemaBuilder.HandlerReloadSchema() });
-                tools.Add(new McpTool { Name = PluginsListToolName, Description = "List loaded plugin names (actions/validators/context_providers) and registered handler types.", InputSchema = SchemaBuilder.EmptyObjectSchema() });
-                tools.Add(new McpTool { Name = ConfigGetKeysToolName, Description = "List config keys (section.key).", InputSchema = SchemaBuilder.EmptyObjectSchema() });
-                tools.Add(new McpTool { Name = ConfigGetSectionToolName, Description = "Get a config section as key-value pairs (values may be masked).", InputSchema = SchemaBuilder.ConfigGetSectionSchema() });
-                tools.Add(new McpTool { Name = ConfigSetValueToolName, Description = "Set a config value in config.ini or secrets.ini.", InputSchema = SchemaBuilder.ConfigSetValueSchema() });
-                tools.Add(new McpTool { Name = ConfigReloadToolName, Description = "Reload config files from disk.", InputSchema = SchemaBuilder.EmptyObjectSchema() });
-                tools.Add(new McpTool { Name = HandlerDocsToolName, Description = "Handler authoring guide and examples (templating, conditions, seeder, MCP).", InputSchema = SchemaBuilder.HandlerDocsSchema() });
+                AddTool(new McpTool { Name = HandlersListToolName, Description = "List handlers from handlers.json (optionally include full configs).", InputSchema = SchemaBuilder.HandlersListSchema() });
+                AddTool(new McpTool { Name = HandlersGetToolName, Description = "Get a single handler config by name.", InputSchema = SchemaBuilder.HandlersGetSchema() });
+                AddTool(new McpTool { Name = DatabaseToolCreateToolName, Description = "Create a Database handler optimized for MCP usage. Automatically enables MCP and provides database-specific parameters.", InputSchema = SchemaBuilder.DatabaseToolCreateSchema() });
+                AddTool(new McpTool { Name = HandlerUpdateDatabaseToolName, Description = "Update a Database handler by name (partial update).", InputSchema = SchemaBuilder.HandlerUpdateSchema() });
+                AddTool(new McpTool { Name = HandlerCreateApiToolName, Description = "Create an Api handler (type=Api).", InputSchema = SchemaBuilder.HandlerCreateSchema() });
+                AddTool(new McpTool { Name = HandlerUpdateApiToolName, Description = "Update an Api handler by name (partial update).", InputSchema = SchemaBuilder.HandlerUpdateSchema() });
+                AddTool(new McpTool { Name = HandlerDeleteToolName, Description = "Delete an existing handler by name and optionally reload handlers.", InputSchema = SchemaBuilder.HandlerDeleteSchema() });
+                AddTool(new McpTool { Name = HandlerReloadToolName, Description = "Reload handlers from handlers.json (optionally reload plugins).", InputSchema = SchemaBuilder.HandlerReloadSchema() });
+                AddTool(new McpTool { Name = PluginsListToolName, Description = "List loaded plugin names (actions/validators/context_providers) and registered handler types.", InputSchema = SchemaBuilder.EmptyObjectSchema() });
+                AddTool(new McpTool { Name = ConfigGetKeysToolName, Description = "List config keys (section.key).", InputSchema = SchemaBuilder.EmptyObjectSchema() });
+                AddTool(new McpTool { Name = ConfigGetSectionToolName, Description = "Get a config section as key-value pairs (values may be masked).", InputSchema = SchemaBuilder.ConfigGetSectionSchema() });
+                AddTool(new McpTool { Name = ConfigSetValueToolName, Description = "Set a config value in config.ini or secrets.ini.", InputSchema = SchemaBuilder.ConfigSetValueSchema() });
+                AddTool(new McpTool { Name = ConfigReloadToolName, Description = "Reload config files from disk.", InputSchema = SchemaBuilder.EmptyObjectSchema() });
+                AddTool(new McpTool { Name = HandlerDocsToolName, Description = "Handler authoring guide and examples (templating, conditions, seeder, MCP).", InputSchema = SchemaBuilder.HandlerDocsSchema() });
             }
 
             return tools;
