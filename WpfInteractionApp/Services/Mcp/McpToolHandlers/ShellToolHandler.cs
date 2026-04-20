@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
+using Contextualizer.Core.Services.Shell;
 using WpfInteractionApp.Services.Mcp.McpModels;
 
 namespace WpfInteractionApp.Services.Mcp.McpToolHandlers
@@ -13,16 +11,12 @@ namespace WpfInteractionApp.Services.Mcp.McpToolHandlers
     {
         public const string RunShellToolName = "run_shell";
 
-        private const int DefaultTimeoutSeconds = 30;
-        private const int MinTimeoutSeconds = 1;
-        private const int MaxTimeoutSeconds = 300;
-
         public static async Task<JsonRpcResponse> HandleRunShellAsync(
             JsonRpcRequest request, McpToolsCallParams callParams, JsonSerializerOptions jsonOptions)
         {
             string command = string.Empty;
             string? workingDirectory = null;
-            int timeoutSeconds = DefaultTimeoutSeconds;
+            int timeoutSeconds = ShellCommandExecutor.DefaultTimeoutSeconds;
 
             if (callParams.Arguments.HasValue && callParams.Arguments.Value.ValueKind == JsonValueKind.Object)
             {
@@ -49,16 +43,9 @@ namespace WpfInteractionApp.Services.Mcp.McpToolHandlers
                 };
             }
 
-            timeoutSeconds = Math.Clamp(timeoutSeconds, MinTimeoutSeconds, MaxTimeoutSeconds);
-
-            if (!string.IsNullOrWhiteSpace(workingDirectory) && !System.IO.Directory.Exists(workingDirectory))
-            {
-                return CreateShellErrorResult(request, $"Working directory does not exist: {workingDirectory}", -1, jsonOptions);
-            }
-
             try
             {
-                var result = await ExecuteShellCommandAsync(command, workingDirectory, timeoutSeconds);
+                var result = await ShellCommandExecutor.ExecuteAsync(command, workingDirectory, timeoutSeconds);
 
                 var payload = new Dictionary<string, object?>
                 {
@@ -108,93 +95,6 @@ namespace WpfInteractionApp.Services.Mcp.McpToolHandlers
                     IsError = true
                 }
             };
-        }
-
-        private static async Task<ShellResult> ExecuteShellCommandAsync(string command, string? workingDirectory, int timeoutSeconds)
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "powershell.exe",
-                Arguments = $"-NoProfile -NonInteractive -Command \"{EscapePowerShellCommand(command)}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8
-            };
-
-            if (!string.IsNullOrWhiteSpace(workingDirectory))
-                psi.WorkingDirectory = workingDirectory;
-
-            var sw = Stopwatch.StartNew();
-
-            using var process = new Process { StartInfo = psi };
-            var stdOutBuilder = new StringBuilder();
-            var stdErrBuilder = new StringBuilder();
-
-            process.OutputDataReceived += (_, e) =>
-            {
-                if (e.Data != null)
-                    stdOutBuilder.AppendLine(e.Data);
-            };
-            process.ErrorDataReceived += (_, e) =>
-            {
-                if (e.Data != null)
-                    stdErrBuilder.AppendLine(e.Data);
-            };
-
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-            bool timedOut = false;
-
-            try
-            {
-                await process.WaitForExitAsync(cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                timedOut = true;
-                try { process.Kill(entireProcessTree: true); } catch { }
-            }
-
-            sw.Stop();
-
-            var stdout = stdOutBuilder.ToString().TrimEnd();
-            var stderr = stdErrBuilder.ToString().TrimEnd();
-
-            const int maxOutputLength = 50_000;
-            if (stdout.Length > maxOutputLength)
-                stdout = stdout[..maxOutputLength] + $"\n... [truncated, total {stdout.Length} chars]";
-            if (stderr.Length > maxOutputLength)
-                stderr = stderr[..maxOutputLength] + $"\n... [truncated, total {stderr.Length} chars]";
-
-            return new ShellResult
-            {
-                ExitCode = timedOut ? -1 : process.ExitCode,
-                StdOut = stdout,
-                StdErr = stderr,
-                TimedOut = timedOut,
-                ElapsedMs = sw.ElapsedMilliseconds
-            };
-        }
-
-        private static string EscapePowerShellCommand(string command)
-        {
-            return command
-                .Replace("\"", "\\\"");
-        }
-
-        private sealed class ShellResult
-        {
-            public int ExitCode { get; set; }
-            public string StdOut { get; set; } = string.Empty;
-            public string StdErr { get; set; } = string.Empty;
-            public bool TimedOut { get; set; }
-            public long ElapsedMs { get; set; }
         }
     }
 }

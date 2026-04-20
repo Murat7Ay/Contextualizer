@@ -19,5 +19,17 @@ namespace Contextualizer.PluginContracts
         public static string _match = "_match";
         public static string _duration = "_duration";
         public static string _trigger = "_trigger";
+        public static string _shell_working_directory = "_shell_working_directory";
+        public static string _shell_timeout_seconds = "_shell_timeout_seconds";
+        public static string _shell_stdout = "_shell_stdout";
+        public static string _shell_stderr = "_shell_stderr";
+        public static string _shell_exit_code = "_shell_exit_code";
+        public static string _shell_timed_out = "_shell_timed_out";
+        public static string _shell_elapsed_ms = "_shell_elapsed_ms";
+        public static string _shell_stdout_key = "_shell_stdout_key";
+        public static string _shell_stderr_key = "_shell_stderr_key";
+        public static string _shell_exit_code_key = "_shell_exit_code_key";
+        public static string _shell_timed_out_key = "_shell_timed_out_key";
+        public static string _shell_elapsed_ms_key = "_shell_elapsed_ms_key";
     }
 }
