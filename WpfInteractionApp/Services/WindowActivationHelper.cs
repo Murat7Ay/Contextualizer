@@ -29,6 +29,9 @@ namespace WpfInteractionApp.Services
         private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 
         [DllImport("user32.dll")]
+        private static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
         private static extern IntPtr SetActiveWindow(IntPtr hWnd);
 
         [DllImport("user32.dll")]
@@ -63,9 +66,6 @@ namespace WpfInteractionApp.Services
 
             try
             {
-                if (window.WindowState == WindowState.Minimized)
-                    window.WindowState = WindowState.Normal;
-
                 if (!window.IsVisible)
                     window.Show();
 
@@ -73,7 +73,12 @@ namespace WpfInteractionApp.Services
                 if (hwnd == IntPtr.Zero)
                     return;
 
-                try { ShowWindowAsync(hwnd, SW_RESTORE); } catch { /* ignore */ }
+                try
+                {
+                    if (window.WindowState == WindowState.Minimized || IsIconic(hwnd))
+                        ShowWindowAsync(hwnd, SW_RESTORE);
+                }
+                catch { /* ignore */ }
 
                 bool attached = false;
                 uint fgThread = 0;

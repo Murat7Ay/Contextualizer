@@ -69,6 +69,9 @@ namespace WpfInteractionApp
         private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 
         [DllImport("user32.dll")]
+        private static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
         private static extern IntPtr SetActiveWindow(IntPtr hWnd);
 
         [DllImport("user32.dll")]
@@ -105,14 +108,17 @@ namespace WpfInteractionApp
                 if (hwnd == IntPtr.Zero)
                     return;
 
-                if (WindowState == WindowState.Minimized)
-                    WindowState = WindowState.Normal;
-
                 if (!IsVisible)
                     Show();
 
-                // Restore (Win32) as well; some window styles ignore WindowState changes.
-                try { ShowWindowAsync(hwnd, SW_RESTORE); } catch { /* ignore */ }
+                // Only restore when the window is actually minimized. Calling SW_RESTORE unconditionally
+                // can downgrade a maximized/fullscreen shell window back to normal size.
+                try
+                {
+                    if (WindowState == WindowState.Minimized || IsIconic(hwnd))
+                        ShowWindowAsync(hwnd, SW_RESTORE);
+                }
+                catch { /* ignore */ }
 
                 // Try hard to get foreground activation. Windows may block focus stealing, so we also attach input
                 // to the current foreground thread as a best-effort workaround.
