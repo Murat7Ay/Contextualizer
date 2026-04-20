@@ -75,7 +75,7 @@ Optionally, set:
 Tool calls run through the existing handler pipeline. That means:
 - `requires_confirmation` dialogs may appear
 - `user_inputs` dialogs may appear
-- actions like `show_window` / `copytoclipboard` can run
+- actions like `show_window` / `copytoclipboard` / `run_shell` can run
 
 If you want “headless” MCP execution (no interactive dialogs), set:
 - `mcp_headless: true`

@@ -69,6 +69,47 @@ Key concepts: selection list, password input, validation regex.
 ]
 ```
 
+## Run Shell Action Example
+Key concepts: action seeding, context-driven shell execution, result aliasing, `inner_actions`, and `show_window` screen selection.
+
+```json
+{
+  "name": "Repo Status",
+  "type": "Manual",
+  "screen_id": "markdown2",
+  "title": "Git Status",
+  "auto_focus_tab": true,
+  "bring_window_to_front": true,
+  "actions": [
+    {
+      "name": "run_shell",
+      "key": "shell_command",
+      "seeder": {
+        "shell_command": "git status",
+        "repo_root": "C:\\Users\\murat\\source\\repos\\Contextualizer",
+        "_shell_working_directory": "$(repo_root)",
+        "_shell_timeout_seconds": "20",
+        "_shell_stdout_key": "git_status_stdout",
+        "_shell_stderr_key": "git_status_stderr"
+      },
+      "inner_actions": [
+        {
+          "name": "show_window",
+          "key": "git_status_stdout"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Notes:
+- `show_window` is nested under `run_shell` so it runs after the shell command finishes and writes its result into context.
+- If one action depends on values produced by another action, prefer `inner_actions` over separate top-level action entries.
+- `screen_id` is only needed because this example uses `show_window`. `run_shell` by itself does not require it.
+- Use a valid UI screen such as `markdown2`, `jsonformatter`, `xmlformatter`, or `url_viewer`.
+- `git status --short` can return empty output on a clean repository, which makes the tab look blank. `git status` is a better visible example.
+
 ## MCP Flags Example
 Key concepts: enabling MCP, tool naming, headless behavior, seed overwrite.
 

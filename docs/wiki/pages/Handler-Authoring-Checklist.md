@@ -15,7 +15,7 @@
 - Use templates: $(key), $config:, $file:, $func:.
 
 ## 4) Add Actions
-- Typical: `show_window`, `show_notification`, `copytoclipboard`.
+- Typical: `show_window`, `show_notification`, `copytoclipboard`, `run_shell`.
 - Add `conditions` to gate actions.
 
 ## 5) User Inputs
