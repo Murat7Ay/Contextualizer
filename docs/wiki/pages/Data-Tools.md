@@ -233,6 +233,98 @@ Stored procedures are only executed through explicit `procedure` definitions. Th
 }
 ```
 
+## Quick Start
+
+1. Open **Settings → MCP** and note the value of **Data Tools Registry Path** (default: `C:\PortableApps\Contextualizer\Config\data-tools.json`).  
+   The file is created automatically on first run with two disabled sample definitions.
+2. Open **Settings → Config / Secrets** and add your connection string to the `[connections]` section of your `secrets.ini`:
+   ```ini
+   [connections]
+   main_mssql = Server=localhost\SQLEXPRESS;Database=MyDB;User Id=sa;Password=***;TrustServerCertificate=True;
+   ```
+3. Navigate to the **Data Tools** screen (toolbar button or tab). The screen lists all registry definitions.
+4. Click **New** and fill in:
+   - **Id** — a stable identifier such as `customer_by_code`
+   - **Provider** — use the preset button `mssql` (or `plsql`)
+   - **Operation** — `select`, `scalar`, `execute`, or `procedure`
+   - **Connection** — click the quick-pick button for your `$config:connections.*` key (it appears automatically from your secrets file) or type the reference manually
+   - **Statement** — the parameterized SQL, e.g. `SELECT TOP 10 * FROM dbo.Customers WHERE Code = @code`
+   - Enable **Enabled** and **Expose As Tool** to publish the tool to MCP clients
+5. Click **Save**. The registry file is updated immediately and the MCP server re-registers the new tool.
+
+## Viewing Registered Tools
+
+### From MCP clients (Claude Desktop, Cursor, etc.)
+
+When Contextualizer's MCP server is running (`mcp_settings.enabled = true`), data tools appear alongside handler tools. Two discovery methods are available:
+
+**1. Ask the built-in `db_statements_list` tool**
+
+```json
+{
+  "name": "db_statements_list",
+  "arguments": {}
+}
+```
+
+Optional filters: `provider`, `operation`, `tag`, `search`.
+
+Example — list only MSSQL select tools:
+```json
+{
+  "name": "db_statements_list",
+  "arguments": { "provider": "mssql", "operation": "select" }
+}
+```
+
+**2. `tools/list` MCP call**
+
+Each definition with `enabled: true` and `expose_as_tool: true` is also published as a first-class tool. A `tools/list` response will include it:
+
+```json
+{
+  "name": "get_customer_by_code",
+  "description": "Read customer summary by institution code.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "institution_code": { "type": "string", "description": "Institution code to search for" }
+    },
+    "required": ["institution_code"]
+  }
+}
+```
+
+Calling it directly:
+```json
+{
+  "name": "get_customer_by_code",
+  "arguments": { "institution_code": "123456" }
+}
+```
+
+**3. Inspect a single definition with `db_statement_get`**
+
+```json
+{
+  "name": "db_statement_get",
+  "arguments": { "id": "customer_by_code" }
+}
+```
+
+Returns the full definition including the generated input schema.
+
+### From the in-app Data Tools screen
+
+Open the **Data Tools** screen from the toolbar. It shows:
+- Total / enabled / exposed / supported counts as stats cards
+- A searchable, filterable list of all registry definitions
+- Provider and operation badges on each item
+- Tool name that MCP clients will use to call the tool
+- A "Supported today / Stored for future provider" status indicator on each editor
+
+The **Runtime Status** field in the editor tells you whether the current execution layer can run the selected provider. Currently `mssql` and `plsql` are executable; other providers can be stored for future runtime support.
+
 ## Relationship To Database Handler
 The existing Database handler remains useful for handler-pipeline scenarios:
 - select-only queries

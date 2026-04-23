@@ -495,6 +495,10 @@ namespace WpfInteractionApp
                         HandleDataToolDelete(root);
                         break;
 
+                    case "config_connections_request":
+                        SendConfigConnections();
+                        break;
+
                     case "manual_handler_execute":
                         HandleManualHandlerExecute(root);
                         break;
@@ -1587,6 +1591,24 @@ namespace WpfInteractionApp
                 validators = concrete?.GetValidatorNames() ?? Array.Empty<string>(),
                 contextProviders = concrete?.GetContextProviderNames() ?? Array.Empty<string>(),
             });
+        }
+
+        private void SendConfigConnections()
+        {
+            var configService = ServiceLocator.SafeGet<IConfigurationService>();
+            if (configService == null || !configService.IsEnabled)
+            {
+                PostToUi(new { type = "config_connections_list", keys = Array.Empty<string>() });
+                return;
+            }
+
+            var section = configService.GetSection("connections");
+            var keys = section.Keys
+                .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
+                .Select(k => $"$config:connections.{k}")
+                .ToList();
+
+            PostToUi(new { type = "config_connections_list", keys });
         }
 
         private void SendDataToolsList()

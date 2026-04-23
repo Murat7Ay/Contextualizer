@@ -38,6 +38,7 @@ import {
   deleteDataTool,
   openExternalUrl,
   reloadDataTools,
+  requestConfigConnections,
   requestDataToolsList,
   updateDataTool,
 } from '../../host/webview2Bridge';
@@ -385,6 +386,7 @@ export function DataToolsManager() {
   const definitions = useDataToolsStore((state) => state.definitions);
   const registryPath = useDataToolsStore((state) => state.registryPath);
   const storeError = useDataToolsStore((state) => state.error);
+  const connectionKeys = useDataToolsStore((state) => state.connectionKeys);
   const addLog = useActivityLogStore((state) => state.addLog);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -398,6 +400,8 @@ export function DataToolsManager() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [pendingDiscardCallback, setPendingDiscardCallback] = useState<(() => void) | null>(null);
 
   const disabled = !webView2Available || !hostConnected;
   const currentSnapshot = useMemo(() => JSON.stringify(draft), [draft]);
@@ -406,6 +410,7 @@ export function DataToolsManager() {
   useEffect(() => {
     if (!webView2Available || !hostConnected) return;
     requestDataToolsList();
+    requestConfigConnections();
   }, [hostConnected, webView2Available]);
 
   useEffect(() => {
@@ -529,19 +534,27 @@ export function DataToolsManager() {
     setError(null);
   }
 
-  function confirmDiscard(): boolean {
-    if (!isDirty) return true;
-    return window.confirm('Unsaved changes will be lost. Continue?');
+  function requestDiscard(callback: () => void) {
+    if (!isDirty) {
+      callback();
+      return;
+    }
+    setPendingDiscardCallback(() => callback);
+    setDiscardOpen(true);
+  }
+
+  function handleDiscardConfirmed() {
+    setDiscardOpen(false);
+    pendingDiscardCallback?.();
+    setPendingDiscardCallback(null);
   }
 
   function handleSelectDefinition(definition: DataToolDefinitionDto) {
-    if (!confirmDiscard()) return;
-    loadDraft(definitionToDraft(definition), definition.id);
+    requestDiscard(() => loadDraft(definitionToDraft(definition), definition.id));
   }
 
   function handleNewDefinition() {
-    if (!confirmDiscard()) return;
-    loadDraft(createEmptyDraft(), null);
+    requestDiscard(() => loadDraft(createEmptyDraft(), null));
   }
 
   function handleResetEditor() {
@@ -742,20 +755,22 @@ export function DataToolsManager() {
                         className={cn(
                           'w-full text-left rounded-lg border p-4 transition-colors hover:bg-accent/50',
                           active && 'border-primary bg-accent/60',
+                          !definition.enabled && 'opacity-60',
                         )}
                       >
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                           <div className="flex flex-wrap items-center gap-2">
                             <div className="font-medium">{definition.name || definition.id}</div>
-                            <Badge variant="outline">{definition.provider}</Badge>
-                            <Badge variant="outline">{definition.operation}</Badge>
-                            <Badge variant={definition.enabled ? 'secondary' : 'outline'}>{definition.enabled ? 'Enabled' : 'Disabled'}</Badge>
-                            <Badge variant={definition.expose_as_tool ? 'secondary' : 'outline'}>{definition.expose_as_tool ? 'Direct Tool' : 'Generic Only'}</Badge>
-                            <Badge variant={definition.is_supported ? 'secondary' : 'outline'}>{definition.is_supported ? 'Supported' : 'Future Provider'}</Badge>
+                            <Badge variant="outline" className="text-xs">{definition.provider}</Badge>
+                            <Badge variant="outline" className="text-xs">{definition.operation}</Badge>
+                            {!definition.enabled && <Badge variant="outline" className="text-xs text-muted-foreground">Disabled</Badge>}
                           </div>
-                          <div className="text-xs text-muted-foreground font-mono break-all">id: {definition.id}</div>
-                          <div className="text-xs text-muted-foreground font-mono break-all">tool: {resolvedName}</div>
-                          {definition.description ? <div className="text-sm text-muted-foreground">{definition.description}</div> : null}
+                          <div className="text-xs font-mono text-muted-foreground truncate">{resolvedName}</div>
+                          {definition.description ? <div className="text-xs text-muted-foreground line-clamp-1">{definition.description}</div> : null}
+                          <div className="flex gap-3 text-xs text-muted-foreground">
+                            {definition.expose_as_tool && <span className="text-blue-600 dark:text-blue-400">Direct Tool</span>}
+                            {definition.is_supported === false && <span className="text-amber-600 dark:text-amber-400">Future Provider</span>}
+                          </div>
                         </div>
                       </button>
                     );
@@ -769,31 +784,39 @@ export function DataToolsManager() {
 
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <CardTitle className="text-base">{originalId ? `Edit: ${originalId}` : 'New Data Tool'}</CardTitle>
-                  <CardDescription>
-                    Parametric or parameterless definitions are both supported. Other providers can be stored even if runtime support is not implemented yet.
-                  </CardDescription>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={handleResetEditor} disabled={loading}>
-                    Reset
-                  </Button>
-                  <Button onClick={handleSave} disabled={disabled || loading}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save
-                  </Button>
-                  <Button variant="destructive" onClick={() => setDeleteOpen(true)} disabled={!originalId || loading}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
+              <CardTitle className="text-base">{originalId ? `Edit: ${originalId}` : 'New Data Tool'}</CardTitle>
+              <CardDescription>
+                Parametric or parameterless definitions are both supported. Other providers can be stored even if runtime support is not implemented yet.
+              </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
+              {/* Action toolbar */}
+              <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDeleteOpen(true)}
+                  disabled={!originalId || loading}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4 mr-1.5" />
+                  Delete
+                </Button>
+
+                <div className="flex items-center gap-2">
+                  {isDirty && (
+                    <span className="text-xs text-muted-foreground select-none">Unsaved changes</span>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={handleResetEditor} disabled={loading}>
+                    {originalId ? 'Revert' : 'Clear'}
+                  </Button>
+                  <Button size="sm" onClick={handleSave} disabled={disabled || loading} className={cn(isDirty && 'ring-2 ring-primary/40')}>
+                    <Save className="h-4 w-4 mr-1.5" />
+                    Save
+                  </Button>
+                </div>
+              </div>
               {error ? (
                 <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/20 dark:text-red-300">
                   {error}
@@ -828,11 +851,21 @@ export function DataToolsManager() {
                 <div className="space-y-2 xl:col-span-2">
                   <Label>Provider</Label>
                   <Input value={draft.provider} onChange={(event) => patchDraft({ provider: event.target.value })} placeholder="mssql, plsql, neo4j, redis, elasticsearch..." />
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {providerPresets.map((provider) => (
-                      <Button key={provider} type="button" variant="outline" size="sm" onClick={() => patchDraft({ provider })}>
+                      <button
+                        key={provider}
+                        type="button"
+                        onClick={() => patchDraft({ provider })}
+                        className={cn(
+                          'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors',
+                          draft.provider === provider
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-border bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                        )}
+                      >
                         {provider}
-                      </Button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -866,6 +899,25 @@ export function DataToolsManager() {
                 <div className="space-y-2">
                   <Label>Connection</Label>
                   <Input value={draft.connection} onChange={(event) => patchDraft({ connection: event.target.value })} placeholder="$config:connections.main_mssql" />
+                  {connectionKeys.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {connectionKeys.map((key) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => patchDraft({ connection: key })}
+                          className={cn(
+                            'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium font-mono transition-colors',
+                            draft.connection === key
+                              ? 'border-primary bg-primary text-primary-foreground'
+                              : 'border-border bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                          )}
+                        >
+                          {key}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Tags</Label>
@@ -873,10 +925,9 @@ export function DataToolsManager() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <ToggleField label="Enabled" checked={draft.enabled} onCheckedChange={(checked) => patchDraft({ enabled: checked })} />
-                <ToggleField label="Expose As Tool" checked={draft.expose_as_tool} onCheckedChange={(checked) => patchDraft({ expose_as_tool: checked })} />
-                <ToggleField label="Disable Pooling" checked={draft.disable_pooling} onCheckedChange={(checked) => patchDraft({ disable_pooling: checked })} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ToggleField label="Enabled" checked={draft.enabled} onCheckedChange={(checked) => patchDraft({ enabled: checked })} description="Makes this definition discoverable and executable" />
+                <ToggleField label="Expose As Tool" checked={draft.expose_as_tool} onCheckedChange={(checked) => patchDraft({ expose_as_tool: checked })} description="Publishes as a first-class named MCP tool" />
               </div>
 
               {draft.operation === 'procedure' ? (
@@ -891,12 +942,7 @@ export function DataToolsManager() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                <NumberField label="Command Timeout Seconds" value={draft.command_timeout_seconds} onChange={(value) => patchDraft({ command_timeout_seconds: value })} />
-                <NumberField label="Connection Timeout Seconds" value={draft.connection_timeout_seconds} onChange={(value) => patchDraft({ connection_timeout_seconds: value })} />
-                <NumberField label="Max Pool Size" value={draft.max_pool_size} onChange={(value) => patchDraft({ max_pool_size: value })} />
-                <NumberField label="Min Pool Size" value={draft.min_pool_size} onChange={(value) => patchDraft({ min_pool_size: value })} />
-              </div>
+
 
               <div className="space-y-4">
                 <div>
@@ -922,13 +968,17 @@ export function DataToolsManager() {
                     </Select>
                   </div>
                   <NumberField label="Max Rows" value={draft.result_max_rows} onChange={(value) => patchDraft({ result_max_rows: value })} />
-                  <div className="space-y-2">
-                    <Label>Output Scalar Parameter</Label>
-                    <Input value={draft.output_scalar_parameter} onChange={(event) => patchDraft({ output_scalar_parameter: event.target.value })} placeholder="p_status" />
-                  </div>
+                  {draft.operation === 'procedure' && (
+                    <div className="space-y-2">
+                      <Label>Output Scalar Parameter</Label>
+                      <Input value={draft.output_scalar_parameter} onChange={(event) => patchDraft({ output_scalar_parameter: event.target.value })} placeholder="p_status" />
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 gap-3">
                     <ToggleField label="Include Execution Metadata" checked={draft.include_execution_metadata} onCheckedChange={(checked) => patchDraft({ include_execution_metadata: checked })} />
-                    <ToggleField label="Include Output Parameters" checked={draft.include_output_parameters} onCheckedChange={(checked) => patchDraft({ include_output_parameters: checked })} />
+                    {draft.operation === 'procedure' && (
+                      <ToggleField label="Include Output Parameters" checked={draft.include_output_parameters} onCheckedChange={(checked) => patchDraft({ include_output_parameters: checked })} />
+                    )}
                   </div>
                 </div>
               </div>
@@ -1023,10 +1073,12 @@ export function DataToolsManager() {
                                 </SelectContent>
                               </Select>
                             </div>
-                            <div className="space-y-2">
-                              <Label>Array Item Type</Label>
-                              <Input value={parameter.array_item_type} onChange={(event) => updateParameter(parameter.rowId, { array_item_type: event.target.value })} placeholder="string" />
-                            </div>
+                            {parameter.type === 'array' && (
+                              <div className="space-y-2">
+                                <Label>Array Item Type</Label>
+                                <Input value={parameter.array_item_type} onChange={(event) => updateParameter(parameter.rowId, { array_item_type: event.target.value })} placeholder="string" />
+                              </div>
+                            )}
                             <div className="space-y-2">
                               <Label>Enum Values</Label>
                               <Input value={parameter.enum_text} onChange={(event) => updateParameter(parameter.rowId, { enum_text: event.target.value })} placeholder="one, two, three" />
@@ -1061,7 +1113,23 @@ export function DataToolsManager() {
               </div>
 
               <div className="space-y-4">
-                <div>
+                <div className="border-t pt-4">
+                  <h2 className="text-base font-semibold">Connection &amp; Pool Options</h2>
+                  <p className="text-sm text-muted-foreground">Leave blank to use defaults.</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                  <NumberField label="Command Timeout (sec)" value={draft.command_timeout_seconds} onChange={(value) => patchDraft({ command_timeout_seconds: value })} />
+                  <NumberField label="Connection Timeout (sec)" value={draft.connection_timeout_seconds} onChange={(value) => patchDraft({ connection_timeout_seconds: value })} />
+                  <NumberField label="Max Pool Size" value={draft.max_pool_size} onChange={(value) => patchDraft({ max_pool_size: value })} />
+                  <NumberField label="Min Pool Size" value={draft.min_pool_size} onChange={(value) => patchDraft({ min_pool_size: value })} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <ToggleField label="Disable Pooling" checked={draft.disable_pooling} onCheckedChange={(checked) => patchDraft({ disable_pooling: checked })} description="Disable connection pooling for this definition" />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="border-t pt-4">
                   <h2 className="text-base font-semibold">Advanced JSON</h2>
                   <p className="text-sm text-muted-foreground">Optional explicit schema and provider-specific options.</p>
                 </div>
@@ -1093,6 +1161,23 @@ export function DataToolsManager() {
           </Card>
         </div>
       </div>
+
+      <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. If you continue, they will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Editing</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDiscardConfirmed}>
+              Discard Changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
@@ -1142,14 +1227,19 @@ function ToggleField({
   label,
   checked,
   onCheckedChange,
+  description,
 }: {
   label: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
+  description?: string;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-md border px-3 py-2">
-      <Label>{label}</Label>
+    <div className="flex items-center justify-between rounded-md border px-3 py-2 gap-3">
+      <div>
+        <Label>{label}</Label>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
+      </div>
       <Switch checked={checked} onCheckedChange={onCheckedChange} />
     </div>
   );

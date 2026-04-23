@@ -39,6 +39,10 @@ export function requestDataToolsList(): boolean {
   return postWebView2Message({ type: 'data_tools_list_request' });
 }
 
+export function requestConfigConnections(): boolean {
+  return postWebView2Message({ type: 'config_connections_request' });
+}
+
 export function reloadDataTools(): boolean {
   return postWebView2Message({ type: 'data_tools_reload' });
 }

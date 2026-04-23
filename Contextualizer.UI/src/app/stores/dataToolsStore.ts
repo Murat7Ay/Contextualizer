@@ -53,8 +53,11 @@ interface DataToolsStore {
   registryPath: string | null;
   definitions: DataToolDefinitionDto[];
   error: string | null;
+  /** $config:connections.* keys available in the current config/secrets files */
+  connectionKeys: string[];
   setFromHost: (registryPath: string | null, definitions: DataToolDefinitionDto[]) => void;
   setError: (error: string | null) => void;
+  setConnectionKeys: (keys: string[]) => void;
 }
 
 export const useDataToolsStore = create<DataToolsStore>((set) => ({
@@ -62,6 +65,7 @@ export const useDataToolsStore = create<DataToolsStore>((set) => ({
   registryPath: null,
   definitions: [],
   error: null,
+  connectionKeys: [],
   setFromHost: (registryPath, definitions) =>
     set({
       loaded: true,
@@ -70,4 +74,5 @@ export const useDataToolsStore = create<DataToolsStore>((set) => ({
       error: null,
     }),
   setError: (error) => set({ error }),
+  setConnectionKeys: (keys) => set({ connectionKeys: keys }),
 }));

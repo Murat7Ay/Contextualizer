@@ -50,6 +50,11 @@ type DataToolsListMessage = {
   error?: string;
 };
 
+type ConfigConnectionsListMessage = {
+  type: 'config_connections_list';
+  keys: string[];
+};
+
 type CronListMessage = {
   type: 'cron_list';
   isRunning: boolean;
@@ -126,6 +131,7 @@ export function HostBridgeListener() {
   const setTheme = useAppStore((s) => s.setTheme);
   const setDataToolsFromHost = useDataToolsStore((s) => s.setFromHost);
   const setDataToolsError = useDataToolsStore((s) => s.setError);
+  const setConnectionKeys = useDataToolsStore((s) => s.setConnectionKeys);
 
   // Handler Exchange store actions
   const setExchangePackages = useHandlerExchangeStore((s) => s.setPackages);
@@ -165,6 +171,12 @@ export function HostBridgeListener() {
         }
 
         setDataToolsFromHost(m.registryPath ?? null, Array.isArray(m.definitions) ? m.definitions : []);
+        return;
+      }
+
+      if (type === 'config_connections_list') {
+        const m = payload as ConfigConnectionsListMessage;
+        setConnectionKeys(Array.isArray(m.keys) ? m.keys : []);
         return;
       }
 
