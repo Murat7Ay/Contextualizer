@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
+  Check,
+  ChevronsUpDown,
   Plus,
   RefreshCcw,
   Save,
@@ -29,6 +31,8 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog';
 import { cn } from '../ui/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
 import { useDataToolsStore, type DataToolDefinitionDto, type DataToolParameterDefinitionDto } from '../../stores/dataToolsStore';
 import { useHostStore } from '../../stores/hostStore';
 import { useActivityLogStore } from '../../stores/activityLogStore';
@@ -377,6 +381,77 @@ function buildDefinitionFromDraft(draft: DataToolEditorDraft): { definition?: Da
       provider_options: providerOptions.value,
     },
   };
+}
+
+function ConnectionCombobox({
+  value,
+  onChange,
+  connectionKeys,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  connectionKeys: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if (open) setSearch(value);
+  }, [open]);
+
+  const filtered = connectionKeys.filter((k) => k.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          className={cn(
+            'flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background',
+            'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+          )}
+        >
+          <span className={cn('truncate font-mono', !value && 'font-sans text-muted-foreground')}>{value || '$config:connections.main_mssql'}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        <Command>
+          <CommandInput
+            placeholder="Type or search connection…"
+            value={search}
+            onValueChange={(v) => {
+              setSearch(v);
+              onChange(v);
+            }}
+          />
+          <CommandList>
+            {connectionKeys.length > 0 && filtered.length === 0 && <CommandEmpty>No matches.</CommandEmpty>}
+            {filtered.length > 0 && (
+              <CommandGroup>
+                {filtered.map((key) => (
+                  <CommandItem
+                    key={key}
+                    value={key}
+                    onSelect={(selected) => {
+                      onChange(selected);
+                      setSearch('');
+                      setOpen(false);
+                    }}
+                  >
+                    <Check className={cn('mr-2 h-4 w-4 shrink-0', value === key ? 'opacity-100' : 'opacity-0')} />
+                    <span className="font-mono text-xs">{key}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export function DataToolsManager() {
@@ -898,26 +973,7 @@ export function DataToolsManager() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Connection</Label>
-                  <Input value={draft.connection} onChange={(event) => patchDraft({ connection: event.target.value })} placeholder="$config:connections.main_mssql" />
-                  {connectionKeys.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {connectionKeys.map((key) => (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => patchDraft({ connection: key })}
-                          className={cn(
-                            'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium font-mono transition-colors',
-                            draft.connection === key
-                              ? 'border-primary bg-primary text-primary-foreground'
-                              : 'border-border bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                          )}
-                        >
-                          {key}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <ConnectionCombobox value={draft.connection} onChange={(v) => patchDraft({ connection: v })} connectionKeys={connectionKeys} />
                 </div>
                 <div className="space-y-2">
                   <Label>Tags</Label>
