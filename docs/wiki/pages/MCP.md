@@ -15,10 +15,13 @@
 ## Tool Registry
 - Built-in UI tools (confirm, user inputs, notify, show markdown)
 - Built-in shell execution tool (`run_shell`)
-- Built-in data tools (`db_statements_list`, `db_statement_get`, `db_select_statement`, `db_scalar`, `db_execute`, `db_procedure_execute`)
+- Optional built-in generic data tools (`db_statements_list`, `db_statement_get`, `db_select_statement`, `db_scalar`, `db_execute`, `db_procedure_execute`) when **Enable Generic Data Tools** is enabled in MCP settings
+- Config-driven raw SQL tools from `[mcp_raw_sql_tools]`
 - Registry-backed direct data tools (published from `data-tools.json`)
 - Handler-backed tools (per handler with MCP enabled)
 - Management tools (optional, gated)
+
+The generic data tools flag is stored in the normal app settings and is exposed in **Settings → Advanced → MCP HTTP Server** as a restart-required toggle.
 
 ## Handler Tool Execution
 - Request arguments are converted into a seed context.
@@ -26,8 +29,10 @@
 - `Dispatch.ExecuteWithResultAsync` is used for handler-backed tools.
 
 ## Data Tool Execution
-- Generic built-in data tools resolve definitions by `id` from the data-tools registry.
+- Generic built-in data tools resolve definitions by `id` from the data-tools registry when enabled.
 - Direct data tools resolve by tool name for enabled definitions with `expose_as_tool: true`.
+- Config-driven raw SQL tools resolve to a fixed configured provider + connection and accept runtime SQL text.
+- Raw SQL tool descriptions can now be authored explicitly from the UI, and single-mode tools omit the `mode` argument from the MCP schema.
 - Current execution support is relational (`mssql`, `plsql`); the registry model is provider-oriented for future extensions.
 - Data tool statements are executed outside the handler pipeline and return structured JSON payloads directly.
 

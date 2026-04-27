@@ -17,6 +17,21 @@ namespace Contextualizer.Core.Services.DataTools
             return definition != null && DataToolProviders.IsRelational(definition.Provider);
         }
 
+        public static string ResolveConnectionTemplate(string connectionTemplate)
+        {
+            return ResolveConnection(connectionTemplate);
+        }
+
+        public static bool IsSafeReadStatement(string statement)
+        {
+            return IsAllowedSelectStatement(statement);
+        }
+
+        public static bool IsSafeExecuteStatement(string statement)
+        {
+            return IsAllowedExecuteStatement(statement);
+        }
+
         public static async Task<DataToolExecutionResult> ExecuteAsync(DataToolDefinition definition, Dictionary<string, object?> arguments)
         {
             if (definition == null)

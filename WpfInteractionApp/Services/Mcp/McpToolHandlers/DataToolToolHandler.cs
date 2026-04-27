@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using WpfInteractionApp.Services.Mcp;
 using WpfInteractionApp.Services.Mcp.McpModels;
 using WpfInteractionApp.Services.Mcp.McpSchemas;
 
@@ -21,6 +22,9 @@ namespace WpfInteractionApp.Services.Mcp.McpToolHandlers
 
         public static async Task<JsonRpcResponse?> TryHandleBuiltInAsync(JsonRpcRequest request, McpToolsCallParams callParams, JsonSerializerOptions jsonOptions)
         {
+            if (!DataToolMcpSettings.IsGenericDataToolsEnabled())
+                return null;
+
             var registry = ServiceLocator.SafeGet<DataToolRegistryService>();
             if (registry == null)
                 return null;

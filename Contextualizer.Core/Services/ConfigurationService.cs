@@ -107,6 +107,42 @@ namespace Contextualizer.Core.Services
             return result;
         }
 
+        public Dictionary<string, string> GetSectionFromFile(string fileType, string sectionName)
+        {
+            if (!IsEnabled || string.IsNullOrWhiteSpace(sectionName))
+                return new Dictionary<string, string>();
+
+            CheckForFileChanges();
+
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var sectionPrefix = $"{sectionName}.";
+            var sourceDictionary = string.Equals(fileType, "secrets", StringComparison.OrdinalIgnoreCase)
+                ? _secretValues
+                : _configValues;
+
+            foreach (var kvp in sourceDictionary.Where(x => x.Key.StartsWith(sectionPrefix, StringComparison.OrdinalIgnoreCase)))
+            {
+                var keyWithoutSection = kvp.Key.Substring(sectionPrefix.Length);
+                result[keyWithoutSection] = kvp.Value;
+            }
+
+            return result;
+        }
+
+        public void RemoveValue(string fileType, string section, string key)
+        {
+            if (!IsEnabled || string.IsNullOrWhiteSpace(fileType) || string.IsNullOrWhiteSpace(section) || string.IsNullOrWhiteSpace(key))
+                return;
+
+            var normalizedFileType = fileType.Equals("secrets", StringComparison.OrdinalIgnoreCase) ? "secrets" : "config";
+            var filePath = normalizedFileType == "secrets" ? _settings.SecretsFilePath : _settings.ConfigFilePath;
+            var fullKey = $"{section}.{key}";
+            var targetDictionary = normalizedFileType == "secrets" ? _secretValues : _configValues;
+
+            targetDictionary.Remove(fullKey);
+            RemoveFromIniFile(filePath, section, key);
+        }
+
         public List<string> GetAllKeys()
         {
             if (!IsEnabled) return new List<string>();
@@ -329,6 +365,78 @@ log_level=Info
             catch (Exception ex)
             {
                 UserFeedback.ShowError($"Config dosyası yazılamadı '{filePath}': {ex.Message}");
+            }
+        }
+
+        private void RemoveFromIniFile(string filePath, string section, string key)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                    return;
+
+                var lines = File.ReadAllLines(filePath, System.Text.Encoding.UTF8).ToList();
+                var sectionHeader = $"[{section}]";
+                var sectionIndex = -1;
+                var keyIndex = -1;
+
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    var line = lines[i].Trim();
+                    if (!line.Equals(sectionHeader, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    sectionIndex = i;
+                    for (int j = i + 1; j < lines.Count; j++)
+                    {
+                        var keyLine = lines[j].Trim();
+                        if (keyLine.StartsWith("["))
+                            break;
+
+                        if (keyLine.StartsWith($"{key}=", StringComparison.OrdinalIgnoreCase))
+                        {
+                            keyIndex = j;
+                            break;
+                        }
+                    }
+
+                    break;
+                }
+
+                if (keyIndex < 0)
+                    return;
+
+                lines.RemoveAt(keyIndex);
+
+                if (sectionIndex >= 0)
+                {
+                    var hasRemainingKeys = false;
+                    for (int i = sectionIndex + 1; i < lines.Count; i++)
+                    {
+                        var line = lines[i].Trim();
+                        if (line.StartsWith("["))
+                            break;
+
+                        if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith(";") && !line.StartsWith("#"))
+                        {
+                            hasRemainingKeys = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasRemainingKeys)
+                    {
+                        lines.RemoveAt(sectionIndex);
+                        if (sectionIndex < lines.Count && string.IsNullOrWhiteSpace(lines[sectionIndex]))
+                            lines.RemoveAt(sectionIndex);
+                    }
+                }
+
+                File.WriteAllLines(filePath, lines, System.Text.Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                UserFeedback.ShowError($"Config dosyasından değer silinemedi '{filePath}': {ex.Message}");
             }
         }
 

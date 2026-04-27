@@ -115,6 +115,10 @@ namespace WpfInteractionApp.Services.Mcp
             if (string.Equals(callParams.Name, ShellToolHandler.RunShellToolName, StringComparison.OrdinalIgnoreCase))
                 return await ShellToolHandler.HandleRunShellAsync(request, callParams, jsonOptions);
 
+            var rawSqlTool = await RawSqlToolHandler.TryHandleAsync(request, callParams, jsonOptions);
+            if (rawSqlTool != null)
+                return rawSqlTool;
+
             var dataToolBuiltin = await DataToolToolHandler.TryHandleBuiltInAsync(request, callParams, jsonOptions);
             if (dataToolBuiltin != null)
                 return dataToolBuiltin;

@@ -43,6 +43,19 @@ export function requestConfigConnections(): boolean {
   return postWebView2Message({ type: 'config_connections_request' });
 }
 
+export function requestRawSqlToolsList(): boolean {
+  return postWebView2Message({ type: 'raw_sql_tools_list_request' });
+}
+
+export function saveRawSqlTool(tool: unknown): boolean {
+  return postWebView2Message({ type: 'raw_sql_tool_save', tool });
+}
+
+export function deleteRawSqlTool(toolName: string, fileType: string): boolean {
+  if (!toolName) return false;
+  return postWebView2Message({ type: 'raw_sql_tool_delete', toolName, fileType });
+}
+
 export function reloadDataTools(): boolean {
   return postWebView2Message({ type: 'data_tools_reload' });
 }

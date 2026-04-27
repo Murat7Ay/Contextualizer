@@ -10,7 +10,7 @@ import { HandlerEditorPage } from './components/screens/HandlerEditorPage';
 import { HandlerExchange } from './components/screens/HandlerExchange';
 import { CronManager } from './components/screens/CronManager';
 import { AiSkillsHubScreen } from './components/screens/AiSkillsHubScreen';
-import { DataToolsManager } from './components/screens/DataToolsManager';
+import { DataToolsScreen } from './components/screens/DataToolsScreen';
 import { DynamicTabScreen } from './components/screens/DynamicTabScreen';
 import { Toaster } from 'sonner';
 import { initHostBridge } from './host/initHostBridge';
@@ -46,7 +46,7 @@ export default function App() {
               <Route path="handlers/edit/:name" element={<HandlerEditorPage mode="edit" />} />
               <Route path="marketplace" element={<HandlerExchange />} />
               <Route path="cron" element={<CronManager />} />
-              <Route path="data-tools" element={<DataToolsManager />} />
+              <Route path="data-tools" element={<DataToolsScreen />} />
               <Route path="ai-skills" element={<AiSkillsHubScreen />} />
               <Route path="tab/:screenId/:title" element={<DynamicTabScreen />} />
               {/* Fallback: never show a blank screen */}

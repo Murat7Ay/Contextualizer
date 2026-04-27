@@ -65,6 +65,7 @@ export interface AppSettingsDto {
     port: number;
     useNativeUi: boolean;
     managementToolsEnabled: boolean;
+    genericDataToolsEnabled: boolean;
     dataToolsRegistryPath: string;
   };
 
@@ -110,6 +111,10 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
   setFromHost: (settings) => {
     const merged: AppSettingsDto = {
       ...settings,
+      mcpSettings: {
+        ...settings.mcpSettings,
+        genericDataToolsEnabled: settings.mcpSettings?.genericDataToolsEnabled ?? false,
+      },
       aiSkillsHub: settings.aiSkillsHub ?? {
         sources: [],
         cursorSkillsPath: null,

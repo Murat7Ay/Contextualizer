@@ -87,7 +87,9 @@ Each parameter definition can include:
 - `serialize_as_json`: serializes complex input into JSON before sending it to the database parameter
 
 ## Built-in Generic MCP Tools
-These tools are always registered when the MCP server is enabled.
+These tools are optional and are only registered when **Settings → Advanced → MCP HTTP Server → Enable Generic Data Tools** is enabled.
+
+This flag now lives in the normal application settings (`appsettings.json`), not in `config.ini` / `secrets.ini`. It uses the same restart-required behavior as the main MCP server toggle.
 
 - `db_statements_list`
   - Lists enabled registry definitions
@@ -126,6 +128,54 @@ Flat form also works:
   "institution_code": "123456"
 }
 ```
+
+If **Enable Generic Data Tools** stays off, these generic tools remain hidden from MCP clients.
+
+## Configured Raw SQL MCP Tools
+For one-off code investigation or environment-specific SQL access, you can publish fixed-connection raw SQL tools from config instead of exposing the generic `db_*` surface.
+
+You can manage these from the app under **Data Tools → Raw SQL Tools**.
+
+The UI writes JSON-backed entries under `[mcp_raw_sql_tools]` in `config.ini` or `secrets.ini`, but legacy pipe syntax is still supported.
+
+Legacy syntax:
+
+```ini
+[mcp_raw_sql_tools]
+db_raw_sql_core_test = mssql|$config:connections.core_test
+db_raw_sql_core_prod = mssql|$config:connections.core_prod
+db_raw_sql_maestro_prod = mssql|$config:connections.maestro_prod|select,scalar,execute
+```
+
+JSON syntax written by the UI:
+
+```ini
+[mcp_raw_sql_tools]
+db_raw_sql_core_test={"provider":"mssql","connection":"$config:connections.core_test","modes":["select"],"description":"Inspect Core test data with read-only SQL."}
+db_raw_sql_maestro_prod={"provider":"mssql","connection":"$config:connections.maestro_prod","modes":["select","scalar","execute"],"description":"Use for Maestro production investigation when direct SQL is necessary."}
+```
+
+Format:
+- `provider|connection_template`
+- optional third segment: `|select,scalar,execute`
+- or a JSON object with `provider`, `connection` (or `connection_template`), `modes`, and optional `description`
+
+Notes:
+- If the third segment is omitted, the tool defaults to `select,scalar` (read-only modes).
+- `connection_template` can be a direct connection string or a config-backed placeholder such as `$config:connections.core_test`.
+- Each key becomes a first-class MCP tool name.
+- `description` becomes the MCP tool description shown to the LLM/client.
+
+Raw SQL tools accept:
+- `sql`: required SQL text
+- `mode`: `select`, `scalar`, or `execute` when the tool enables multiple modes
+- `parameters`: optional parameter object
+- `max_rows`: optional row cap for `select`
+- `command_timeout_seconds`: optional timeout override
+
+Schema behavior:
+- if a raw SQL tool has exactly one allowed mode, the MCP schema omits the `mode` field and the runtime uses that mode automatically
+- if a raw SQL tool enables multiple modes, the MCP schema includes a `mode` enum so the client can choose explicitly
 
 ## Dynamic First-Class Tools
 When a definition is:
@@ -256,7 +306,7 @@ Stored procedures are only executed through explicit `procedure` definitions. Th
 
 ### From MCP clients (Claude Desktop, Cursor, etc.)
 
-When Contextualizer's MCP server is running (`mcp_settings.enabled = true`), data tools appear alongside handler tools. Two discovery methods are available:
+When Contextualizer's MCP server is running (`mcp_settings.enabled = true`), direct data tools appear alongside handler tools. If generic tools are enabled, the built-in `db_*` tools also appear.
 
 **1. Ask the built-in `db_statements_list` tool**
 
@@ -276,6 +326,8 @@ Example — list only MSSQL select tools:
   "arguments": { "provider": "mssql", "operation": "select" }
 }
 ```
+
+This method is only available when **Enable Generic Data Tools** is turned on in MCP settings.
 
 **2. `tools/list` MCP call**
 
@@ -313,6 +365,8 @@ Calling it directly:
 ```
 
 Returns the full definition including the generated input schema.
+
+This method is only available when **Enable Generic Data Tools** is turned on in MCP settings.
 
 ### From the in-app Data Tools screen
 

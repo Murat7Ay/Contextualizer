@@ -1707,6 +1707,7 @@ function AdvancedSettings() {
   const mcpEnabled = !!draft?.mcpSettings?.enabled;
   const mcpPort = draft?.mcpSettings?.port ?? 5000;
   const mcpMgmtToolsEnabled = !!draft?.mcpSettings?.managementToolsEnabled;
+  const mcpGenericDataToolsEnabled = !!draft?.mcpSettings?.genericDataToolsEnabled;
   const dataToolsRegistryPath = draft?.mcpSettings?.dataToolsRegistryPath ?? '';
 
   async function browseDataToolsRegistryFile() {
@@ -1837,6 +1838,28 @@ function AdvancedSettings() {
                       mcpSettings: {
                         ...d.mcpSettings,
                         managementToolsEnabled: checked,
+                      },
+                    }))
+                  }
+                  disabled={disabled || !mcpEnabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-md bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
+                <div>
+                  <Label className="font-semibold">Enable Generic Data Tools</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Exposes built-in generic MCP tools such as db_execute and db_scalar in addition to direct named data tools. Requires application restart.
+                  </p>
+                </div>
+                <Switch
+                  checked={mcpGenericDataToolsEnabled}
+                  onCheckedChange={(checked) =>
+                    updateDraft((d) => ({
+                      ...d,
+                      mcpSettings: {
+                        ...d.mcpSettings,
+                        genericDataToolsEnabled: checked,
                       },
                     }))
                   }

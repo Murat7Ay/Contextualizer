@@ -96,6 +96,13 @@ namespace WpfInteractionApp.Settings
         [JsonPropertyName("management_tools_enabled")]
         public bool ManagementToolsEnabled { get; set; } = false;
 
+        /// <summary>
+        /// When true, MCP also exposes the generic db_* data tools in addition to direct named tools.
+        /// Requires application restart to take effect.
+        /// </summary>
+        [JsonPropertyName("generic_data_tools_enabled")]
+        public bool GenericDataToolsEnabled { get; set; } = false;
+
         [JsonPropertyName("data_tools_registry_path")]
         public string DataToolsRegistryPath { get; set; } = @"C:\PortableApps\Contextualizer\Config\data-tools.json";
     }

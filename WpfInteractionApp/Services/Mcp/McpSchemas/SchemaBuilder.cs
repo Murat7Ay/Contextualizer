@@ -31,6 +31,7 @@ namespace WpfInteractionApp.Services.Mcp.McpSchemas
         public static JsonElement DataStatementsListSchema() => DataToolSchemas.DataStatementsListSchema();
         public static JsonElement DataStatementGetSchema() => DataToolSchemas.DataStatementGetSchema();
         public static JsonElement GenericStatementSchema(string idFieldName, string idDescription) => DataToolSchemas.GenericStatementSchema(idFieldName, idDescription);
+        public static JsonElement RawSqlToolSchema(IEnumerable<string> allowedModes) => DataToolSchemas.RawSqlToolSchema(allowedModes);
 
         // Shell Tool Schemas
         public static JsonElement RunShellSchema() => ShellToolSchemas.RunShellSchema();

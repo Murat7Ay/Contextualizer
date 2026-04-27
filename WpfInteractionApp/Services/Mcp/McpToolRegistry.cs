@@ -7,6 +7,7 @@ using Contextualizer.PluginContracts;
 using WpfInteractionApp.Services.Mcp.McpHelpers;
 using WpfInteractionApp.Services.Mcp.McpModels;
 using WpfInteractionApp.Services.Mcp.McpSchemas;
+using WpfInteractionApp.Services.Mcp.McpToolHandlers;
 
 namespace WpfInteractionApp.Services.Mcp
 {
@@ -139,48 +140,61 @@ Tips:
                 InputSchema = SchemaBuilder.RunShellSchema()
             });
 
-            // Built-in data tools
-            AddTool(new McpTool
+            // Built-in data tools (optional; off by default)
+            if (DataToolMcpSettings.IsGenericDataToolsEnabled())
             {
-                Name = DataStatementsListToolName,
-                Description = "List configured data-tool definitions from the data-tools registry. Useful for discovery, filtering, and debugging supported providers and operations.",
-                InputSchema = SchemaBuilder.DataStatementsListSchema()
-            });
+                AddTool(new McpTool
+                {
+                    Name = DataStatementsListToolName,
+                    Description = "List configured data-tool definitions from the data-tools registry. Useful for discovery, filtering, and debugging supported providers and operations.",
+                    InputSchema = SchemaBuilder.DataStatementsListSchema()
+                });
 
-            AddTool(new McpTool
-            {
-                Name = DataStatementGetToolName,
-                Description = "Get a single data-tool definition by id, including its input schema, provider, operation, and parameter metadata.",
-                InputSchema = SchemaBuilder.DataStatementGetSchema()
-            });
+                AddTool(new McpTool
+                {
+                    Name = DataStatementGetToolName,
+                    Description = "Get a single data-tool definition by id, including its input schema, provider, operation, and parameter metadata.",
+                    InputSchema = SchemaBuilder.DataStatementGetSchema()
+                });
 
-            AddTool(new McpTool
-            {
-                Name = DbSelectStatementToolName,
-                Description = "Execute a registry-backed read/query statement by statement_id. Best for parameterized relational read operations (MSSQL/Oracle today; provider model is extensible).",
-                InputSchema = SchemaBuilder.GenericStatementSchema("statement_id", "Registered data-tool definition id for a SELECT-style statement.")
-            });
+                AddTool(new McpTool
+                {
+                    Name = DbSelectStatementToolName,
+                    Description = "Execute a registry-backed read/query statement by statement_id. Best for parameterized relational read operations (MSSQL/Oracle today; provider model is extensible).",
+                    InputSchema = SchemaBuilder.GenericStatementSchema("statement_id", "Registered data-tool definition id for a SELECT-style statement.")
+                });
 
-            AddTool(new McpTool
-            {
-                Name = DbScalarToolName,
-                Description = "Execute a registry-backed scalar statement by statement_id and return a single value.",
-                InputSchema = SchemaBuilder.GenericStatementSchema("statement_id", "Registered data-tool definition id for a scalar statement.")
-            });
+                AddTool(new McpTool
+                {
+                    Name = DbScalarToolName,
+                    Description = "Execute a registry-backed scalar statement by statement_id and return a single value.",
+                    InputSchema = SchemaBuilder.GenericStatementSchema("statement_id", "Registered data-tool definition id for a scalar statement.")
+                });
 
-            AddTool(new McpTool
-            {
-                Name = DbExecuteToolName,
-                Description = "Execute a registry-backed DML statement by statement_id and return affected_rows. Intended for INSERT/UPDATE/DELETE/MERGE style operations.",
-                InputSchema = SchemaBuilder.GenericStatementSchema("statement_id", "Registered data-tool definition id for an execute statement.")
-            });
+                AddTool(new McpTool
+                {
+                    Name = DbExecuteToolName,
+                    Description = "Execute a registry-backed DML statement by statement_id and return affected_rows. Intended for INSERT/UPDATE/DELETE/MERGE style operations.",
+                    InputSchema = SchemaBuilder.GenericStatementSchema("statement_id", "Registered data-tool definition id for an execute statement.")
+                });
 
-            AddTool(new McpTool
+                AddTool(new McpTool
+                {
+                    Name = DbProcedureExecuteToolName,
+                    Description = "Execute a registry-backed stored procedure by procedure_id. Procedure behavior is controlled by the definition result.mode and parameter metadata.",
+                    InputSchema = SchemaBuilder.GenericStatementSchema("procedure_id", "Registered data-tool definition id for a stored procedure.")
+                });
+            }
+
+            foreach (var rawSqlTool in DataToolMcpSettings.GetRawSqlTools())
             {
-                Name = DbProcedureExecuteToolName,
-                Description = "Execute a registry-backed stored procedure by procedure_id. Procedure behavior is controlled by the definition result.mode and parameter metadata.",
-                InputSchema = SchemaBuilder.GenericStatementSchema("procedure_id", "Registered data-tool definition id for a stored procedure.")
-            });
+                AddTool(new McpTool
+                {
+                    Name = rawSqlTool.ToolName,
+                    Description = rawSqlTool.BuildToolDescription(),
+                    InputSchema = SchemaBuilder.RawSqlToolSchema(rawSqlTool.AllowedModes)
+                });
+            }
 
             // Handler-based tools
             var handlerManager = ServiceLocator.SafeGet<HandlerManager>();

@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using WpfInteractionApp.Services;
+using WpfInteractionApp.Services.Mcp;
 using WpfInteractionApp.Settings;
 
 namespace WpfInteractionApp
@@ -499,6 +500,18 @@ namespace WpfInteractionApp
                         SendConfigConnections();
                         break;
 
+                    case "raw_sql_tools_list_request":
+                        SendRawSqlToolsList();
+                        break;
+
+                    case "raw_sql_tool_save":
+                        HandleRawSqlToolSave(root);
+                        break;
+
+                    case "raw_sql_tool_delete":
+                        HandleRawSqlToolDelete(root);
+                        break;
+
                     case "manual_handler_execute":
                         HandleManualHandlerExecute(root);
                         break;
@@ -755,6 +768,7 @@ namespace WpfInteractionApp
                             port = s.McpSettings?.Port ?? 5000,
                             useNativeUi = s.McpSettings?.UseNativeUi ?? true,
                             managementToolsEnabled = s.McpSettings?.ManagementToolsEnabled ?? false,
+                            genericDataToolsEnabled = s.McpSettings?.GenericDataToolsEnabled ?? false,
                             dataToolsRegistryPath = s.McpSettings?.DataToolsRegistryPath
                         },
                         aiSkillsHub = new
@@ -941,6 +955,8 @@ namespace WpfInteractionApp
                         s.McpSettings.UseNativeUi = nui.ValueKind == JsonValueKind.True;
                     if (mcp.TryGetProperty("managementToolsEnabled", out var mte) && mte.ValueKind is JsonValueKind.True or JsonValueKind.False)
                         s.McpSettings.ManagementToolsEnabled = mte.ValueKind == JsonValueKind.True;
+                    if (mcp.TryGetProperty("genericDataToolsEnabled", out var gdte) && gdte.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        s.McpSettings.GenericDataToolsEnabled = gdte.ValueKind == JsonValueKind.True;
                     if (mcp.TryGetProperty("dataToolsRegistryPath", out var dtrp) && dtrp.ValueKind == JsonValueKind.String)
                     {
                         newRegistryPath = dtrp.GetString();
@@ -1611,6 +1627,31 @@ namespace WpfInteractionApp
             PostToUi(new { type = "config_connections_list", keys });
         }
 
+        private void SendRawSqlToolsList()
+        {
+            var settingsService = ServiceLocator.SafeGet<Services.SettingsService>();
+            var definitions = DataToolMcpSettings.GetRawSqlToolsForManagement()
+                .Select(d => new
+                {
+                    tool_name = d.ToolName,
+                    provider = d.Provider,
+                    connection_template = d.ConnectionTemplate,
+                    description = d.Description,
+                    allowed_modes = d.AllowedModes,
+                    source_file_type = d.SourceFileType ?? "config",
+                    effective_description = d.BuildToolDescription()
+                })
+                .ToList();
+
+            PostToUi(new
+            {
+                type = "raw_sql_tools_list",
+                configFilePath = settingsService?.Settings?.ConfigSystem?.ConfigFilePath,
+                secretsFilePath = settingsService?.Settings?.ConfigSystem?.SecretsFilePath,
+                definitions
+            });
+        }
+
         private void SendDataToolsList()
         {
             var registry = ServiceLocator.SafeGet<DataToolRegistryService>();
@@ -1794,6 +1835,132 @@ namespace WpfInteractionApp
             catch (Exception ex)
             {
                 PostToUi(new { type = "data_tool_delete_result", ok = false, error = ex.Message });
+            }
+        }
+
+        private void HandleRawSqlToolSave(JsonElement root)
+        {
+            try
+            {
+                if (!root.TryGetProperty("tool", out var toolEl) || toolEl.ValueKind != JsonValueKind.Object)
+                {
+                    PostToUi(new { type = "raw_sql_tool_save_result", ok = false, error = "Missing tool payload" });
+                    return;
+                }
+
+                var configService = ServiceLocator.SafeGet<IConfigurationService>();
+                if (configService == null || !configService.IsEnabled)
+                {
+                    PostToUi(new { type = "raw_sql_tool_save_result", ok = false, error = "Configuration service is not available" });
+                    return;
+                }
+
+                if (!TryGetString(toolEl, "toolName", out var toolName))
+                {
+                    PostToUi(new { type = "raw_sql_tool_save_result", ok = false, error = "Missing tool name" });
+                    return;
+                }
+
+                if (!TryGetString(toolEl, "connectionTemplate", out var connectionTemplate))
+                {
+                    PostToUi(new { type = "raw_sql_tool_save_result", ok = false, error = "Missing connection template" });
+                    return;
+                }
+
+                var provider = toolEl.TryGetProperty("provider", out var providerEl) && providerEl.ValueKind == JsonValueKind.String
+                    ? (providerEl.GetString() ?? DataToolProviders.MsSql)
+                    : DataToolProviders.MsSql;
+                provider = string.IsNullOrWhiteSpace(provider) ? DataToolProviders.MsSql : provider.Trim().ToLowerInvariant();
+
+                if (!DataToolProviders.IsRelational(provider))
+                {
+                    PostToUi(new { type = "raw_sql_tool_save_result", ok = false, error = $"Unsupported provider '{provider}'" });
+                    return;
+                }
+
+                var description = toolEl.TryGetProperty("description", out var descriptionEl) && descriptionEl.ValueKind == JsonValueKind.String
+                    ? descriptionEl.GetString()
+                    : null;
+                var fileType = toolEl.TryGetProperty("fileType", out var fileTypeEl) && fileTypeEl.ValueKind == JsonValueKind.String
+                    ? (fileTypeEl.GetString() ?? "config")
+                    : "config";
+                fileType = string.Equals(fileType, "secrets", StringComparison.OrdinalIgnoreCase) ? "secrets" : "config";
+
+                if (!TryGetStringArray(toolEl, "allowedModes", out var allowedModes) || allowedModes.Count == 0)
+                {
+                    PostToUi(new { type = "raw_sql_tool_save_result", ok = false, error = "Select at least one mode" });
+                    return;
+                }
+
+                var definition = new RawSqlToolDefinition
+                {
+                    ToolName = toolName,
+                    Provider = provider,
+                    ConnectionTemplate = connectionTemplate,
+                    Description = description,
+                    AllowedModes = allowedModes,
+                    SourceFileType = fileType
+                };
+
+                var serializedValue = DataToolMcpSettings.SerializeRawSqlTool(definition);
+
+                var originalToolName = toolEl.TryGetProperty("originalToolName", out var originalToolNameEl) && originalToolNameEl.ValueKind == JsonValueKind.String
+                    ? originalToolNameEl.GetString()
+                    : null;
+                var originalFileType = toolEl.TryGetProperty("originalFileType", out var originalFileTypeEl) && originalFileTypeEl.ValueKind == JsonValueKind.String
+                    ? originalFileTypeEl.GetString()
+                    : null;
+                originalFileType = string.Equals(originalFileType, "secrets", StringComparison.OrdinalIgnoreCase) ? "secrets" : "config";
+
+                if (!string.IsNullOrWhiteSpace(originalToolName) &&
+                    (!string.Equals(originalToolName, toolName, StringComparison.OrdinalIgnoreCase) || !string.Equals(originalFileType, fileType, StringComparison.OrdinalIgnoreCase)))
+                {
+                    configService.RemoveValue(originalFileType, "mcp_raw_sql_tools", originalToolName);
+                }
+
+                configService.SetValue(fileType, "mcp_raw_sql_tools", toolName, serializedValue);
+                configService.ReloadConfig();
+
+                SendRawSqlToolsList();
+                PostToUi(new { type = "raw_sql_tool_save_result", ok = true, toolName, fileType });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "raw_sql_tool_save_result", ok = false, error = ex.Message });
+            }
+        }
+
+        private void HandleRawSqlToolDelete(JsonElement root)
+        {
+            try
+            {
+                if (!TryGetString(root, "toolName", out var toolName))
+                {
+                    PostToUi(new { type = "raw_sql_tool_delete_result", ok = false, error = "Missing tool name" });
+                    return;
+                }
+
+                var fileType = root.TryGetProperty("fileType", out var fileTypeEl) && fileTypeEl.ValueKind == JsonValueKind.String
+                    ? (fileTypeEl.GetString() ?? "config")
+                    : "config";
+                fileType = string.Equals(fileType, "secrets", StringComparison.OrdinalIgnoreCase) ? "secrets" : "config";
+
+                var configService = ServiceLocator.SafeGet<IConfigurationService>();
+                if (configService == null || !configService.IsEnabled)
+                {
+                    PostToUi(new { type = "raw_sql_tool_delete_result", ok = false, error = "Configuration service is not available" });
+                    return;
+                }
+
+                configService.RemoveValue(fileType, "mcp_raw_sql_tools", toolName);
+                configService.ReloadConfig();
+
+                SendRawSqlToolsList();
+                PostToUi(new { type = "raw_sql_tool_delete_result", ok = true, toolName, fileType });
+            }
+            catch (Exception ex)
+            {
+                PostToUi(new { type = "raw_sql_tool_delete_result", ok = false, error = ex.Message });
             }
         }
 
@@ -2253,6 +2420,25 @@ namespace WpfInteractionApp
                 return false;
             value = el.GetString() ?? string.Empty;
             return !string.IsNullOrWhiteSpace(value);
+        }
+
+        private static bool TryGetStringArray(JsonElement root, string propertyName, out List<string> values)
+        {
+            values = new List<string>();
+            if (!root.TryGetProperty(propertyName, out var el) || el.ValueKind != JsonValueKind.Array)
+                return false;
+
+            foreach (var item in el.EnumerateArray())
+            {
+                if (item.ValueKind != JsonValueKind.String)
+                    continue;
+
+                var value = item.GetString();
+                if (!string.IsNullOrWhiteSpace(value))
+                    values.Add(value.Trim());
+            }
+
+            return values.Count > 0;
         }
 
         private static string NormalizeTabId(string screenId, string title)

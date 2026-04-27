@@ -67,6 +67,60 @@ namespace WpfInteractionApp.Services.Mcp.McpSchemas
             return ToJsonElement(schema);
         }
 
+        public static JsonElement RawSqlToolSchema(IEnumerable<string> allowedModes)
+        {
+            var normalizedModes = allowedModes
+                .Where(mode => !string.IsNullOrWhiteSpace(mode))
+                .Select(mode => mode.ToLowerInvariant())
+                .Distinct(System.StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            var properties = new Dictionary<string, object?>
+            {
+                ["sql"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "string",
+                    ["description"] = "Raw SQL text to execute against this tool's fixed configured connection."
+                },
+                ["parameters"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "object",
+                    ["description"] = "Optional parameter object. Flat top-level parameters also work.",
+                    ["additionalProperties"] = true
+                },
+                ["max_rows"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "integer",
+                    ["description"] = "Maximum returned rows for select mode. Defaults to 200."
+                },
+                ["command_timeout_seconds"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "integer",
+                    ["description"] = "Optional command timeout override in seconds."
+                }
+            };
+
+            if (normalizedModes.Length > 1)
+            {
+                properties["mode"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "string",
+                    ["description"] = "Execution mode for this raw SQL tool.",
+                    ["enum"] = normalizedModes
+                };
+            }
+
+            var schema = new Dictionary<string, object?>
+            {
+                ["type"] = "object",
+                ["properties"] = properties,
+                ["required"] = new[] { "sql" },
+                ["additionalProperties"] = true
+            };
+
+            return ToJsonElement(schema);
+        }
+
         public static JsonElement SchemaForDefinition(DataToolDefinition definition)
         {
             if (definition.InputSchema.HasValue && definition.InputSchema.Value.ValueKind == JsonValueKind.Object)

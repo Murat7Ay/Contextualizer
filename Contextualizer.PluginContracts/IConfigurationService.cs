@@ -49,6 +49,22 @@ namespace Contextualizer.PluginContracts
         Dictionary<string, string> GetSection(string sectionName);
 
         /// <summary>
+        /// Gets configuration values from a specific file and section.
+        /// </summary>
+        /// <param name="fileType">File type: "secrets" or "config"</param>
+        /// <param name="sectionName">Section name (e.g., "api_keys", "endpoints")</param>
+        /// <returns>Dictionary of key-value pairs in the section for that file only</returns>
+        Dictionary<string, string> GetSectionFromFile(string fileType, string sectionName);
+
+        /// <summary>
+        /// Removes a configuration value from the target file.
+        /// </summary>
+        /// <param name="fileType">File type: "secrets" or "config"</param>
+        /// <param name="section">Section name</param>
+        /// <param name="key">Key name</param>
+        void RemoveValue(string fileType, string section, string key);
+
+        /// <summary>
         /// Gets all available configuration keys
         /// </summary>
         /// <returns>List of all configuration keys</returns>

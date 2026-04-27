@@ -18,6 +18,9 @@ This page documents application settings, config system files, and how config va
 - `mcp_settings.data_tools_registry_path` controls where the data-tools registry JSON is loaded from.
 - Default value: `C:\PortableApps\Contextualizer\Config\data-tools.json`
 - If the file does not exist, Contextualizer creates it with disabled sample definitions.
+- Generic data tool exposure is no longer controlled from `config.ini` / `secrets.ini`.
+- Use **Settings → Advanced → MCP HTTP Server → Enable Generic Data Tools** instead.
+- That toggle is stored in the main app settings file (`appsettings.json`), not in the config system INI files.
 
 ## Source References
 - Config service: [Contextualizer.Core/Services/ConfigurationService.cs](Contextualizer.Core/Services/ConfigurationService.cs)
